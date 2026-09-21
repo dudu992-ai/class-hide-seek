@@ -99,8 +99,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
             <li>술래 화면에서는 플레이어가 변신한 사물이 <b>원래 사물과 똑같이</b> 보입니다.</li>
             <li>숨는 사람 화면에서는 <b>술래와 다른 숨는 사람의 닉네임</b>을 볼 수 있습니다.</li>
-            <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 자유롭게 돌아다니며 남은 게임을 구경할 수 있습니다.</li>
-            <li>옵저버의 모습은 <b>술래와 살아 있는 숨는 사람에게 보이지 않습니다.</b> 따라서 게임 중 다른 플레이어와 헷갈리지 않습니다.</li>
+            <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 바뀌어 자신의 캐릭터를 움직이며 남은 게임을 구경할 수 있습니다.</li>
+            <li>옵저버 캐릭터는 <b>본인 화면에만 보이고</b>, 술래와 살아 있는 숨는 사람 화면에는 표시되지 않습니다.</li>
           </ul>
         </div>
         <div class="guideBox">
@@ -408,7 +408,7 @@ function drawNameLabel(p,name,role){
   ctx.font="800 13px system-ui";
   ctx.textAlign="center";
   ctx.textBaseline="middle";
-  const text=(role==="seeker"?"🔎 ":"🙈 ")+name;
+  const text=(role==="seeker"?"🔎 ":role==="observer"?"👀 ":"🙈 ")+name;
   const w=Math.ceil(ctx.measureText(text).width)+14;
   const y=p.y-48;
   ctx.fillStyle="rgba(15,23,42,.82)";
@@ -455,9 +455,16 @@ function drawWorld(){
     aiHiders.forEach(h=>{if(h.found)return;if(h.disguise){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp({type:h.disguise,x:h.x,y:h.y,flowerColor:h.flowerColor});ctx.restore();}else{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(h,false);ctx.restore();}});
     aiSeekers.forEach(s=>{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(s,true);ctx.restore();});
   }
-  if(player&&mode!=="observer"){
+  if(player){
     ctx.save();ctx.translate(-camera.x,-camera.y);
-    if(player.disguise){
+    if(mode==="observer"){
+      // Observer character is drawn only on this observer's own screen.
+      // It is never synced/rendered to seekers or living hiders.
+      drawCharacter(player,false);
+      ctx.strokeStyle="rgba(124,58,237,.9)";ctx.lineWidth=3;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.arc(player.x,player.y,25,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      drawNameLabel(player,"나 (옵저버)","observer");
+    }else if(player.disguise){
       drawProp({type:player.disguise,x:player.x,y:player.y,flowerColor:player.flowerColor});
       // this ring is ONLY for the local hidden player, never shown to seekers
       if(mode==="hider"){ctx.strokeStyle="rgba(37,99,235,.6)";ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(player.x,player.y,24,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
@@ -762,7 +769,7 @@ function enterObserver(){
   roleEl.textContent="👀 옵저버";
   roleEl.className="pill";
   proximityEl.style.display="none";
-  say("👀 잡혔습니다! 옵저버 모드로 남은 게임을 자유롭게 구경할 수 있어요.");
+  say("👀 잡혔습니다! 내 화면에서는 캐릭터로 움직이며 구경할 수 있어요. 술래에게는 보이지 않습니다.");
 }
 function finish(win,msg){
   if(!running)return;running=false;
