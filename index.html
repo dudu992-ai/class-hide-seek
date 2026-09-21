@@ -170,6 +170,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>사물 가까이에서 <b>E</b>를 누르면 그 사물로 변신합니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
+            <li>술래 출발 후 <b>30초에 한 번 도발</b>할 수 있습니다. 가까운 술래에게 짧은 소리가 들립니다.</li>
             <li>술래 화면에서는 플레이어가 변신한 사물이 <b>원래 사물과 똑같이</b> 보입니다.</li>
             <li>숨는 사람 화면에서는 <b>술래와 다른 숨는 사람의 닉네임</b>을 볼 수 있습니다.</li>
             <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 바뀌어 자신의 캐릭터를 움직이며 남은 게임을 구경할 수 있습니다.</li>
@@ -219,7 +220,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <div class="guideWarn" style="margin-top:8px"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다. 게임 중 <b>소리 버튼</b>으로 끄고 켤 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 세로 화면에서는 가로모드 안내가 나오며, 지원 브라우저에서는 <b>전체화면</b> 버튼도 사용할 수 있습니다.</div>
-      <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 게임 중 새로고침은 하지 않는 것이 좋습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 실수로 새로고침해도 같은 기기에서는 이전 방과 역할을 자동으로 복구하도록 되어 있습니다.</div>
       <div class="row" style="margin-top:14px"><button id="closeGuideBtn" class="green">✅ 설명서 확인했어요</button></div>
     </div>
   </div>
@@ -870,7 +871,7 @@ async function adminTogglePause(){
 }
 async function adminForceEnd(){
   if(!online||!isHost||roomState.phase!=="hide")return;
-  await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{phase:"ended",paused:false,endedAt:Date.now()+serverOffset,endReason:"선생님이 게임을 종료했습니다."});
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{phase:"ended",paused:false,cancelled:true,endedAt:Date.now()+serverOffset,endReason:"선생님이 게임을 종료했습니다."});
   closeAdminPanel();
 }
 async function kickPlayer(id){
@@ -933,8 +934,8 @@ function maybeEnterRound(){
   if(mode==="seeker")say("역할 공개 후 숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 찾으세요!");
   else say("역할 공개 후 40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
   seenTaunts={};lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0};
-  saveSession();updateAdminPanel();updateOrientationHint();
-  const was=running;running=true;last=performance.now();if(!was)requestAnimationFrame(loop);
+  saveSession();
+  const was=running;running=true;last=performance.now();updateAdminPanel();updateOrientationHint();if(!was)requestAnimationFrame(loop);
 }
 async function createRoom(){
   if(!(await ensureFirebase()))return;
@@ -1093,9 +1094,9 @@ ensureFirebase();
 function updateGameHelp(){
   let html="";
   if(mode==="hider"){
-    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>달리기</b> 불가<br><b>목표</b> 사물로 변신해 술래에게 들키지 않기";
+    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 사물로 변신해 술래에게 들키지 않기";
   }else if(mode==="seeker"){
-    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시";
+    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시<br><b>도발 소리</b> 가까운 숨는 사람이 도발하면 짧은 소리가 들림";
   }else if(mode==="observer"){
     html="<b>이동</b> WASD / 방향키<br><b>옵저버</b> 자유롭게 구경 가능<br><b>주의</b> 술래와 생존자에게 내 모습은 보이지 않음";
   }else if(mode==="tour"){
@@ -1273,7 +1274,7 @@ function aiSeek(dt,t){
     }
   });
 }
-async function commitRoundStats(){
+async function commitRoundStats(finishAt=gameNow()){
   if(!online||!isHost||!roomCode)return;
   const round=Number(roomState.round||0);if(round<=0)return;
   if(statsCommitPromise)return statsCommitPromise;
@@ -1282,6 +1283,10 @@ async function commitRoundStats(){
       const stSnap=await fb.get(fb.ref(db,"rooms/"+roomCode+"/state"));
       const st=stSnap.val()||{};
       if(Number(st.statsCommittedRound||0)===round)return;
+      if(st.cancelled){
+        await fb.set(fb.ref(db,"rooms/"+roomCode+"/state/statsCommittedRound"),round);
+        return;
+      }
       const participantIds=Object.keys(roles).filter(id=>netPlayers[id]);
       const catcherCounts={};participantIds.forEach(id=>{if(roles[id]==="seeker")catcherCounts[id]=0;});
       participantIds.filter(id=>roles[id]==="hider"&&caughtNet[id]).forEach(id=>{
@@ -1294,7 +1299,7 @@ async function commitRoundStats(){
         const next={rounds:Number(old.rounds||0)+1,survived:Number(old.survived||0),catches:Number(old.catches||0),bestSurvivalSec:Number(old.bestSurvivalSec||0)};
         if(roles[id]==="hider"){
           const info=caughtNet[id];
-          let survivedSec=180;
+          let survivedSec=Math.max(0,Math.min(180,Math.round((Number(finishAt||roundEnd)-hideUntil)/1000)));
           if(info){
             survivedSec=(info&&typeof info==="object")?Math.max(0,Math.min(180,Math.round((Number(info.caughtAt||hideUntil)-hideUntil)/1000))):0;
           }else next.survived++;
@@ -1317,6 +1322,7 @@ async function returnToLobby(){
   updates["rooms/"+roomCode+"/state/paused"]=false;
   updates["rooms/"+roomCode+"/state/pausedAt"]=null;
   updates["rooms/"+roomCode+"/state/endReason"]=null;
+  updates["rooms/"+roomCode+"/state/cancelled"]=false;
   await fb.update(fb.ref(db),updates);
 }
 async function sendTaunt(){
@@ -1435,7 +1441,7 @@ function enterObserver(){
 function finish(win,msg){
   if(!running)return;
   playSfx("finish");
-  if(online&&isHost)commitRoundStats();
+  if(online&&isHost)commitRoundStats(gameNow());
   running=false;roleReveal.style.display="none";pauseBanner.style.display="none";rotateHint.style.display="none";touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
