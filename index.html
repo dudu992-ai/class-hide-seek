@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>25명 교실 숨바꼭질</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,sans-serif;background:#17202a;color:white}
+#top{height:54px;display:flex;align-items:center;gap:16px;padding:0 16px;background:#111827;box-sizing:border-box}
+#top b{font-size:18px} #status{margin-left:auto}
+canvas{display:block;background:#dfe7d8}
+#join,#end{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#101827dd;z-index:5}
+.card{background:white;color:#17202a;padding:24px;border-radius:18px;width:min(420px,88vw);box-shadow:0 15px 50px #0007}
+input,button{font-size:18px;padding:12px;border-radius:10px;border:1px solid #bbb}
+input{width:100%;box-sizing:border-box;margin:8px 0 12px}
+button{cursor:pointer;background:#2563eb;color:white;border:0;font-weight:700}
+.small{font-size:13px;color:#5b6470;line-height:1.5}
+#controls{position:fixed;bottom:14px;left:14px;background:#111b;padding:10px 14px;border-radius:12px;font-size:13px}
+#msg{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#111d;padding:9px 15px;border-radius:12px;font-weight:700}
+</style>
+</head><body>
+<div id="top"><b>🏫 우리반 숨바꼭질</b><span id="role">대기 중</span><span id="timer"></span><span id="status"></span></div>
+<canvas id="game"></canvas><div id="msg">25명까지 접속 가능</div>
+<div id="controls">이동: WASD / 방향키　·　술래 잡기: SPACE　·　H: 사물로 위장</div>
+<div id="join"><div class="card"><h2>🏫 25명 교실 숨바꼭질</h2>
+<label>닉네임</label><input id="name" maxlength="10" placeholder="예: 6사고뭉치 1번">
+<button id="start">게임 들어가기</button>
+<p class="small">이 파일만으로는 각자 다른 크롬북이 자동 연결되지는 않습니다. 같은 URL로 25명이 실시간 플레이하려면 아래 README의 Firebase 설정을 1회 해야 합니다.</p>
+</div></div>
+<script type="module">
+const firebaseConfig = window.FIREBASE_CONFIG || null;
+const cvs=document.querySelector('#game'),ctx=cvs.getContext('2d');
+function resize(){cvs.width=innerWidth;cvs.height=innerHeight-54} resize(); addEventListener('resize',resize);
+const obstacles=[
+{x:110,y:90,w:210,h:80,t:'책상'}, {x:390,y:80,w:180,h:105,t:'사물함'},
+{x:680,y:85,w:190,h:70,t:'책장'}, {x:950,y:80,w:220,h:100,t:'급식대'},
+{x:170,y:310,w:190,h:100,t:'소파'}, {x:490,y:330,w:230,h:70,t:'긴 책상'},
+{x:820,y:300,w:120,h:130,t:'화분'}, {x:1040,y:330,w:180,h:80,t:'캐비닛'}
+];
+let me={id:crypto.randomUUID(),name:'',x:80+Math.random()*700,y:220+Math.random()*250,seeker:false,caught:false,hide:false};
+let players={}, keys={}, startAt=0, seekAt=0, endAt=0, db=null, ref=null, room='CLASS25';
+const role=document.querySelector('#role'), timer=document.querySelector('#timer'), status=document.querySelector('#status');
+document.querySelector('#start').onclick=async()=>{
+ me.name=document.querySelector('#name').value.trim()||'학생';
+ document.querySelector('#join').style.display='none';
+ if(firebaseConfig){
+   const {initializeApp}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
+   const {getDatabase,ref:rf,set,onValue,onDisconnect}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
+   db=getDatabase(initializeApp(firebaseConfig)); ref=rf(db,'rooms/'+room+'/players/'+me.id);
+   onDisconnect(ref).remove(); set(ref,me);
+   onValue(rf(db,'rooms/'+room+'/players'),s=>{players=s.val()||{}; assign();});
+ }else{
+   players[me.id]=me; assign();
+   document.querySelector('#msg').textContent='연습 모드 — 서버 설정 후 25명 멀티 가능';
+ }
+};
+function assign(){
+ let ids=Object.keys(players).sort();
+ if(ids.length && !players[ids[0]].seeker && Date.now()-startAt>1000){
+   // deterministic: first 2 IDs are seekers in display; clients infer roles
+ }
+ me.seeker=ids.indexOf(me.id)<Math.min(2,Math.max(1,Math.floor(ids.length/12)));
+ status.textContent=`접속 ${ids.length}/25`;
+ role.textContent=me.seeker?'🔎 술래':'🙈 숨는 사람';
+}
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key.toLowerCase()==='h'&&!me.seeker)me.hide=!me.hide;if(e.code==='Space'&&me.seeker)catchNear()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
+function catchNear(){
+ for(const [id,p] of Object.entries(players)){
+  if(id===me.id||p.seeker||p.caught)continue;
+  if(Math.hypot(p.x-me.x,p.y-me.y)<58){ p.caught=true; if(db) syncOther(id,p); }
+ }
+}
+async function syncOther(id,p){
+ const {ref:rf,set}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
+ set(rf(db,'rooms/'+room+'/players/'+id),p);
+}
+function blocked(nx,ny){
+ return obstacles.some(o=>nx>o.x-18&&nx<o.x+o.w+18&&ny>o.y-18&&ny<o.y+o.h+18)
+}
+let last=performance.now(),sync=0;
+async function frame(t){
+ let dt=Math.min(.03,(t-last)/1000);last=t;
+ let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
+ let dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+ let len=Math.hypot(dx,dy)||1,nx=me.x+dx/len*190*dt,ny=me.y+dy/len*190*dt;
+ nx=Math.max(22,Math.min(cvs.width-22,nx));ny=Math.max(22,Math.min(cvs.height-22,ny));
+ if(!blocked(nx,me.y))me.x=nx;if(!blocked(me.x,ny))me.y=ny;
+ players[me.id]=me;
+ if(db&&t-sync>90){sync=t; try{const {set}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");await set(ref,me)}catch{}}
+ draw();requestAnimationFrame(frame)
+}requestAnimationFrame(frame);
+function draw(){
+ ctx.clearRect(0,0,cvs.width,cvs.height);
+ ctx.fillStyle='#dfe7d8';ctx.fillRect(0,0,cvs.width,cvs.height);
+ ctx.fillStyle='#c7d2b7';for(let x=0;x<cvs.width;x+=80)ctx.fillRect(x,0,2,cvs.height);
+ for(const o of obstacles){ctx.fillStyle='#8b6b4a';ctx.fillRect(o.x,o.y,o.w,o.h);ctx.fillStyle='#fff';ctx.font='14px sans-serif';ctx.fillText(o.t,o.x+8,o.y+22)}
+ for(const [id,p] of Object.entries(players)){
+   if(p.caught) continue;
+   if(p.hide&&!p.seeker&&id!==me.id){ctx.fillStyle='#6b8e23';ctx.fillRect(p.x-16,p.y-16,32,32)}
+   else{ctx.beginPath();ctx.fillStyle=p.seeker?'#e63946':'#2563eb';ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill()}
+   ctx.fillStyle='#17202a';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText(p.name,p.x,p.y-23);ctx.textAlign='start'
+ }
+}
+</script>
+<script src="config.js"></script>
+</body></html>
