@@ -68,10 +68,14 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <h2>🏫 게임 대기실</h2>
       <p>아이들에게 아래 방 코드만 알려주세요.</p>
       <div id="roomCodeView" class="codeBox">------</div>
-      <div><b>접속 인원 <span id="lobbyCount">0</span>/25</b></div>
+      <div><b>접속 인원 <span id="lobbyCount">0</span>/25</b> · 🔎 술래 희망 <b><span id="wantCount">0</span>명</b></div>
       <div id="playerList"></div>
-      <div class="row"><button id="startOnlineBtn" class="green">▶ 게임 시작</button><button id="leaveBtn" class="alt">나가기</button></div>
-      <div id="lobbyNote" class="note">25명이면 술래 2명, 그보다 적으면 인원에 맞춰 자동 선정합니다. 숨는 시간 25초 후 술래 화면이 열립니다.</div>
+      <div class="row">
+        <button id="wantSeekerBtn" class="alt">🔎 술래 희망하기</button>
+        <button id="startOnlineBtn" class="green">▶ 게임 시작</button>
+        <button id="leaveBtn" class="alt">나가기</button>
+      </div>
+      <div id="lobbyNote" class="note">술래 희망자가 있으면 희망자 중에서 먼저 랜덤 선정합니다. 희망자가 부족하면 나머지 인원 중에서 랜덤으로 채웁니다.</div>
     </div>
   </div>
 
@@ -457,12 +461,31 @@ function showLobby(){
 }
 function updateLobby(){
   const ids=Object.keys(netPlayers);document.getElementById("lobbyCount").textContent=ids.length;
+  const wantIds=ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true);
+  document.getElementById("wantCount").textContent=wantIds.length;
   const list=document.getElementById("playerList");list.innerHTML="";
   ids.sort((a,b)=>(netPlayers[a].joinedAt||0)-(netPlayers[b].joinedAt||0)).forEach((id,i)=>{
-    const d=document.createElement("div");d.className="playerChip";d.textContent=(id===uid?"⭐ ":"")+(netPlayers[id].name||("학생"+(i+1)));list.appendChild(d);
+    const d=document.createElement("div");d.className="playerChip";
+    const want=netPlayers[id]&&netPlayers[id].wantSeeker===true;
+    d.textContent=(id===uid?"⭐ ":"")+(netPlayers[id].name||("학생"+(i+1)))+(want?"  🔎희망":"");
+    list.appendChild(d);
   });
+  const wantBtn=document.getElementById("wantSeekerBtn");
+  const mine=!!(netPlayers[uid]&&netPlayers[uid].wantSeeker);
+  wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";
+  wantBtn.className=mine?"green":"alt";
   const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=ids.length<2;
-  document.getElementById("lobbyNote").textContent=isHost?(ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"준비되면 게임 시작! "+ids.length+"명 접속 중"):"선생님이 게임을 시작할 때까지 기다려 주세요.";
+  if(isHost){
+    const need=ids.length>=12?2:1;
+    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"이번 게임 술래 "+need+"명 · 희망 "+wantIds.length+"명. 희망자를 우선해서 랜덤 선정합니다.";
+  }else{
+    document.getElementById("lobbyNote").textContent=mine?"술래 희망을 눌렀습니다. 희망자가 많으면 그중 랜덤으로 선정됩니다.":"술래를 하고 싶으면 ‘술래 희망하기’를 눌러 주세요.";
+  }
+}
+async function toggleSeekerPreference(){
+  if(!online||!uid||!roomCode||!netPlayers[uid])return;
+  const next=!(netPlayers[uid].wantSeeker===true);
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/wantSeeker"),next);
 }
 function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
 async function subscribeRoom(){
@@ -495,7 +518,7 @@ async function createRoom(){
   const base="rooms/"+roomCode,now=Date.now()+serverOffset;
   await fb.set(fb.ref(db,base+"/hostUid"),uid);
   await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),createdAt:now});
-  const pr=fb.ref(db,base+"/players/"+uid);await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,joinedAt:now});
+  const pr=fb.ref(db,base+"/players/"+uid);await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
   fb.onDisconnect(pr).remove();await subscribeRoom();
 }
 async function joinRoom(){
@@ -509,14 +532,21 @@ async function joinRoom(){
   const ps=playersSnap.val()||{};if(Object.keys(ps).length>=25){say("방이 가득 찼습니다.");return;}
   roomCode=code;isHost=hostSnap.val()===uid;
   const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid);
-  await fb.set(pr,{name:cleanName(document.getElementById("nick").value),x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,joinedAt:now});
+  await fb.set(pr,{name:cleanName(document.getElementById("nick").value),x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
   fb.onDisconnect(pr).remove();await subscribeRoom();
 }
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
 async function startOnlineRound(){
   if(!online||!isHost)return;
   const ids=Object.keys(netPlayers);if(ids.length<2){say("2명 이상 있어야 시작할 수 있습니다.");return;}
-  const shuffled=shuffle(ids.slice()),seekerCount=ids.length>=12?2:1,seekers=new Set(shuffled.slice(0,seekerCount));
+  const seekerCount=ids.length>=12?2:1;
+  const volunteers=shuffle(ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true));
+  const selected=volunteers.slice(0,seekerCount);
+  if(selected.length<seekerCount){
+    const remaining=shuffle(ids.filter(id=>!selected.includes(id)&&!(netPlayers[id]&&netPlayers[id].wantSeeker===true)));
+    selected.push(...remaining.slice(0,seekerCount-selected.length));
+  }
+  const seekers=new Set(selected);
   const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+25000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
   const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260]];
   const updates={};
@@ -560,6 +590,7 @@ function startGame(which){
 document.getElementById("createBtn").onclick=createRoom;
 document.getElementById("joinBtn").onclick=joinRoom;
 document.getElementById("tourBtn").onclick=()=>startGame("tour");
+document.getElementById("wantSeekerBtn").onclick=toggleSeekerPreference;
 document.getElementById("startOnlineBtn").onclick=startOnlineRound;
 document.getElementById("leaveBtn").onclick=()=>location.reload();
 document.getElementById("again").onclick=()=>{if(online&&isHost)startOnlineRound();else if(!online)startGame("tour");};
