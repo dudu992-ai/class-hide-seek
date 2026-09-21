@@ -582,6 +582,8 @@ function drawWorld(){
   for(let gx=Math.floor(camera.x/64)*64;gx<camera.x+viewW;gx+=64){let sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();}
   for(let gy=Math.floor(camera.y/64)*64;gy<camera.y+viewH;gy+=64){let sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();}
   rooms.forEach(drawRoom);
+
+  // 1) 배경 사물은 항상 가장 아래 레이어에 그립니다.
   const occupied=new Set();
   if(online){
     for(const [id,raw] of Object.entries(netPlayers)){
@@ -595,41 +597,81 @@ function drawWorld(){
       if(origin&&Math.hypot(origin.x-player.x,origin.y-player.y)<9)occupied.add(player.disguiseOriginId);
     }
   }
-  props.forEach(p=>{if(occupied.has(p.id))return;let b=propBounds(p);if(inView(40,b.x,b.y,b.w,b.h)){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp(p);ctx.restore();}});
+  props.forEach(p=>{
+    if(occupied.has(p.id))return;
+    const b=propBounds(p);
+    if(inView(40,b.x,b.y,b.w,b.h)){
+      ctx.save();ctx.translate(-camera.x,-camera.y);drawProp(p);ctx.restore();
+    }
+  });
+
+  const canSeeNames=(mode==="hider"||mode==="observer");
+
+  // 2) 숨는 사람(변신 사물 포함)을 배경 사물 위, 술래 아래에 그립니다.
   if(online){
-    const canSeeNames=(mode==="hider"||mode==="observer");
     for(const [id,raw] of Object.entries(netPlayers)){
+      if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
       const p=renderPlayers[id]||raw;
-      if(id===uid)continue;
-      const r=roles[id];
-      const isObserver=(r==="hider"&&!!caughtNet[id]);
-      // Observers are invisible to all active players so seekers/hiders cannot confuse them with live players.
-      if(isObserver)continue;
       ctx.save();ctx.translate(-camera.x,-camera.y);
-      if(r==="hider"&&p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor});
-      else if(r==="hider"||r==="seeker")drawCharacter(p,r==="seeker");
-      if(canSeeNames&&(r==="hider"||r==="seeker"))drawNameLabel(p,p.name||"학생",r);
+      if(p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor});
+      else drawCharacter(p,false);
+      if(canSeeNames)drawNameLabel(p,p.name||"학생","hider");
       ctx.restore();
     }
   }else{
-    aiHiders.forEach(h=>{if(h.found)return;if(h.disguise){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp({type:h.disguise,x:h.x,y:h.y,flowerColor:h.flowerColor});ctx.restore();}else{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(h,false);ctx.restore();}});
-    aiSeekers.forEach(s=>{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(s,true);ctx.restore();});
+    aiHiders.forEach(h=>{
+      if(h.found)return;
+      ctx.save();ctx.translate(-camera.x,-camera.y);
+      if(h.disguise)drawProp({type:h.disguise,x:h.x,y:h.y,flowerColor:h.flowerColor});
+      else drawCharacter(h,false);
+      ctx.restore();
+    });
   }
-  if(player){
+
+  // 내 숨는 사람 캐릭터도 술래보다 먼저 그려 술래가 항상 위에 보이게 합니다.
+  if(player&&(mode==="hider"||mode==="tour")){
     ctx.save();ctx.translate(-camera.x,-camera.y);
-    if(mode==="observer"){
-      // Observer character is drawn only on this observer's own screen.
-      // It is never synced/rendered to seekers or living hiders.
-      drawCharacter(player,false);
-      ctx.strokeStyle="rgba(124,58,237,.9)";ctx.lineWidth=3;ctx.setLineDash([5,4]);
-      ctx.beginPath();ctx.arc(player.x,player.y,25,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
-      drawNameLabel(player,"나 (옵저버)","observer");
-    }else if(player.disguise){
+    if(player.disguise){
       drawProp({type:player.disguise,x:player.x,y:player.y,flowerColor:player.flowerColor});
-      // this ring is ONLY for the local hidden player, never shown to seekers
-      if(mode==="hider"){ctx.strokeStyle="rgba(37,99,235,.6)";ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(player.x,player.y,24,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
-    }else drawCharacter(player,mode==="seeker");
+      if(mode==="hider"){
+        ctx.strokeStyle="rgba(37,99,235,.6)";ctx.lineWidth=2;ctx.setLineDash([4,4]);
+        ctx.beginPath();ctx.arc(player.x,player.y,24,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      }
+    }else drawCharacter(player,false);
     if(online&&mode==="hider")drawNameLabel(player,(netPlayers[uid]&&netPlayers[uid].name)||"나","hider");
+    ctx.restore();
+  }
+
+  // 3) 술래는 진짜 사물/변신 사물/숨는 사람보다 무조건 나중에 그려 항상 최상단에 표시합니다.
+  if(online){
+    for(const [id,raw] of Object.entries(netPlayers)){
+      if(id===uid||roles[id]!=="seeker")continue;
+      const p=renderPlayers[id]||raw;
+      ctx.save();ctx.translate(-camera.x,-camera.y);
+      drawCharacter(p,true);
+      if(canSeeNames)drawNameLabel(p,p.name||"학생","seeker");
+      ctx.restore();
+    }
+  }else{
+    aiSeekers.forEach(seeker=>{
+      ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(seeker,true);ctx.restore();
+    });
+  }
+
+  // 내 술래 역시 모든 사물과 숨는 사람보다 가장 위에 표시합니다.
+  if(player&&mode==="seeker"){
+    ctx.save();ctx.translate(-camera.x,-camera.y);
+    drawCharacter(player,true);
+    ctx.restore();
+  }
+
+  // 옵저버는 본인 화면에서만 보이며 실제 플레이어의 판정/레이어에는 영향을 주지 않습니다.
+  if(player&&mode==="observer"){
+    ctx.save();ctx.translate(-camera.x,-camera.y);
+    drawCharacter(player,false);
+    ctx.strokeStyle="rgba(124,58,237,.9)";ctx.lineWidth=3;ctx.setLineDash([5,4]);
+    ctx.beginPath();ctx.arc(player.x,player.y,25,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+    drawNameLabel(player,"나 (옵저버)","observer");
     ctx.restore();
   }
 }
