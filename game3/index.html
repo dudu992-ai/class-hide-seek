@@ -51,7 +51,6 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #roleReveal .roleCard{min-width:min(460px,86%);background:#f8fafc;color:#172033;border-radius:22px;padding:28px 24px;box-shadow:0 18px 70px #0008}
 #roleReveal .roleBig{font-size:clamp(34px,7vw,64px);font-weight:1000;margin:8px 0}.roleSub{font-size:16px;color:#64748b;font-weight:800}
 #pauseBanner{display:none;position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:9;background:rgba(30,41,59,.96);border:2px solid #94a3b8;border-radius:18px;padding:18px 24px;font-size:clamp(22px,4vw,38px);font-weight:1000;text-align:center}
-#rotateHint{display:none;position:absolute;left:50%;bottom:190px;transform:translateX(-50%);z-index:9;background:rgba(15,23,42,.94);border:1px solid #64748b;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:850;text-align:center;pointer-events:none}
 #teacherPanel{display:none}.adminKickList{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;max-height:240px;overflow:auto;margin-top:10px}.adminKickRow{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#eef2f7;border-radius:9px;padding:7px 9px;font-size:13px;font-weight:800}.adminKickRow button{padding:7px 9px;font-size:12px;background:#b91c1c}.adminStatus{font-size:13px;color:#475569;background:#eef2f7;border-radius:10px;padding:9px 10px;margin:10px 0}
 @media(max-width:760px){header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#mini{width:168px}#mini canvas{width:152px;height:98px}#gameToggles{right:8px;top:8px;max-width:96%}.gameToggleBtn{padding:7px 8px;font-size:12px}#gameHelpPanel{left:8px;top:88px;width:min(300px,calc(100% - 16px));font-size:12px}}
 </style>
@@ -75,7 +74,6 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   <div id="huntStartSignal">🚨 술래 출발!<br><span style="font-size:.55em">지금부터 찾기 시작!</span></div>
   <div id="roleReveal"><div class="roleCard"><div>이번 라운드 역할</div><div id="roleRevealBig" class="roleBig">🙈 숨는 사람</div><div id="roleRevealSub" class="roleSub">잠시 후 시작합니다!</div></div></div>
   <div id="pauseBanner">⏸ 잠시 멈춤<br><span style="font-size:.5em">선생님이 게임을 일시정지했습니다.</span></div>
-  <div id="rotateHint">📱 화면을 가로로 돌리면 더 편하게 플레이할 수 있어요.</div>
   <div id="gameToggles">
     <button id="helpToggleBtn" class="gameToggleBtn" type="button">🎮 조작법</button>
     <button id="mapToggleBtn" class="gameToggleBtn on" type="button">🗺 미니맵</button>
@@ -219,7 +217,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <div class="guideWarn"><b>✨ 추가 기능:</b> 준비 완료, 역할 공개 연출, 새로고침 후 재접속 복구, 선생님 일시정지·강제종료·내보내기, 라운드 누적 기록, 숨는 사람 30초 도발 기능이 적용됩니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다. 게임 중 <b>소리 버튼</b>으로 끄고 켤 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
-      <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 세로 화면에서는 가로모드 안내가 나오며, 지원 브라우저에서는 <b>전체화면</b> 버튼도 사용할 수 있습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 지원 브라우저에서는 <b>전체화면</b> 버튼도 사용할 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 실수로 새로고침해도 같은 기기에서는 이전 방과 역할을 자동으로 복구하도록 되어 있습니다.</div>
       <div class="row" style="margin-top:14px"><button id="closeGuideBtn" class="green">✅ 설명서 확인했어요</button></div>
     </div>
@@ -257,14 +255,14 @@ const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
 const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
-const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner"),rotateHint=document.getElementById("rotateHint");
+const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner");
 const mapSelect=document.getElementById("mapSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
 const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
-let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false;
+let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false;
 let touchMove={up:false,down:false,left:false,right:false};
 let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0},statsCommitPromise=null;
 try{soundEnabled=localStorage.getItem("kkok_sound")!=="off";}catch{}
@@ -314,10 +312,7 @@ function fit(){
   viewW=r.width; viewH=r.height; game.width=Math.round(r.width*dpr); game.height=Math.round(r.height*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0); draw();
 }
-function updateOrientationHint(){
-  rotateHint.style.display=(touchCapable&&running&&innerHeight>innerWidth)?"block":"none";
-}
-addEventListener("resize",()=>{fit();updateOrientationHint();});
+addEventListener("resize",fit);
 
 function rectRoom(name,x,y,w,h,floor,wall,doorSide){
   const gap=118, half=gap/2;
@@ -1011,6 +1006,7 @@ function activePlayerIds(){
   return Object.keys(netPlayers).filter(id=>netPlayers[id]&&netPlayers[id].connected!==false);
 }
 function saveSession(){
+  if(leavingRoom)return;
   try{
     const p=player||netPlayers[uid]||{};
     localStorage.setItem("kkok_session",JSON.stringify({
@@ -1021,7 +1017,7 @@ function saveSession(){
 }
 function clearSession(){try{localStorage.removeItem("kkok_session");}catch{}}
 async function restoreSession(){
-  if(sessionRestoreAttempted||!fb||online)return;
+  if(leavingRoom||sessionRestoreAttempted||!fb||online)return;
   sessionRestoreAttempted=true;
   let saved=null;
   try{saved=JSON.parse(localStorage.getItem("kkok_session")||"null");}catch{}
@@ -1053,24 +1049,33 @@ async function restoreSession(){
   }catch{clearSession();}
 }
 async function leaveRoom(){
+  if(leavingRoom)return;
+  leavingRoom=true;
+  running=false;online=false;hadPlayerRecord=false;sessionRestoreAttempted=true;
+  touchControls.style.display="none";roleReveal.style.display="none";pauseBanner.style.display="none";
+  teacherPanel.style.display="none";
+  clearSubs();
   clearSession();
-  if(fb&&roomCode&&uid){
-    try{
+  const oldRoom=roomCode;
+  try{
+    if(fb&&oldRoom&&uid){
       const updates={};
-      updates["rooms/"+roomCode+"/players/"+uid]=null;
-      updates["rooms/"+roomCode+"/roles/"+uid]=null;
-      updates["rooms/"+roomCode+"/caught/"+uid]=null;
-      updates["rooms/"+roomCode+"/searches/"+uid]=null;
+      updates["rooms/"+oldRoom+"/players/"+uid]=null;
+      updates["rooms/"+oldRoom+"/roles/"+uid]=null;
+      updates["rooms/"+oldRoom+"/caught/"+uid]=null;
+      updates["rooms/"+oldRoom+"/searches/"+uid]=null;
       await fb.update(fb.ref(db),updates);
-    }catch{}
-  }
-  location.reload();
+    }
+  }catch{}
+  roomCode="";netPlayers={};roles={};caughtNet={};searchesNet={};roomState={};player=null;mode="menu";
+  // Replace instead of ordinary reload so the completed game page cannot reopen itself.
+  location.replace(location.pathname);
 }
 function showLobby(){
   running=false;mode="lobby";touchControls.style.display="none";tauntBtn.style.display="none";teacherBtn.style.display="none";
   roleEl.textContent="대기";roleEl.className="pill";
   document.getElementById("menu").style.display="none";document.getElementById("lobby").style.display="flex";document.getElementById("result").style.display="none";
-  roleReveal.style.display="none";pauseBanner.style.display="none";rotateHint.style.display="none";
+  roleReveal.style.display="none";pauseBanner.style.display="none";
   document.getElementById("roomCodeView").textContent=roomCode||"------";updateLobby();
 }
 function updateLobby(){
@@ -1120,7 +1125,7 @@ async function setLobbyMap(){
 }
 function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
 function handleKicked(){
-  if(!online)return;
+  if(leavingRoom||!online)return;
   clearSession();online=false;running=false;touchControls.style.display="none";
   document.getElementById("lobby").style.display="none";teacherPanel.style.display="none";
   document.getElementById("resultTitle").textContent="🚪 방에서 나왔습니다";
@@ -1195,6 +1200,7 @@ async function subscribeRoom(){
     maybeEnterRound();updateAdminPanel();
   }));
   unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{
+    if(leavingRoom)return;
     netPlayers=snap.val()||{};
     if(netPlayers[uid]){hadPlayerRecord=true;saveSession();}
     else if(hadPlayerRecord){handleKicked();return;}
@@ -1233,7 +1239,7 @@ function maybeEnterRound(){
   else say("역할 공개 후 40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
   seenTaunts={};lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0};
   saveSession();
-  const was=running;running=true;last=performance.now();updateAdminPanel();updateOrientationHint();if(!was)requestAnimationFrame(loop);
+  const was=running;running=true;last=performance.now();updateAdminPanel();if(!was)requestAnimationFrame(loop);
 }
 async function createRoom(){
   if(!(await ensureFirebase()))return;
@@ -1756,7 +1762,7 @@ function finish(win,msg){
   if(!running)return;
   playSfx("finish");
   if(online&&isHost)commitRoundStats(gameNow());
-  running=false;roleReveal.style.display="none";pauseBanner.style.display="none";rotateHint.style.display="none";touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
+  running=false;roleReveal.style.display="none";pauseBanner.style.display="none";touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
     title.textContent="📊 라운드 결과";
@@ -1855,7 +1861,7 @@ function loop(t){
   if(online&&player&&mode!=="observer"&&!locked&&t-lastNetSync>220){lastNetSync=t;syncPlayerNow(false);}
   smoothRemotePlayers(dt);
   if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
-  updateHud(now);updateRoleReveal(now);updateGameHelp();updateTouchControls(now);updateTauntButton(now);checkIncomingTaunts(rawNow);updateHuntStartSignal(now);updateSeekerProximity(now);updateOrientationHint();draw();requestAnimationFrame(loop);
+  updateHud(now);updateRoleReveal(now);updateGameHelp();updateTouchControls(now);updateTauntButton(now);checkIncomingTaunts(rawNow);updateHuntStartSignal(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
 }
 updateGameHelp();applyGamePanels();fit();camera.x=1000;camera.y=450;draw();
 })();
