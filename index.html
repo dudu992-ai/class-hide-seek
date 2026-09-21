@@ -28,6 +28,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #playerList{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;max-height:210px;overflow:auto;margin:12px 0}
 .playerChip{background:#eef2f7;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:700}.serverOk{color:#166534}.serverBad{color:#b91c1c}
 .guideGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.guideBox{background:#eef2f7;border-radius:12px;padding:12px}.guideBox h3{margin:0 0 7px;font-size:16px}.guideBox p,.guideBox li{font-size:14px;line-height:1.55}.guideBox ul{margin:6px 0 0;padding-left:20px}.guideFlow{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.guideStep{background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:800}.guideWarn{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5}
+.resultSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.resultStat{background:#eef2f7;border-radius:12px;padding:10px;text-align:center}.resultStat b{display:block;font-size:22px;margin-top:3px}.resultCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.resultBox{background:#eef2f7;border-radius:12px;padding:11px}.resultBox h3{margin:0 0 7px;font-size:15px}.resultList{margin:0;padding-left:19px;font-size:13px;line-height:1.65}.resultSeeker{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.6}
+@media(max-width:640px){.resultSummary{grid-template-columns:1fr 1fr 1fr}.resultCols{grid-template-columns:1fr}}
 @media(max-width:640px){.guideGrid{grid-template-columns:1fr}}.card button{font:inherit;border:0;border-radius:11px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}.card button.alt{background:#334155}.card button.green{background:#15803d}.card button:focus{outline:3px solid #93c5fd}.note{font-size:13px;color:#5f6b7a;background:#eef2f7;padding:10px;border-radius:10px;margin-top:14px}
 #result{display:none}.kbd{display:inline-block;background:#fff;color:#111827;border:1px solid #cbd5e1;border-bottom-width:3px;border-radius:6px;padding:1px 6px;font-weight:800}
 @media(max-width:760px){#mini{display:none}header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#help{font-size:11px;max-width:90%}}
@@ -136,6 +138,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>게임 시작 때마다 가구·소품·꽃 배치가 랜덤으로 달라집니다.</li>
             <li>숨는 사람은 3분 동안 살아남거나 술래의 탐색 기회가 모두 소진되면 승리합니다.</li>
             <li>술래는 제한시간 안에 숨는 사람을 모두 찾으면 승리합니다.</li>
+            <li>라운드가 끝나면 <b>생존자·잡힌 사람·잡힌 시간·잡은 술래·술래별 잡은 인원</b>이 결과 화면에 표시됩니다.</li>
           </ul>
         </div>
       </div>
@@ -145,9 +148,9 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   </div>
 
   <div id="result" class="overlay">
-    <div class="card">
+    <div class="card" style="width:min(820px,96vw);max-height:88%;overflow:auto">
       <h2 id="resultTitle">라운드 종료</h2>
-      <p id="resultText"></p>
+      <div id="resultText"></div>
       <div class="row">
         <button id="again">다시 하기</button>
         <button id="menuBtn" class="alt">역할 선택</button>
@@ -739,7 +742,11 @@ async function inspect(){
   searches--;
   if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/searches/"+uid),searches);
   if(c.kind==="hider"){
-    if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),true);else c.obj.found=true;
+    if(online){
+      const info={caughtAt:Date.now()+serverOffset,caughtBy:uid};
+      caughtNet[c.id]=info;
+      await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),info);
+    }else c.obj.found=true;
     say("🎉 찾았다! 숨어 있던 친구를 발견했습니다.");
   }else say("❌ 그냥 평범한 사물이었습니다.");
   updateHud(gameNow());
@@ -762,6 +769,63 @@ function aiSeek(dt,t){
     }
   });
 }
+function escHtml(v){
+  return String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+}
+function buildOnlineResultHtml(msg){
+  const hiderIds=Object.keys(netPlayers).filter(id=>roles[id]==="hider");
+  const seekerIds=Object.keys(netPlayers).filter(id=>roles[id]==="seeker");
+  const caughtIds=hiderIds.filter(id=>!!caughtNet[id]);
+  const survivedIds=hiderIds.filter(id=>!caughtNet[id]);
+
+  const catcherCounts={};
+  seekerIds.forEach(id=>catcherCounts[id]=0);
+  caughtIds.forEach(id=>{
+    const info=caughtNet[id];
+    if(info&&typeof info==="object"&&info.caughtBy&&catcherCounts[info.caughtBy]!=null)catcherCounts[info.caughtBy]++;
+  });
+
+  const caughtSorted=caughtIds.slice().sort((a,b)=>{
+    const ia=caughtNet[a],ib=caughtNet[b];
+    const ta=ia&&typeof ia==="object"?Number(ia.caughtAt||0):0;
+    const tb=ib&&typeof ib==="object"?Number(ib.caughtAt||0):0;
+    return ta-tb;
+  });
+
+  const survivedHtml=survivedIds.length
+    ? "<ul class=\"resultList\">"+survivedIds.map(id=>"<li>✅ "+escHtml(netPlayers[id]?.name||"학생")+"</li>").join("")+"</ul>"
+    : "<div style=\"font-size:13px\">생존자가 없습니다.</div>";
+
+  const caughtHtml=caughtSorted.length
+    ? "<ul class=\"resultList\">"+caughtSorted.map(id=>{
+        const info=caughtNet[id];
+        const name=escHtml(netPlayers[id]?.name||"학생");
+        let timeText="시간 기록 없음",catcherText="술래 기록 없음";
+        if(info&&typeof info==="object"){
+          const sec=Math.max(0,Math.round((Number(info.caughtAt||hideUntil)-hideUntil)/1000));
+          timeText="술래 출발 후 <b>"+sec+"초</b>";
+          if(info.caughtBy)catcherText="🔎 "+escHtml(netPlayers[info.caughtBy]?.name||"술래");
+        }
+        return "<li>❌ <b>"+name+"</b> — "+timeText+" · "+catcherText+"</li>";
+      }).join("")+"</ul>"
+    : "<div style=\"font-size:13px\">잡힌 사람이 없습니다.</div>";
+
+  const seekerHtml=seekerIds.length
+    ? seekerIds.map(id=>"🔎 <b>"+escHtml(netPlayers[id]?.name||"술래")+"</b> "+Number(catcherCounts[id]||0)+"명").join(" &nbsp; · &nbsp; ")
+    : "술래 기록 없음";
+
+  return "<p style=\"margin:6px 0 10px\">"+escHtml(msg)+"</p>"+
+    "<div class=\"resultSummary\">"+
+      "<div class=\"resultStat\">🙈 숨는 사람<b>"+hiderIds.length+"명</b></div>"+
+      "<div class=\"resultStat\">✅ 생존<b>"+survivedIds.length+"명</b></div>"+
+      "<div class=\"resultStat\">❌ 잡힘<b>"+caughtIds.length+"명</b></div>"+
+    "</div>"+
+    "<div class=\"resultCols\">"+
+      "<div class=\"resultBox\"><h3>🏆 살아남은 사람</h3>"+survivedHtml+"</div>"+
+      "<div class=\"resultBox\"><h3>⏱ 잡힌 사람 / 시간</h3>"+caughtHtml+"</div>"+
+    "</div>"+
+    "<div class=\"resultSeeker\"><b>🔎 술래별 잡은 인원</b><br>"+seekerHtml+"</div>";
+}
 function enterObserver(){
   if(mode==="observer")return;
   mode="observer";
@@ -773,8 +837,14 @@ function enterObserver(){
 }
 function finish(win,msg){
   if(!running)return;running=false;
-  document.getElementById("resultTitle").textContent=win?"🏆 승리!":"😵 라운드 종료";
-  document.getElementById("resultText").textContent=msg;
+  const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
+  if(online){
+    title.textContent="📊 라운드 결과";
+    body.innerHTML=buildOnlineResultHtml(msg);
+  }else{
+    title.textContent=win?"🏆 승리!":"😵 라운드 종료";
+    body.textContent=msg;
+  }
   const a=document.getElementById("again"),m=document.getElementById("menuBtn");
   if(online){a.style.display=isHost?"inline-block":"none";a.textContent="다음 라운드 시작";m.textContent="방 나가기";}else{a.style.display="inline-block";a.textContent="다시 하기";m.textContent="역할 선택";}
   document.getElementById("result").style.display="flex";
