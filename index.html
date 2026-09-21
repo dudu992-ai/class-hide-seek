@@ -255,14 +255,18 @@ const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
-const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
+const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
+const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner"),rotateHint=document.getElementById("rotateHint");
+const mapSelect=document.getElementById("mapSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
+const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
-let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
-let helpPanelOpen=false,mapVisible=true;
+let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
+let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false;
 let touchMove={up:false,down:false,left:false,right:false};
-let audioCtx=null;
+let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0},statsCommitInFlight=false;
+try{soundEnabled=localStorage.getItem("kkok_sound")!=="off";}catch{}
 
 function ensureAudio(){
   try{
@@ -284,6 +288,7 @@ function tone(freq,start,duration,type="sine",volume=.12,endFreq=null){
   }catch{}
 }
 function playSfx(kind){
+  if(!soundEnabled)return;
   ensureAudio();if(!audioCtx)return;
   if(kind==="start"){
     tone(440,0,.13,"square",.09,660);tone(660,.14,.13,"square",.09,880);tone(880,.29,.24,"square",.11,1040);
@@ -293,6 +298,10 @@ function playSfx(kind){
     tone(260,0,.13,"sawtooth",.07,190);tone(180,.14,.22,"sawtooth",.065,120);
   }else if(kind==="finish"){
     tone(740,0,.16,"triangle",.10,620);tone(620,.17,.18,"triangle",.10,520);tone(520,.36,.34,"sine",.11,360);
+  }else if(kind==="taunt"){
+    tone(680,0,.08,"square",.07,820);tone(460,.09,.10,"square",.06,360);tone(760,.20,.12,"triangle",.07,920);
+  }else if(kind==="role"){
+    tone(420,0,.12,"triangle",.07,620);tone(620,.13,.20,"triangle",.08,860);
   }
 }
 // Mobile/desktop browsers allow game audio after the first user interaction.
@@ -304,7 +313,10 @@ function fit(){
   viewW=r.width; viewH=r.height; game.width=Math.round(r.width*dpr); game.height=Math.round(r.height*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0); draw();
 }
-addEventListener("resize",fit);
+function updateOrientationHint(){
+  rotateHint.style.display=(touchCapable&&running&&innerHeight>innerWidth)?"block":"none";
+}
+addEventListener("resize",()=>{fit();updateOrientationHint();});
 
 function rectRoom(name,x,y,w,h,floor,wall,doorSide){
   const gap=118, half=gap/2;
@@ -360,7 +372,28 @@ function randomizeWorld(){
     }else if(p.type==="bush"){p.x+=rand(-18,18);p.y+=rand(-15,15);}
   }
 }
-function buildWorld(seed){
+const MAP_THEMES={
+  school1:{name:"학교 1층",rooms:["6학년 교실","도서관","과학실","급식실","체육관","학생휴게실"],floors:["#d6b47d","#c6a06d","#cfd5d9","#d9c49a","#c99356","#d9c1a2"]},
+  school2:{name:"학교 2층",rooms:["음악실","컴퓨터실","미술실","방송실","강당","상담실"],floors:["#d8c9a6","#b9cbd8","#e3c7d5","#c8d6c0","#c7a06b","#d7c5af"]},
+  museum:{name:"박물관",rooms:["역사전시관","세계문화관","자연사관","과학전시관","특별전시관","뮤지엄 라운지"],floors:["#d8c7a4","#c8b89e","#c6d1c4","#cbd3dc","#bfa889","#d8cec0"]},
+  amusement:{name:"놀이공원",rooms:["게임존","기념품샵","실내놀이터","푸드코트","공연장","휴게존"],floors:["#e7c4a4","#d8b7cf","#bcd8d0","#e7d2a5","#cbb4df","#d6c8b4"]}
+};
+function applyMapTheme(key){
+  const theme=MAP_THEMES[key]||MAP_THEMES.school1;
+  rooms.forEach((r,i)=>{r.name=theme.rooms[i]||r.name;r.floor=theme.floors[i]||r.floor;});
+  if(key==="school2"){
+    for(let i=0;i<7;i++)add("locker",1450+i*105,760);
+    add("globe",1560,420);add("roundTable",2050,300);
+  }else if(key==="museum"){
+    for(let i=0;i<5;i++)add("cabinet",1460+i*145,930);
+    add("skeleton",1590,1240);add("globe",2060,1160);add("bench",1540,760);add("bench",2070,760);
+  }else if(key==="amusement"){
+    for(let i=0;i<7;i++)add("ball",1480+i*65,980);
+    for(let i=0;i<6;i++)add("cone",1510+i*110,1260+(i%2)*80);
+    add("sofa",1880,350);add("sofa",2140,350);add("vending",1720,720);add("vending",1800,720);
+  }
+}
+function buildWorld(seed,mapKey=currentMapKey){
   mapRand=seededRng((seed>>>0)||123456789);
   props=[];walls=[];rooms=[];
   rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
@@ -409,9 +442,11 @@ function buildWorld(seed){
   add("tree",1690,185);add("tree",1695,560);add("bench",1450,700);add("bench",1650,700);
   // outdoor hallway planters
   for(let i=0;i<7;i++)add("plantPot",1450+i*120,720);
+  currentMapKey=MAP_THEMES[mapKey]?mapKey:"school1";
+  applyMapTheme(currentMapKey);
   randomizeWorld();
 }
-buildWorld(currentSeed);
+buildWorld(currentSeed,currentMapKey);
 
 const sizes={
  desk:[66,42],chair:[34,34],teacherDesk:[96,48],board:[160,24],cabinet:[52,74],plantPot:[38,48],trash:[32,42],
