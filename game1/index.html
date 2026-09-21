@@ -17,7 +17,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 @keyframes huntPop{from{transform:translate(-50%,-50%) scale(.7);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes proxPulse{0%{box-shadow:0 0 0 0 rgba(251,146,60,.5)}70%{box-shadow:0 0 0 12px rgba(251,146,60,0)}100%{box-shadow:0 0 0 0 rgba(251,146,60,0)}}
 #help{position:absolute;left:12px;bottom:12px;z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5}
-#gameToggles{position:absolute;right:12px;top:10px;z-index:8;display:flex;gap:7px}
+#gameToggles{position:absolute;right:12px;top:10px;z-index:8;display:flex;gap:7px;flex-wrap:wrap;justify-content:flex-end;max-width:min(720px,92%)}
 .gameToggleBtn{border:1px solid #475569;border-radius:10px;background:rgba(15,23,42,.88);color:#fff;padding:8px 10px;font:800 13px system-ui;cursor:pointer;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
 .gameToggleBtn.on{background:rgba(37,99,235,.92);border-color:#93c5fd}
 #gameHelpPanel{display:none;position:absolute;left:12px;top:58px;z-index:7;width:min(330px,calc(100% - 24px));background:rgba(11,18,32,.94);border:1px solid #475569;border-radius:14px;padding:11px 13px;color:#fff;font-size:13px;line-height:1.55;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
@@ -38,16 +38,22 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07101bdd;z-index:10;padding:20px}
 .card{width:min(660px,94vw);background:#f8fafc;color:#152033;border-radius:20px;padding:24px;box-shadow:0 20px 70px #0008}
 .card h1,.card h2{margin:0 0 10px}.card p{line-height:1.55}.row{display:flex;gap:10px;flex-wrap:wrap}
-.field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:5px}.field input{width:100%;font:inherit;padding:12px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#111827}
+.field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:5px}.field input,.field select{width:100%;font:inherit;padding:12px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#111827}
 .codeBox{font-size:36px;font-weight:900;letter-spacing:7px;text-align:center;background:#eaf2ff;border:2px dashed #60a5fa;border-radius:14px;padding:12px;margin:12px 0}
 #playerList{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;max-height:210px;overflow:auto;margin:12px 0}
-.playerChip{background:#eef2f7;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:700}.serverOk{color:#166534}.serverBad{color:#b91c1c}
+.playerChip{background:#eef2f7;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:700}.playerChip small{display:block;margin-top:4px;color:#64748b;font-weight:700;line-height:1.35}.serverOk{color:#166534}.serverBad{color:#b91c1c}
 .guideGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.guideBox{background:#eef2f7;border-radius:12px;padding:12px}.guideBox h3{margin:0 0 7px;font-size:16px}.guideBox p,.guideBox li{font-size:14px;line-height:1.55}.guideBox ul{margin:6px 0 0;padding-left:20px}.guideFlow{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.guideStep{background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:800}.guideWarn{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5}
 .resultSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.resultStat{background:#eef2f7;border-radius:12px;padding:10px;text-align:center}.resultStat b{display:block;font-size:22px;margin-top:3px}.resultCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.resultBox{background:#eef2f7;border-radius:12px;padding:11px}.resultBox h3{margin:0 0 7px;font-size:15px}.resultList{margin:0;padding-left:19px;font-size:13px;line-height:1.65}.resultSeeker{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.6}
 @media(max-width:640px){.resultSummary{grid-template-columns:1fr 1fr 1fr}.resultCols{grid-template-columns:1fr}}
 @media(max-width:640px){.guideGrid{grid-template-columns:1fr}}.card button{font:inherit;border:0;border-radius:11px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}.card button.alt{background:#334155}.card button.green{background:#15803d}.card button:focus{outline:3px solid #93c5fd}.note{font-size:13px;color:#5f6b7a;background:#eef2f7;padding:10px;border-radius:10px;margin-top:14px}
 #result{display:none}.kbd{display:inline-block;background:#fff;color:#111827;border:1px solid #cbd5e1;border-bottom-width:3px;border-radius:6px;padding:1px 6px;font-weight:800}
-@media(max-width:760px){header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#mini{width:168px}#mini canvas{width:152px;height:98px}#gameToggles{right:8px;top:8px}.gameToggleBtn{padding:7px 8px;font-size:12px}#gameHelpPanel{left:8px;top:52px;width:min(300px,calc(100% - 16px));font-size:12px}}
+#roleReveal{display:none;position:absolute;inset:0;z-index:9;align-items:center;justify-content:center;background:rgba(4,10,20,.88);text-align:center;pointer-events:none}
+#roleReveal .roleCard{min-width:min(460px,86%);background:#f8fafc;color:#172033;border-radius:22px;padding:28px 24px;box-shadow:0 18px 70px #0008}
+#roleReveal .roleBig{font-size:clamp(34px,7vw,64px);font-weight:1000;margin:8px 0}.roleSub{font-size:16px;color:#64748b;font-weight:800}
+#pauseBanner{display:none;position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:9;background:rgba(30,41,59,.96);border:2px solid #94a3b8;border-radius:18px;padding:18px 24px;font-size:clamp(22px,4vw,38px);font-weight:1000;text-align:center}
+#rotateHint{display:none;position:absolute;left:50%;bottom:190px;transform:translateX(-50%);z-index:9;background:rgba(15,23,42,.94);border:1px solid #64748b;border-radius:14px;padding:10px 14px;font-size:13px;font-weight:850;text-align:center;pointer-events:none}
+#teacherPanel{display:none}.adminKickList{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;max-height:240px;overflow:auto;margin-top:10px}.adminKickRow{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#eef2f7;border-radius:9px;padding:7px 9px;font-size:13px;font-weight:800}.adminKickRow button{padding:7px 9px;font-size:12px;background:#b91c1c}.adminStatus{font-size:13px;color:#475569;background:#eef2f7;border-radius:10px;padding:9px 10px;margin:10px 0}
+@media(max-width:760px){header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#mini{width:168px}#mini canvas{width:152px;height:98px}#gameToggles{right:8px;top:8px;max-width:96%}.gameToggleBtn{padding:7px 8px;font-size:12px}#gameHelpPanel{left:8px;top:88px;width:min(300px,calc(100% - 16px));font-size:12px}}
 </style>
 </head>
 <body>
@@ -67,9 +73,16 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   <div id="toast">원하는 역할을 골라 체험해보세요.</div>
   <div id="proximity">📡 근처에 숨은 사람이 있어요!</div>
   <div id="huntStartSignal">🚨 술래 출발!<br><span style="font-size:.55em">지금부터 찾기 시작!</span></div>
+  <div id="roleReveal"><div class="roleCard"><div>이번 라운드 역할</div><div id="roleRevealBig" class="roleBig">🙈 숨는 사람</div><div id="roleRevealSub" class="roleSub">잠시 후 시작합니다!</div></div></div>
+  <div id="pauseBanner">⏸ 잠시 멈춤<br><span style="font-size:.5em">선생님이 게임을 일시정지했습니다.</span></div>
+  <div id="rotateHint">📱 화면을 가로로 돌리면 더 편하게 플레이할 수 있어요.</div>
   <div id="gameToggles">
     <button id="helpToggleBtn" class="gameToggleBtn" type="button">🎮 조작법</button>
     <button id="mapToggleBtn" class="gameToggleBtn on" type="button">🗺 미니맵</button>
+    <button id="soundBtn" class="gameToggleBtn on" type="button">🔊 소리</button>
+    <button id="fullBtn" class="gameToggleBtn" type="button">⛶ 전체화면</button>
+    <button id="tauntBtn" class="gameToggleBtn" type="button" style="display:none">😜 도발</button>
+    <button id="teacherBtn" class="gameToggleBtn" type="button" style="display:none">👩‍🏫 관리</button>
   </div>
   <div id="gameHelpPanel">
     <div class="helpTitle">🎮 게임 중 조작법</div>
@@ -106,15 +119,38 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <h2>🏫 게임 대기실</h2>
       <p>아이들에게 아래 방 코드만 알려주세요.</p>
       <div id="roomCodeView" class="codeBox">------</div>
-      <div><b>접속 인원 <span id="lobbyCount">0</span>/30</b> · 🔎 술래 희망 <b><span id="wantCount">0</span>명</b></div>
+      <div><b>접속 인원 <span id="lobbyCount">0</span>/30</b> · ✅ 준비 <b><span id="readyCount">0</span>명</b> · 🔎 술래 희망 <b><span id="wantCount">0</span>명</b></div>
+      <div class="field"><label for="mapSelect">🗺 이번 라운드 맵</label><select id="mapSelect">
+        <option value="school1">학교 1층</option>
+        <option value="school2">학교 2층</option>
+        <option value="museum">박물관</option>
+        <option value="amusement">놀이공원</option>
+      </select></div>
       <div id="playerList"></div>
       <div class="row">
+        <button id="readyBtn" class="green">✅ 준비 완료</button>
         <button id="wantSeekerBtn" class="alt">🔎 술래 희망하기</button>
         <button id="lobbyGuideBtn" class="alt">📖 게임 설명서</button>
+        <button id="lobbyAdminBtn" class="alt" style="display:none">👩‍🏫 관리자</button>
         <button id="startOnlineBtn" class="green">▶ 게임 시작</button>
         <button id="leaveBtn" class="alt">나가기</button>
       </div>
       <div id="lobbyNote" class="note">술래 희망자가 있으면 희망자 중에서 먼저 랜덤 선정합니다. 희망자가 부족하면 나머지 인원 중에서 랜덤으로 채웁니다.</div>
+    </div>
+  </div>
+
+  <div id="teacherPanel" class="overlay">
+    <div class="card" style="width:min(760px,96vw);max-height:88%;overflow:auto">
+      <h2>👩‍🏫 선생님 관리자</h2>
+      <div id="adminStatus" class="adminStatus">게임 상태를 확인하는 중입니다.</div>
+      <div class="row">
+        <button id="adminPauseBtn" class="alt">⏸ 일시정지</button>
+        <button id="adminForceEndBtn" class="alt">⏹ 게임 강제 종료</button>
+        <button id="adminForceStartBtn" class="green">▶ 준비 무시하고 새 라운드</button>
+        <button id="adminCloseBtn" class="alt">닫기</button>
+      </div>
+      <h3 style="margin-bottom:6px">참가자 관리</h3>
+      <div id="adminKickList" class="adminKickList"></div>
     </div>
   </div>
 
@@ -123,7 +159,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <h2>📖 꼭꼭숨어라 머리카락보인다 설명서</h2>
       <p><b>목표:</b> 숨는 사람은 학교의 사물로 변신해 끝까지 살아남고, 술래는 제한된 탐색 횟수 안에 숨은 친구들을 찾아야 합니다. 한 방에 <b>최대 30명</b>까지 참가할 수 있습니다.</p>
       <div class="guideFlow">
-        <span class="guideStep">① 방 코드로 참가</span><span class="guideStep">② 술래 희망 선택</span><span class="guideStep">③ 역할 랜덤 배정</span><span class="guideStep">④ 40초 숨기</span><span class="guideStep">⑤ 3분 찾기</span>
+        <span class="guideStep">① 방 코드 참가</span><span class="guideStep">② 준비 완료</span><span class="guideStep">③ 역할 공개</span><span class="guideStep">④ 40초 숨기</span><span class="guideStep">⑤ 3분 찾기</span>
       </div>
       <div class="guideGrid">
         <div class="guideBox">
@@ -134,6 +170,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>사물 가까이에서 <b>E</b>를 누르면 그 사물로 변신합니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
+            <li>술래 출발 후 <b>30초에 한 번 도발</b>할 수 있습니다. 가까운 술래에게 짧은 소리가 들립니다.</li>
             <li>술래 화면에서는 플레이어가 변신한 사물이 <b>원래 사물과 똑같이</b> 보입니다.</li>
             <li>숨는 사람 화면에서는 <b>술래와 다른 숨는 사람의 닉네임</b>을 볼 수 있습니다.</li>
             <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 바뀌어 자신의 캐릭터를 움직이며 남은 게임을 구경할 수 있습니다.</li>
@@ -171,6 +208,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <h3>🗺 맵과 승리 조건</h3>
           <ul>
             <li>교실·도서관·과학실·급식실·체육관·휴게실·화단을 자유롭게 이동할 수 있습니다.</li>
+            <li>선생님이 <b>학교 1층·학교 2층·박물관·놀이공원</b> 테마를 고를 수 있습니다.</li>
             <li>게임 시작 때마다 가구·소품·꽃 배치가 랜덤으로 달라집니다.</li>
             <li>숨는 사람은 3분 동안 살아남거나 술래의 탐색 기회가 모두 소진되면 승리합니다.</li>
             <li>술래는 제한시간 안에 숨는 사람을 모두 찾으면 승리합니다.</li>
@@ -178,10 +216,11 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           </ul>
         </div>
       </div>
-      <div class="guideWarn"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다.</div>
+      <div class="guideWarn"><b>✨ 추가 기능:</b> 준비 완료, 역할 공개 연출, 새로고침 후 재접속 복구, 선생님 일시정지·강제종료·내보내기, 라운드 누적 기록, 숨는 사람 30초 도발 기능이 적용됩니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다. 게임 중 <b>소리 버튼</b>으로 끄고 켤 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
-      <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 숨는 사람은 <b>변신</b> 버튼, 술래는 <b>조사·달리기</b> 버튼을 사용합니다. 옵저버는 이동 방향키로 돌아다닐 수 있습니다.</div>
-      <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 게임 중 새로고침은 하지 않는 것이 좋습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 세로 화면에서는 가로모드 안내가 나오며, 지원 브라우저에서는 <b>전체화면</b> 버튼도 사용할 수 있습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 실수로 새로고침해도 같은 기기에서는 이전 방과 역할을 자동으로 복구하도록 되어 있습니다.</div>
       <div class="row" style="margin-top:14px"><button id="closeGuideBtn" class="green">✅ 설명서 확인했어요</button></div>
     </div>
   </div>
@@ -217,14 +256,18 @@ const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
-const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
+const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
+const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner"),rotateHint=document.getElementById("rotateHint");
+const mapSelect=document.getElementById("mapSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
+const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
-let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
-let helpPanelOpen=false,mapVisible=true;
+let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
+let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false;
 let touchMove={up:false,down:false,left:false,right:false};
-let audioCtx=null;
+let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0},statsCommitPromise=null;
+try{soundEnabled=localStorage.getItem("kkok_sound")!=="off";}catch{}
 
 function ensureAudio(){
   try{
@@ -246,6 +289,7 @@ function tone(freq,start,duration,type="sine",volume=.12,endFreq=null){
   }catch{}
 }
 function playSfx(kind){
+  if(!soundEnabled)return;
   ensureAudio();if(!audioCtx)return;
   if(kind==="start"){
     tone(440,0,.13,"square",.09,660);tone(660,.14,.13,"square",.09,880);tone(880,.29,.24,"square",.11,1040);
@@ -255,6 +299,10 @@ function playSfx(kind){
     tone(260,0,.13,"sawtooth",.07,190);tone(180,.14,.22,"sawtooth",.065,120);
   }else if(kind==="finish"){
     tone(740,0,.16,"triangle",.10,620);tone(620,.17,.18,"triangle",.10,520);tone(520,.36,.34,"sine",.11,360);
+  }else if(kind==="taunt"){
+    tone(680,0,.08,"square",.07,820);tone(460,.09,.10,"square",.06,360);tone(760,.20,.12,"triangle",.07,920);
+  }else if(kind==="role"){
+    tone(420,0,.12,"triangle",.07,620);tone(620,.13,.20,"triangle",.08,860);
   }
 }
 // Mobile/desktop browsers allow game audio after the first user interaction.
@@ -266,7 +314,10 @@ function fit(){
   viewW=r.width; viewH=r.height; game.width=Math.round(r.width*dpr); game.height=Math.round(r.height*dpr);
   ctx.setTransform(dpr,0,0,dpr,0,0); draw();
 }
-addEventListener("resize",fit);
+function updateOrientationHint(){
+  rotateHint.style.display=(touchCapable&&running&&innerHeight>innerWidth)?"block":"none";
+}
+addEventListener("resize",()=>{fit();updateOrientationHint();});
 
 function rectRoom(name,x,y,w,h,floor,wall,doorSide){
   const gap=118, half=gap/2;
@@ -322,7 +373,28 @@ function randomizeWorld(){
     }else if(p.type==="bush"){p.x+=rand(-18,18);p.y+=rand(-15,15);}
   }
 }
-function buildWorld(seed){
+const MAP_THEMES={
+  school1:{name:"학교 1층",rooms:["6학년 교실","도서관","과학실","급식실","체육관","학생휴게실"],floors:["#d6b47d","#c6a06d","#cfd5d9","#d9c49a","#c99356","#d9c1a2"]},
+  school2:{name:"학교 2층",rooms:["음악실","컴퓨터실","미술실","방송실","강당","상담실"],floors:["#d8c9a6","#b9cbd8","#e3c7d5","#c8d6c0","#c7a06b","#d7c5af"]},
+  museum:{name:"박물관",rooms:["역사전시관","세계문화관","자연사관","과학전시관","특별전시관","뮤지엄 라운지"],floors:["#d8c7a4","#c8b89e","#c6d1c4","#cbd3dc","#bfa889","#d8cec0"]},
+  amusement:{name:"놀이공원",rooms:["게임존","기념품샵","실내놀이터","푸드코트","공연장","휴게존"],floors:["#e7c4a4","#d8b7cf","#bcd8d0","#e7d2a5","#cbb4df","#d6c8b4"]}
+};
+function applyMapTheme(key){
+  const theme=MAP_THEMES[key]||MAP_THEMES.school1;
+  rooms.forEach((r,i)=>{r.name=theme.rooms[i]||r.name;r.floor=theme.floors[i]||r.floor;});
+  if(key==="school2"){
+    for(let i=0;i<7;i++)add("locker",1450+i*105,760);
+    add("globe",1560,420);add("roundTable",2050,300);
+  }else if(key==="museum"){
+    for(let i=0;i<5;i++)add("cabinet",1460+i*145,930);
+    add("skeleton",1590,1240);add("globe",2060,1160);add("bench",1540,760);add("bench",2070,760);
+  }else if(key==="amusement"){
+    for(let i=0;i<7;i++)add("ball",1480+i*65,980);
+    for(let i=0;i<6;i++)add("cone",1510+i*110,1260+(i%2)*80);
+    add("sofa",1880,350);add("sofa",2140,350);add("vending",1720,720);add("vending",1800,720);
+  }
+}
+function buildWorld(seed,mapKey=currentMapKey){
   mapRand=seededRng((seed>>>0)||123456789);
   props=[];walls=[];rooms=[];
   rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
@@ -371,9 +443,12 @@ function buildWorld(seed){
   add("tree",1690,185);add("tree",1695,560);add("bench",1450,700);add("bench",1650,700);
   // outdoor hallway planters
   for(let i=0;i<7;i++)add("plantPot",1450+i*120,720);
+  currentMapKey=MAP_THEMES[mapKey]?mapKey:"school1";
+  applyMapTheme(currentMapKey);
+  const mt=document.querySelector("#mini .t");if(mt)mt.textContent=(MAP_THEMES[currentMapKey]?.name||"학교")+" 미니맵";
   randomizeWorld();
 }
-buildWorld(currentSeed);
+buildWorld(currentSeed,currentMapKey);
 
 const sizes={
  desk:[66,42],chair:[34,34],teacherDesk:[96,48],board:[160,24],cabinet:[52,74],plantPot:[38,48],trash:[32,42],
@@ -509,7 +584,8 @@ function drawWorld(){
   rooms.forEach(drawRoom);
   const occupied=new Set();
   if(online){
-    for(const [id,p] of Object.entries(netPlayers)){
+    for(const [id,raw] of Object.entries(netPlayers)){
+      const p=renderPlayers[id]||raw;
       if(id===uid||caughtNet[id]||roles[id]!=="hider"||!p.disguiseOriginId)continue;
       const origin=props.find(o=>o.id===p.disguiseOriginId);
       if(origin&&Math.hypot(origin.x-p.x,origin.y-p.y)<9)occupied.add(p.disguiseOriginId);
@@ -522,10 +598,11 @@ function drawWorld(){
   props.forEach(p=>{if(occupied.has(p.id))return;let b=propBounds(p);if(inView(40,b.x,b.y,b.w,b.h)){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp(p);ctx.restore();}});
   if(online){
     const canSeeNames=(mode==="hider"||mode==="observer");
-    for(const [id,p] of Object.entries(netPlayers)){
+    for(const [id,raw] of Object.entries(netPlayers)){
+      const p=renderPlayers[id]||raw;
       if(id===uid)continue;
       const r=roles[id];
-      const isObserver=(r==="hider"&&caughtNet[id]===true);
+      const isObserver=(r==="hider"&&!!caughtNet[id]);
       // Observers are invisible to all active players so seekers/hiders cannot confuse them with live players.
       if(isObserver)continue;
       ctx.save();ctx.translate(-camera.x,-camera.y);
@@ -557,7 +634,8 @@ function drawWorld(){
   }
 }
 function drawMini(){
-  if(mode==="seeker"&&gameNow()<hideUntil){
+  const dn=displayGameNow();
+  if(mode==="seeker"&&dn<hideUntil){
     mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#111827";mctx.fillRect(0,0,mini.width,mini.height);
     mctx.fillStyle="#e5e7eb";mctx.font="bold 13px system-ui";mctx.textAlign="center";mctx.fillText("숨는 시간",mini.width/2,mini.height/2-5);mctx.fillText("지도 잠김",mini.width/2,mini.height/2+15);mctx.textAlign="left";return;
   }
@@ -569,8 +647,9 @@ function drawMini(){
 }
 function draw(){
   drawWorld();drawMini();
-  if(mode==="seeker"&&gameNow()<hideUntil){
-    const sec=Math.max(0,Math.ceil((hideUntil-gameNow())/1000));
+  const dn=displayGameNow();
+  if(mode==="seeker"&&dn<hideUntil){
+    const sec=Math.max(0,Math.ceil((hideUntil-dn)/1000));
     ctx.fillStyle="rgba(5,10,18,.94)";ctx.fillRect(0,0,viewW,viewH);
     ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="800 30px system-ui";ctx.fillText("🙈 숨는 사람 준비 중",viewW/2,viewH/2-28);
     ctx.font="900 62px system-ui";ctx.fillStyle="#86efac";ctx.fillText(String(sec),viewW/2,viewH/2+45);
@@ -611,6 +690,10 @@ function moveEntity(e,dx,dy,speed,dt){
 function say(t){toast.textContent=t;lastToast=performance.now();}
 
 function gameNow(){return online?Date.now()+serverOffset:performance.now();}
+function displayGameNow(){
+  const now=gameNow();
+  return online&&roomState.paused?Number(roomState.pausedAt||now):now;
+}
 function cleanName(v){return (v||"").trim().replace(/[<>]/g,"").slice(0,10)||"학생";}
 async function ensureFirebase(){
   if(fb)return true;
@@ -627,48 +710,208 @@ async function ensureFirebase(){
     db=dbm.getDatabase(app);fb=dbm;
     dbm.onValue(dbm.ref(db,".info/serverTimeOffset"),snap=>serverOffset=snap.val()||0);
     status.textContent="✅ 실시간 서버 연결됨 — 방을 만들거나 참가할 수 있습니다.";status.className="note serverOk";
+    setTimeout(()=>restoreSession(),40);
     return true;
   }catch(err){status.textContent="❌ 서버 연결 실패: "+(err&&err.message?err.message:"Firebase 설정을 확인하세요.");status.className="note serverBad";return false;}
 }
+function activePlayerIds(){
+  return Object.keys(netPlayers).filter(id=>netPlayers[id]&&netPlayers[id].connected!==false);
+}
+function saveSession(){
+  try{
+    const p=player||netPlayers[uid]||{};
+    localStorage.setItem("kkok_session",JSON.stringify({
+      roomCode,name:(netPlayers[uid]&&netPlayers[uid].name)||document.getElementById("nick").value||"학생",
+      x:Number(p.x||1200),y:Number(p.y||650),disguise:p.disguise||null,flowerColor:p.flowerColor||null,disguiseOriginId:p.disguiseOriginId||null
+    }));
+  }catch{}
+}
+function clearSession(){try{localStorage.removeItem("kkok_session");}catch{}}
+async function restoreSession(){
+  if(sessionRestoreAttempted||!fb||online)return;
+  sessionRestoreAttempted=true;
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem("kkok_session")||"null");}catch{}
+  if(!saved||!/^[0-9]{6}$/.test(String(saved.roomCode||"")))return;
+  const code=String(saved.roomCode),base="rooms/"+code;
+  try{
+    const [hostSnap,stateSnap,playerSnap,roleSnap]=await Promise.all([
+      fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),
+      fb.get(fb.ref(db,base+"/players/"+uid)),fb.get(fb.ref(db,base+"/roles/"+uid))
+    ]);
+    if(!hostSnap.exists()){clearSession();return;}
+    roomCode=code;isHost=hostSnap.val()===uid;
+    const state=stateSnap.val()||{};
+    const pr=fb.ref(db,base+"/players/"+uid);
+    if(playerSnap.exists()){
+      await fb.update(pr,{connected:true,name:cleanName(playerSnap.val().name||saved.name)});
+    }else if(state.phase==="lobby"||roleSnap.exists()){
+      const now=Date.now()+serverOffset;
+      await fb.set(pr,{
+        name:cleanName(saved.name),x:Number(saved.x||1200),y:Number(saved.y||650),
+        disguise:saved.disguise||null,flowerColor:saved.flowerColor||null,disguiseOriginId:saved.disguiseOriginId||null,
+        wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}
+      });
+    }else{clearSession();return;}
+    try{await fb.onDisconnect(pr).update({connected:false});}catch{}
+    document.getElementById("nick").value=cleanName(saved.name);
+    await subscribeRoom();
+    say("🔄 이전 방에 다시 연결되었습니다.");
+  }catch{clearSession();}
+}
+async function leaveRoom(){
+  clearSession();
+  if(fb&&roomCode&&uid){
+    try{
+      const updates={};
+      updates["rooms/"+roomCode+"/players/"+uid]=null;
+      updates["rooms/"+roomCode+"/roles/"+uid]=null;
+      updates["rooms/"+roomCode+"/caught/"+uid]=null;
+      updates["rooms/"+roomCode+"/searches/"+uid]=null;
+      await fb.update(fb.ref(db),updates);
+    }catch{}
+  }
+  location.reload();
+}
 function showLobby(){
+  running=false;mode="lobby";touchControls.style.display="none";tauntBtn.style.display="none";teacherBtn.style.display="none";
+  roleEl.textContent="대기";roleEl.className="pill";
   document.getElementById("menu").style.display="none";document.getElementById("lobby").style.display="flex";document.getElementById("result").style.display="none";
+  roleReveal.style.display="none";pauseBanner.style.display="none";rotateHint.style.display="none";
   document.getElementById("roomCodeView").textContent=roomCode||"------";updateLobby();
 }
 function updateLobby(){
-  const ids=Object.keys(netPlayers);document.getElementById("lobbyCount").textContent=ids.length;
+  const ids=activePlayerIds();document.getElementById("lobbyCount").textContent=ids.length;
   const wantIds=ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true);
+  const readyIds=ids.filter(id=>netPlayers[id]&&netPlayers[id].ready===true);
   document.getElementById("wantCount").textContent=wantIds.length;
+  document.getElementById("readyCount").textContent=readyIds.length;
   const list=document.getElementById("playerList");list.innerHTML="";
   ids.sort((a,b)=>(netPlayers[a].joinedAt||0)-(netPlayers[b].joinedAt||0)).forEach((id,i)=>{
-    const d=document.createElement("div");d.className="playerChip";
-    const want=netPlayers[id]&&netPlayers[id].wantSeeker===true;
-    d.textContent=(id===uid?"⭐ ":"")+(netPlayers[id].name||("학생"+(i+1)))+(want?"  🔎희망":"");
-    list.appendChild(d);
+    const p=netPlayers[id]||{},d=document.createElement("div");d.className="playerChip";
+    const main=document.createElement("div");
+    main.textContent=(id===uid?"⭐ ":"")+(p.name||("학생"+(i+1)))+(p.ready?"  ✅준비":"  ⏳")+(p.wantSeeker?"  🔎희망":"");
+    const st=p.stats||{},small=document.createElement("small");
+    small.textContent="기록: 생존 "+Number(st.survived||0)+"회 · 잡음 "+Number(st.catches||0)+"명 · 최고 "+Number(st.bestSurvivalSec||0)+"초";
+    d.appendChild(main);d.appendChild(small);list.appendChild(d);
   });
+  const mine=!!(netPlayers[uid]&&netPlayers[uid].wantSeeker),myReady=!!(netPlayers[uid]&&netPlayers[uid].ready);
   const wantBtn=document.getElementById("wantSeekerBtn");
-  const mine=!!(netPlayers[uid]&&netPlayers[uid].wantSeeker);
-  wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";
-  wantBtn.className=mine?"green":"alt";
-  const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=ids.length<2;
+  wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";wantBtn.className=mine?"green":"alt";
+  readyBtn.textContent=myReady?"↩ 준비 취소":"✅ 준비 완료";readyBtn.className=myReady?"alt":"green";
+  mapSelect.value=(roomState.mapKey&&MAP_THEMES[roomState.mapKey])?roomState.mapKey:currentMapKey;
+  mapSelect.disabled=!isHost;
+  lobbyAdminBtn.style.display=isHost?"inline-block":"none";
+  const allReady=ids.length>=2&&readyIds.length===ids.length;
+  const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=!allReady;
   if(isHost){
-    const need=calcSeekerCount(ids.length);
-    const hiders=Math.max(0,ids.length-need),totalAttempts=hiders*2;
-    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"이번 게임 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 술래 팀 총 탐색 "+totalAttempts+"회. 희망자를 우선해서 랜덤 선정합니다.";
+    const need=calcSeekerCount(ids.length),hiders=Math.max(0,ids.length-need),totalAttempts=hiders*2;
+    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"준비 "+readyIds.length+"/"+ids.length+" · 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 팀 탐색 "+totalAttempts+"회. 모두 준비되면 시작 버튼이 열립니다.";
   }else{
-    document.getElementById("lobbyNote").textContent=mine?"술래 희망을 눌렀습니다. 희망자가 많으면 그중 랜덤으로 선정됩니다.":"술래를 하고 싶으면 ‘술래 희망하기’를 눌러 주세요.";
+    document.getElementById("lobbyNote").textContent=myReady?"준비 완료! 선생님이 시작할 때까지 기다려 주세요.":"‘준비 완료’를 누른 뒤 기다려 주세요. 술래 희망은 따로 선택할 수 있습니다.";
   }
+  updateAdminPanel();
+}
+async function toggleReady(){
+  if(!online||!uid||!roomCode||!netPlayers[uid])return;
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/ready"),!(netPlayers[uid].ready===true));
 }
 async function toggleSeekerPreference(){
   if(!online||!uid||!roomCode||!netPlayers[uid])return;
   const next=!(netPlayers[uid].wantSeeker===true);
   await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/wantSeeker"),next);
 }
+async function setLobbyMap(){
+  if(!online||!isHost||!MAP_THEMES[mapSelect.value])return;
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/state/mapKey"),mapSelect.value);
+}
 function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
+function handleKicked(){
+  if(!online)return;
+  clearSession();online=false;running=false;touchControls.style.display="none";
+  document.getElementById("lobby").style.display="none";teacherPanel.style.display="none";
+  document.getElementById("resultTitle").textContent="🚪 방에서 나왔습니다";
+  document.getElementById("resultText").textContent="선생님이 이 기기를 방에서 내보냈습니다.";
+  document.getElementById("again").style.display="none";document.getElementById("menuBtn").textContent="처음 화면";
+  document.getElementById("result").style.display="flex";
+}
+function updateAdminPanel(){
+  teacherBtn.style.display=(online&&isHost&&running)?"inline-block":"none";
+  if(!isHost){lobbyAdminBtn.style.display="none";return;}
+  const ids=activePlayerIds();
+  const phase=roomState.phase||"lobby";
+  adminStatus.textContent="방 "+roomCode+" · "+(phase==="lobby"?"대기실":phase==="hide"?(roomState.paused?"게임 일시정지":"게임 진행 중"):phase==="ended"?"라운드 종료":"상태 확인 중")+" · 접속 "+ids.length+"명";
+  adminPauseBtn.disabled=phase!=="hide";adminPauseBtn.textContent=roomState.paused?"▶ 다시 시작":"⏸ 일시정지";
+  adminForceEndBtn.disabled=phase!=="hide";
+  adminKickList.innerHTML="";
+  ids.filter(id=>id!==uid).forEach(id=>{
+    const row=document.createElement("div");row.className="adminKickRow";
+    const name=document.createElement("span");name.textContent=(netPlayers[id]&&netPlayers[id].name)||"학생";
+    const b=document.createElement("button");b.type="button";b.textContent="내보내기";b.dataset.kickUid=id;
+    row.appendChild(name);row.appendChild(b);adminKickList.appendChild(row);
+  });
+  if(!adminKickList.children.length)adminKickList.textContent="내보낼 다른 참가자가 없습니다.";
+}
+function openAdminPanel(){if(!isHost)return;updateAdminPanel();teacherPanel.style.display="flex";}
+function closeAdminPanel(){teacherPanel.style.display="none";}
+async function adminTogglePause(){
+  if(!online||!isHost||roomState.phase!=="hide")return;
+  const now=Date.now()+serverOffset;
+  if(roomState.paused){
+    const delta=Math.max(0,now-Number(roomState.pausedAt||now));
+    await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{
+      paused:false,pausedAt:null,
+      revealEndsAt:Number(roomState.revealEndsAt||0)+delta,
+      hideEndsAt:Number(roomState.hideEndsAt||0)+delta,
+      seekEndsAt:Number(roomState.seekEndsAt||0)+delta
+    });
+  }else{
+    await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{paused:true,pausedAt:now});
+  }
+}
+async function adminForceEnd(){
+  if(!online||!isHost||roomState.phase!=="hide")return;
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{phase:"ended",paused:false,cancelled:true,endedAt:Date.now()+serverOffset,endReason:"선생님이 게임을 종료했습니다."});
+  closeAdminPanel();
+}
+async function kickPlayer(id){
+  if(!online||!isHost||!id||id===uid)return;
+  const updates={};
+  updates["rooms/"+roomCode+"/players/"+id]=null;
+  updates["rooms/"+roomCode+"/roles/"+id]=null;
+  updates["rooms/"+roomCode+"/caught/"+id]=null;
+  updates["rooms/"+roomCode+"/searches/"+id]=null;
+  await fb.update(fb.ref(db),updates);
+}
 async function subscribeRoom(){
   clearSubs();online=true;showLobby();
   const base="rooms/"+roomCode;
-  unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{roomState=snap.val()||{};if(roomState.seed&&roomState.seed!==currentSeed){currentSeed=roomState.seed>>>0;buildWorld(currentSeed);}if(roomState.phase==="lobby")showLobby();maybeEnterRound();}));
-  unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{netPlayers=snap.val()||{};updateLobby();maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{
+    roomState=snap.val()||{};
+    const nextMap=(roomState.mapKey&&MAP_THEMES[roomState.mapKey])?roomState.mapKey:"school1";
+    if((roomState.seed&&roomState.seed!==currentSeed)||nextMap!==currentMapKey){
+      if(roomState.seed)currentSeed=roomState.seed>>>0;
+      currentMapKey=nextMap;buildWorld(currentSeed,currentMapKey);
+    }
+    if(roomState.revealEndsAt)roleRevealUntil=Number(roomState.revealEndsAt);
+    if(roomState.hideEndsAt)hideUntil=Number(roomState.hideEndsAt);
+    if(roomState.seekEndsAt)roundEnd=Number(roomState.seekEndsAt);
+    pauseBanner.style.display=(running&&roomState.paused)?"block":"none";
+    if(roomState.phase==="lobby")showLobby();
+    if(roomState.phase==="ended"&&running)finish(false,roomState.endReason||"선생님이 라운드를 종료했습니다.");
+    maybeEnterRound();updateAdminPanel();
+  }));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{
+    netPlayers=snap.val()||{};
+    if(netPlayers[uid]){hadPlayerRecord=true;saveSession();}
+    else if(hadPlayerRecord){handleKicked();return;}
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(!renderPlayers[id])renderPlayers[id]=Object.assign({},p,{targetX:Number(p.x||0),targetY:Number(p.y||0)});
+      else Object.assign(renderPlayers[id],{targetX:Number(p.x||0),targetY:Number(p.y||0),name:p.name,disguise:p.disguise,flowerColor:p.flowerColor,disguiseOriginId:p.disguiseOriginId,connected:p.connected});
+    }
+    Object.keys(renderPlayers).forEach(id=>{if(!netPlayers[id])delete renderPlayers[id];});
+    updateLobby();maybeEnterRound();updateAdminPanel();
+  }));
   unsubs.push(fb.onValue(fb.ref(db,base+"/roles"),snap=>{roles=snap.val()||{};maybeEnterRound();}));
   unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{caughtNet=snap.val()||{};}));
   unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
@@ -678,13 +921,21 @@ function maybeEnterRound(){
   const round=Number(roomState.round||1);
   if(roundApplied===round)return;
   roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=roles[uid];
-  helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
-  hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);searches=Number(searchesNet[uid]||0);
-  document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
+  player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
+  hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);roleRevealUntil=Number(roomState.revealEndsAt||0);searches=Number(searchesNet[uid]||0);
+  document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";teacherPanel.style.display="none";
   roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
-  if(mode==="seeker")say("숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 돌아다니며 찾으세요!");
-  else say("40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
-  const was=running;running=true;last=performance.now();if(!was)requestAnimationFrame(loop);
+  if(gameNow()<roleRevealUntil){
+    roleRevealBig.textContent=mode==="seeker"?"🔎 당신은 술래!":"🙈 당신은 숨는 사람!";
+    roleRevealSub.textContent=mode==="seeker"?"역할 공개 후 40초 동안 기다립니다.":"역할 공개가 끝나면 40초 동안 숨으세요!";
+    roleReveal.style.display="flex";playSfx("role");
+  }else roleReveal.style.display="none";
+  if(mode==="seeker")say("역할 공개 후 숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 찾으세요!");
+  else say("역할 공개 후 40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  seenTaunts={};lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0};
+  saveSession();
+  const was=running;running=true;last=performance.now();updateAdminPanel();updateOrientationHint();if(!was)requestAnimationFrame(loop);
 }
 async function createRoom(){
   if(!(await ensureFirebase()))return;
@@ -694,9 +945,11 @@ async function createRoom(){
   roomCode=code;isHost=true;
   const base="rooms/"+roomCode,now=Date.now()+serverOffset;
   await fb.set(fb.ref(db,base+"/hostUid"),uid);
-  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),createdAt:now});
-  const pr=fb.ref(db,base+"/players/"+uid);await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
-  fb.onDisconnect(pr).remove();await subscribeRoom();
+  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",createdAt:now,paused:false});
+  const pr=fb.ref(db,base+"/players/"+uid);
+  await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
+  try{await fb.onDisconnect(pr).update({connected:false});}catch{}
+  hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
 async function joinRoom(){
   if(!(await ensureFirebase()))return;
@@ -705,21 +958,31 @@ async function joinRoom(){
   const base="rooms/"+code;
   const [hostSnap,stateSnap,playersSnap]=await Promise.all([fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),fb.get(fb.ref(db,base+"/players"))]);
   if(!hostSnap.exists()){say("없는 방 코드입니다.");return;}
-  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 다음 라운드를 기다려 주세요.");return;}
-  const ps=playersSnap.val()||{};if(Object.keys(ps).length>=30){say("방이 가득 찼습니다.");return;}
+  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 이전 참가자는 새로고침 후 자동 복구됩니다.");return;}
+  const ps=playersSnap.val()||{},activeCount=Object.values(ps).filter(p=>p&&p.connected!==false).length;
+  if(activeCount>=30){say("방이 가득 찼습니다.");return;}
   roomCode=code;isHost=hostSnap.val()===uid;
-  const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid);
-  await fb.set(pr,{name:cleanName(document.getElementById("nick").value),x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
-  fb.onDisconnect(pr).remove();await subscribeRoom();
+  const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid),old=ps[uid]||{};
+  await fb.set(pr,{
+    name:cleanName(document.getElementById("nick").value),x:Number(old.x||1200),y:Number(old.y||650),
+    disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,ready:false,connected:true,
+    joinedAt:Number(old.joinedAt||now),tauntAt:0,stats:old.stats||{rounds:0,survived:0,catches:0,bestSurvivalSec:0}
+  });
+  try{await fb.onDisconnect(pr).update({connected:false});}catch{}
+  hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
 function calcSeekerCount(total){
   if(total<2)return 1;
   return Math.max(1,Math.min(total-1,Math.ceil(total/7)));
 }
-async function startOnlineRound(){
+async function startOnlineRound(force=false){
   if(!online||!isHost)return;
-  const ids=Object.keys(netPlayers);if(ids.length<2){say("2명 이상 있어야 시작할 수 있습니다.");return;}
+  const ids=activePlayerIds();
+  if(ids.length<2){say("2명 이상 있어야 시작할 수 있습니다.");return;}
+  if(!force&&!ids.every(id=>netPlayers[id]&&netPlayers[id].ready===true)){
+    say("아직 준비하지 않은 친구가 있습니다. 관리자에서는 준비를 무시하고 시작할 수 있어요.");return;
+  }
   const seekerCount=calcSeekerCount(ids.length);
   const volunteers=shuffle(ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true));
   const selected=volunteers.slice(0,seekerCount);
@@ -728,26 +991,38 @@ async function startOnlineRound(){
     selected.push(...remaining.slice(0,seekerCount-selected.length));
   }
   const seekers=new Set(selected);
-  const hiderCount=ids.length-seekerCount;
-  const totalSearches=hiderCount*2;
-  const baseSearches=Math.floor(totalSearches/seekerCount);
-  const extraSearches=totalSearches%seekerCount;
-  const seekerQuota={};
+  const hiderCount=ids.length-seekerCount,totalSearches=hiderCount*2;
+  const baseSearches=Math.floor(totalSearches/seekerCount),extraSearches=totalSearches%seekerCount,seekerQuota={};
   selected.forEach((id,idx)=>{seekerQuota[id]=baseSearches+(idx<extraSearches?1:0);});
-  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+40000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
-  const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260]];
+  const mapKey=MAP_THEMES[mapSelect.value]?mapSelect.value:(MAP_THEMES[roomState.mapKey]?roomState.mapKey:"school1");
+  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,revealEnd=now+3000,hideEnd=revealEnd+40000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
+  const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260],[520,650],[850,650],[1450,650],[2220,650]];
   const updates={};
-  ids.forEach((id,i)=>{
-    const r=seekers.has(id)?"seeker":"hider";updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
-    let x,y;if(r==="seeker"){x=1120+(i%2)*90;y=655;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
-    updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;
+  Object.keys(roles).filter(id=>!ids.includes(id)).forEach(id=>{
+    updates["rooms/"+roomCode+"/roles/"+id]=null;updates["rooms/"+roomCode+"/caught/"+id]=null;updates["rooms/"+roomCode+"/searches/"+id]=null;
   });
-  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,hideEndsAt:hideEnd,seekEndsAt:seekEnd};
+  ids.forEach((id,i)=>{
+    const r=seekers.has(id)?"seeker":"hider";
+    updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
+    let x,y;if(r==="seeker"){x=1100+(i%5)*55;y=655+Math.floor(i/5)*45;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
+    updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;
+    updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;
+    updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;updates["rooms/"+roomCode+"/players/"+id+"/tauntAt"]=0;
+  });
+  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,mapKey,revealEndsAt:revealEnd,hideEndsAt:hideEnd,seekEndsAt:seekEnd,paused:false,pausedAt:null};
   await fb.update(fb.ref(db),updates);
 }
-async function syncPlayerNow(){
-  if(!online||!uid||!player||!roomCode)return;
-  await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),{x:Math.round(player.x*10)/10,y:Math.round(player.y*10)/10,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null});
+async function syncPlayerNow(force=true){
+  if(!online||!uid||!player||!roomCode||mode==="observer")return;
+  const now=performance.now(),x=Math.round(player.x*10)/10,y=Math.round(player.y*10)/10;
+  const changedVisual=lastSentState.disguise!==(player.disguise||null)||lastSentState.flowerColor!==(player.flowerColor||null)||lastSentState.disguiseOriginId!==(player.disguiseOriginId||null);
+  const moved=lastSentState.x==null?999:Math.hypot(x-lastSentState.x,y-lastSentState.y);
+  if(!force&&!changedVisual&&moved<6&&now-lastSentState.at<1500)return;
+  const payload={x,y,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null,connected:true};
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),payload);
+  lastSentState={x,y,disguise:payload.disguise,flowerColor:payload.flowerColor,disguiseOriginId:payload.disguiseOriginId,at:now};
+  if(netPlayers[uid])Object.assign(netPlayers[uid],payload);
+  saveSession();
 }
 function setupHider(){
   huntSignalShownRound=0;huntStartSignal.style.display="none";
@@ -789,18 +1064,39 @@ document.getElementById("lobbyGuideBtn").onclick=openGuide;
 document.getElementById("closeGuideBtn").onclick=closeGuide;
 document.getElementById("tourBtn").onclick=()=>startGame("tour");
 document.getElementById("wantSeekerBtn").onclick=toggleSeekerPreference;
-document.getElementById("startOnlineBtn").onclick=startOnlineRound;
-document.getElementById("leaveBtn").onclick=()=>location.reload();
-document.getElementById("again").onclick=()=>{if(online&&isHost)startOnlineRound();else if(!online)startGame("tour");};
-document.getElementById("menuBtn").onclick=()=>{if(online){location.reload();return;}running=false;document.getElementById("result").style.display="none";document.getElementById("menu").style.display="flex";mode="menu";player=null;draw();};
+readyBtn.onclick=toggleReady;
+mapSelect.onchange=setLobbyMap;
+document.getElementById("startOnlineBtn").onclick=()=>startOnlineRound(false);
+document.getElementById("leaveBtn").onclick=leaveRoom;
+lobbyAdminBtn.onclick=openAdminPanel;teacherBtn.onclick=openAdminPanel;adminCloseBtn.onclick=closeAdminPanel;
+adminPauseBtn.onclick=adminTogglePause;adminForceEndBtn.onclick=adminForceEnd;adminForceStartBtn.onclick=()=>{closeAdminPanel();startOnlineRound(true);};
+adminKickList.addEventListener("click",e=>{const b=e.target.closest("button[data-kick-uid]");if(b)kickPlayer(b.dataset.kickUid);});
+tauntBtn.onclick=sendTaunt;
+soundBtn.onclick=()=>{
+  soundEnabled=!soundEnabled;
+  try{localStorage.setItem("kkok_sound",soundEnabled?"on":"off");}catch{}
+  soundBtn.textContent=soundEnabled?"🔊 소리":"🔇 소리";soundBtn.classList.toggle("on",soundEnabled);
+  if(soundEnabled)playSfx("role");
+};
+fullBtn.onclick=async()=>{
+  try{
+    if(document.fullscreenElement)await document.exitFullscreen();
+    else if(document.getElementById("gameWrap").requestFullscreen)await document.getElementById("gameWrap").requestFullscreen();
+  }catch{}
+};
+document.addEventListener("fullscreenchange",()=>{fullBtn.textContent=document.fullscreenElement?"⛶ 전체화면 해제":"⛶ 전체화면";});
+if(!document.getElementById("gameWrap").requestFullscreen)fullBtn.style.display="none";
+soundBtn.textContent=soundEnabled?"🔊 소리":"🔇 소리";soundBtn.classList.toggle("on",soundEnabled);
+document.getElementById("again").onclick=()=>{if(online&&isHost)returnToLobby();else if(!online)startGame("tour");};
+document.getElementById("menuBtn").onclick=()=>{if(online){leaveRoom();return;}running=false;document.getElementById("result").style.display="none";document.getElementById("menu").style.display="flex";mode="menu";player=null;draw();};
 ensureFirebase();
 
 function updateGameHelp(){
   let html="";
   if(mode==="hider"){
-    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>달리기</b> 불가<br><b>목표</b> 사물로 변신해 술래에게 들키지 않기";
+    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 사물로 변신해 술래에게 들키지 않기";
   }else if(mode==="seeker"){
-    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시";
+    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시<br><b>도발 소리</b> 가까운 숨는 사람이 도발하면 짧은 소리가 들림";
   }else if(mode==="observer"){
     html="<b>이동</b> WASD / 방향키<br><b>옵저버</b> 자유롭게 구경 가능<br><b>주의</b> 술래와 생존자에게 내 모습은 보이지 않음";
   }else if(mode==="tour"){
@@ -829,6 +1125,7 @@ mapToggleBtn.addEventListener("click",()=>{
 });
 function toggleDisguise(){
   if(!running||!player||!(mode==="hider"||mode==="tour"))return;
+  if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 움직일 수 있어요.");return;}
   if(player.disguise){
     player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;
     say("변신을 해제했습니다.");if(online)syncPlayerNow();
@@ -846,9 +1143,10 @@ function updateTouchControls(now){
     touchControls.style.display="none";return;
   }
   touchControls.style.display="flex";
-  const waiting=(mode==="seeker"&&now<hideUntil);
+  const blocked=online&&(roomState.paused||now<roleRevealUntil);
+  const waiting=(mode==="seeker"&&now<hideUntil)||blocked;
   if(mode==="hider"||mode==="tour"){
-    touchAction.style.display="block";touchAction.disabled=false;touchAction.innerHTML="🪄<br>변신";
+    touchAction.style.display="block";touchAction.disabled=blocked;touchAction.innerHTML="🪄<br>변신";
     touchSprint.style.display="none";keys.shift=false;
   }else if(mode==="seeker"){
     touchAction.style.display="block";touchAction.disabled=waiting;touchAction.innerHTML="🔍<br>조사";
@@ -914,6 +1212,7 @@ addEventListener("keydown",e=>{
   const k=e.key.toLowerCase();keys[k]=true;
   if(!running||!player)return;
   if(k==="e"&&(mode==="hider"||mode==="tour"))toggleDisguise();
+  if(k==="t"&&mode==="hider")sendTaunt();
   if(e.code==="Space"&&mode==="seeker"){e.preventDefault();inspect();}
 });
 addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
@@ -924,7 +1223,8 @@ addEventListener("blur",()=>{
 });
 
 async function inspect(){
-  if(mode==="seeker"&&gameNow()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
+  if(online&&roomState.paused){say("게임이 일시정지 중입니다.");return;}
+  if(mode==="seeker"&&displayGameNow()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
   if(online)searches=Number(searchesNet[uid]||0);
   if(searches<=0){say("탐색 기회를 모두 사용했습니다!");return;}
   let candidates=[];
@@ -973,6 +1273,102 @@ function aiSeek(dt,t){
       }
     }
   });
+}
+async function commitRoundStats(finishAt=gameNow()){
+  if(!online||!isHost||!roomCode)return;
+  const round=Number(roomState.round||0);if(round<=0)return;
+  if(statsCommitPromise)return statsCommitPromise;
+  statsCommitPromise=(async()=>{
+    try{
+      const stSnap=await fb.get(fb.ref(db,"rooms/"+roomCode+"/state"));
+      const st=stSnap.val()||{};
+      if(Number(st.statsCommittedRound||0)===round)return;
+      if(st.cancelled){
+        await fb.set(fb.ref(db,"rooms/"+roomCode+"/state/statsCommittedRound"),round);
+        return;
+      }
+      const participantIds=Object.keys(roles).filter(id=>netPlayers[id]);
+      const catcherCounts={};participantIds.forEach(id=>{if(roles[id]==="seeker")catcherCounts[id]=0;});
+      participantIds.filter(id=>roles[id]==="hider"&&caughtNet[id]).forEach(id=>{
+        const info=caughtNet[id];
+        if(info&&typeof info==="object"&&info.caughtBy&&catcherCounts[info.caughtBy]!=null)catcherCounts[info.caughtBy]++;
+      });
+      const updates={};
+      for(const id of participantIds){
+        const p=netPlayers[id]||{},old=p.stats||{};
+        const next={rounds:Number(old.rounds||0)+1,survived:Number(old.survived||0),catches:Number(old.catches||0),bestSurvivalSec:Number(old.bestSurvivalSec||0)};
+        if(roles[id]==="hider"){
+          const info=caughtNet[id];
+          let survivedSec=Math.max(0,Math.min(180,Math.round((Number(finishAt||roundEnd)-hideUntil)/1000)));
+          if(info){
+            survivedSec=(info&&typeof info==="object")?Math.max(0,Math.min(180,Math.round((Number(info.caughtAt||hideUntil)-hideUntil)/1000))):0;
+          }else next.survived++;
+          next.bestSurvivalSec=Math.max(next.bestSurvivalSec,survivedSec);
+        }else if(roles[id]==="seeker")next.catches+=Number(catcherCounts[id]||0);
+        updates["rooms/"+roomCode+"/players/"+id+"/stats"]=next;
+      }
+      updates["rooms/"+roomCode+"/state/statsCommittedRound"]=round;
+      await fb.update(fb.ref(db),updates);
+    }catch{}
+  })().finally(()=>{statsCommitPromise=null;});
+  return statsCommitPromise;
+}
+async function returnToLobby(){
+  if(!online||!isHost)return;
+  await commitRoundStats();
+  const updates={};
+  activePlayerIds().forEach(id=>{updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;});
+  updates["rooms/"+roomCode+"/state/phase"]="lobby";
+  updates["rooms/"+roomCode+"/state/paused"]=false;
+  updates["rooms/"+roomCode+"/state/pausedAt"]=null;
+  updates["rooms/"+roomCode+"/state/endReason"]=null;
+  updates["rooms/"+roomCode+"/state/cancelled"]=false;
+  await fb.update(fb.ref(db),updates);
+}
+async function sendTaunt(){
+  if(!online||mode!=="hider"||!player||caughtNet[uid]||roomState.paused)return;
+  const now=gameNow();
+  if(now<hideUntil){say("술래가 출발한 뒤에 도발할 수 있어요!");return;}
+  const prev=Number((netPlayers[uid]&&netPlayers[uid].tauntAt)||0);
+  const left=prev+30000-now;if(left>0){say("😜 도발은 "+Math.ceil(left/1000)+"초 뒤 다시 사용할 수 있어요.");return;}
+  if(netPlayers[uid])netPlayers[uid].tauntAt=now;
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/tauntAt"),now);
+  playSfx("taunt");say("😜 도발! 가까운 술래에게 소리가 들립니다.");
+}
+function updateTauntButton(now){
+  const show=online&&running&&mode==="hider"&&!caughtNet[uid]&&now>=hideUntil;
+  tauntBtn.style.display=show?"inline-block":"none";
+  if(!show)return;
+  const prev=Number((netPlayers[uid]&&netPlayers[uid].tauntAt)||0),left=Math.max(0,prev+30000-now);
+  tauntBtn.disabled=roomState.paused||left>0;
+  tauntBtn.textContent=left>0?"😜 도발 "+Math.ceil(left/1000)+"초":"😜 도발";
+}
+function checkIncomingTaunts(now){
+  if(!online||!running||mode!=="seeker"||roomState.paused||now<hideUntil||!player)return;
+  for(const [id,p] of Object.entries(netPlayers)){
+    if(roles[id]!=="hider"||caughtNet[id])continue;
+    const ta=Number(p.tauntAt||0);if(!ta||ta<=Number(seenTaunts[id]||0))continue;
+    seenTaunts[id]=ta;
+    if(now-ta<=3000&&Math.hypot(player.x-Number(p.x||0),player.y-Number(p.y||0))<=520){
+      playSfx("taunt");say("😜 근처에서 도발 소리가 들렸어요!");
+    }
+  }
+}
+function updateRoleReveal(now){
+  if(!running||!online||now>=roleRevealUntil||mode==="observer"){
+    roleReveal.style.display="none";return;
+  }
+  roleReveal.style.display="flex";
+}
+function smoothRemotePlayers(dt){
+  if(!online)return;
+  const a=1-Math.exp(-11*dt);
+  for(const [id,rp] of Object.entries(renderPlayers)){
+    if(id===uid)continue;
+    const tx=Number(rp.targetX??rp.x??0),ty=Number(rp.targetY??rp.y??0);
+    if(Math.hypot(tx-Number(rp.x||0),ty-Number(rp.y||0))>420){rp.x=tx;rp.y=ty;}
+    else{rp.x=Number(rp.x||0)+(tx-Number(rp.x||0))*a;rp.y=Number(rp.y||0)+(ty-Number(rp.y||0))*a;}
+  }
 }
 function escHtml(v){
   return String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
@@ -1045,7 +1441,8 @@ function enterObserver(){
 function finish(win,msg){
   if(!running)return;
   playSfx("finish");
-  running=false;touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
+  if(online&&isHost)commitRoundStats(gameNow());
+  running=false;roleReveal.style.display="none";pauseBanner.style.display="none";rotateHint.style.display="none";touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
     title.textContent="📊 라운드 결과";
@@ -1055,7 +1452,7 @@ function finish(win,msg){
     body.textContent=msg;
   }
   const a=document.getElementById("again"),m=document.getElementById("menuBtn");
-  if(online){a.style.display=isHost?"inline-block":"none";a.textContent="다음 라운드 시작";m.textContent="방 나가기";}else{a.style.display="inline-block";a.textContent="다시 하기";m.textContent="역할 선택";}
+  if(online){a.style.display=isHost?"inline-block":"none";a.textContent="대기실로 돌아가기";m.textContent="방 나가기";}else{a.style.display="inline-block";a.textContent="다시 하기";m.textContent="역할 선택";}
   document.getElementById("result").style.display="flex";
 }
 function updateHud(t){
@@ -1096,7 +1493,7 @@ function updateHud(t){
   }
 }
 function updateHuntStartSignal(now){
-  if(!running||mode==="tour"||now<hideUntil)return;
+  if(!running||mode==="tour"||(online&&roomState.paused)||now<hideUntil)return;
   const round=online?Number(roomState.round||0):1;
   if(huntSignalShownRound===round)return;
   huntSignalShownRound=round;
@@ -1107,7 +1504,7 @@ function updateHuntStartSignal(now){
 }
 function updateSeekerProximity(now){
   if(!proximityEl)return;
-  if(!online||mode!=="seeker"||!player||now<hideUntil||!running){
+  if(!online||mode!=="seeker"||!player||now<hideUntil||!running||roomState.paused){
     proximityEl.style.display="none";proximityEl.className="";return;
   }
   let nearest=Infinity;
@@ -1125,23 +1522,26 @@ function updateSeekerProximity(now){
   }
 }
 function loop(t){
-  if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;const now=gameNow();
+  if(!running)return;
+  const dt=Math.min(.033,(t-last)/1000||0);last=t;
+  const rawNow=gameNow(),now=(online&&roomState.paused)?Number(roomState.pausedAt||rawNow):rawNow;
   let dx=((keys.d||keys.arrowright||touchMove.right)?1:0)-((keys.a||keys.arrowleft||touchMove.left)?1:0),dy=((keys.s||keys.arrowdown||touchMove.down)?1:0)-((keys.w||keys.arrowup||touchMove.up)?1:0);
   const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
+  const locked=online&&(roomState.paused||now<roleRevealUntil);
   const seekerWaiting=(mode==="seeker"&&now<hideUntil);
-  if(player&&mode==="observer"){
-    const len=Math.hypot(dx,dy)||1;
-    const observerSpeed=330*sprint;
+  if(!locked&&player&&mode==="observer"){
+    const len=Math.hypot(dx,dy)||1,observerSpeed=330;
     player.x=Math.max(0,Math.min(WORLD.w,player.x+dx/len*observerSpeed*dt));
     player.y=Math.max(0,Math.min(WORLD.h,player.y+dy/len*observerSpeed*dt));
-  }else if(player&&!seekerWaiting){
+  }else if(!locked&&player&&!seekerWaiting){
     if(player.disguiseOriginId&&(dx||dy))player.disguiseOriginId=null;
     moveEntity(player,dx,dy,speed,dt);
   }
   if(!online&&mode==="hider")aiSeek(dt,t);
-  if(online&&player&&mode!=="observer"&&t-lastNetSync>130){lastNetSync=t;syncPlayerNow();}
+  if(online&&player&&mode!=="observer"&&!locked&&t-lastNetSync>220){lastNetSync=t;syncPlayerNow(false);}
+  smoothRemotePlayers(dt);
   if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
-  updateHud(now);updateGameHelp();updateTouchControls(now);updateHuntStartSignal(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
+  updateHud(now);updateRoleReveal(now);updateGameHelp();updateTouchControls(now);updateTauntButton(now);checkIncomingTaunts(rawNow);updateHuntStartSignal(now);updateSeekerProximity(now);updateOrientationHint();draw();requestAnimationFrame(loop);
 }
 updateGameHelp();applyGamePanels();fit();camera.x=1000;camera.y=450;draw();
 })();
