@@ -89,19 +89,31 @@ function fit(){
 }
 addEventListener("resize",fit);
 
-function rectRoom(name,x,y,w,h,floor,wall){
-  rooms.push({name,x,y,w,h,floor,wall});
-  walls.push({x,y,w,h:18},{x,y:y+h-18,w,h:18},{x,y,w:18,h},{x:x+w-18,y,w:18,h});
+function rectRoom(name,x,y,w,h,floor,wall,doorSide){
+  const gap=118, half=gap/2;
+  rooms.push({name,x,y,w,h,floor,wall,doorSide});
+  // 벽은 실제 충돌 판정에 사용하되, 복도와 연결되는 출입문 부분은 비워 둡니다.
+  if(doorSide==="top"){
+    walls.push({x,y,w:w/2-half,h:18},{x:x+w/2+half,y,w:w/2-half,h:18});
+  }else{
+    walls.push({x,y,w,h:18});
+  }
+  if(doorSide==="bottom"){
+    walls.push({x,y:y+h-18,w:w/2-half,h:18},{x:x+w/2+half,y:y+h-18,w:w/2-half,h:18});
+  }else{
+    walls.push({x,y:y+h-18,w,h:18});
+  }
+  walls.push({x,y,w:18,h},{x:x+w-18,y,w:18,h});
 }
 function add(type,x,y,extra){ props.push(Object.assign({type,x,y,id:"p"+props.length},extra||{})); }
 function buildWorld(){
   props=[];walls=[];rooms=[];
-  rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50");
-  rectRoom("도서관",720,70,600,430,"#c6a06d","#75573f");
-  rectRoom("과학실",60,820,620,690,"#cfd5d9","#718096");
-  rectRoom("급식실",720,820,620,690,"#d9c49a","#8a6f50");
-  rectRoom("체육관",1390,820,930,690,"#c99356","#7f5b3e");
-  rectRoom("학생휴게실",1780,70,540,430,"#d9c1a2","#82634b");
+  rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
+  rectRoom("도서관",720,70,600,430,"#c6a06d","#75573f","bottom");
+  rectRoom("과학실",60,820,620,690,"#cfd5d9","#718096","top");
+  rectRoom("급식실",720,820,620,690,"#d9c49a","#8a6f50","top");
+  rectRoom("체육관",1390,820,930,690,"#c99356","#7f5b3e","top");
+  rectRoom("학생휴게실",1780,70,540,430,"#d9c1a2","#82634b","bottom");
   // hallway
   walls.push({x:40,y:535,w:2300,h:18},{x:40,y:770,w:2300,h:18});
   // classroom furniture
@@ -239,6 +251,13 @@ function drawRoom(r){
   if(!inView(0,r.x,r.y,r.w,r.h))return;let s=worldToScreen(r.x,r.y);
   ctx.fillStyle=r.floor;ctx.fillRect(s.x,s.y,r.w,r.h);
   ctx.strokeStyle=r.wall;ctx.lineWidth=18;ctx.strokeRect(s.x+9,s.y+9,r.w-18,r.h-18);
+  // 출입문을 시각적으로도 열어 둡니다.
+  ctx.fillStyle=r.floor;
+  if(r.doorSide==="bottom")ctx.fillRect(s.x+r.w/2-59,s.y+r.h-20,118,24);
+  if(r.doorSide==="top")ctx.fillRect(s.x+r.w/2-59,s.y-4,118,24);
+  ctx.fillStyle="#6b7280";
+  if(r.doorSide==="bottom")ctx.fillRect(s.x+r.w/2-42,s.y+r.h-10,84,5);
+  if(r.doorSide==="top")ctx.fillRect(s.x+r.w/2-42,s.y+5,84,5);
   ctx.fillStyle="rgba(15,23,42,.78)";ctx.fillRect(s.x+22,s.y+22,Math.max(90,r.name.length*16),30);
   ctx.fillStyle="#fff";ctx.font="bold 16px system-ui";ctx.fillText(r.name,s.x+34,s.y+43);
 }
@@ -265,13 +284,27 @@ function drawWorld(){
   }
 }
 function drawMini(){
+  if(mode==="seeker"&&performance.now()<hideUntil){
+    mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#111827";mctx.fillRect(0,0,mini.width,mini.height);
+    mctx.fillStyle="#e5e7eb";mctx.font="bold 13px system-ui";mctx.textAlign="center";mctx.fillText("숨는 시간",mini.width/2,mini.height/2-5);mctx.fillText("지도 잠김",mini.width/2,mini.height/2+15);mctx.textAlign="left";return;
+  }
   const sx=mini.width/WORLD.w,sy=mini.height/WORLD.h;mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#cbd5c7";mctx.fillRect(0,0,mini.width,mini.height);
   rooms.forEach(r=>{mctx.fillStyle=r.floor;mctx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);mctx.strokeStyle="#64748b";mctx.strokeRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);});
   mctx.fillStyle="#5c8f4d";mctx.fillRect(1375*sx,110*sy,360*sx,540*sy);
   if(player){mctx.fillStyle=mode==="seeker"?"#ef4444":"#2563eb";mctx.beginPath();mctx.arc(player.x*sx,player.y*sy,4,0,Math.PI*2);mctx.fill();}
   if(mode==="hider"){mctx.fillStyle="#ef4444";aiSeekers.forEach(s=>{mctx.beginPath();mctx.arc(s.x*sx,s.y*sy,3,0,Math.PI*2);mctx.fill();});}
 }
-function draw(){drawWorld();drawMini();}
+function draw(){
+  drawWorld();drawMini();
+  if(mode==="seeker"&&performance.now()<hideUntil){
+    const sec=Math.max(0,Math.ceil((hideUntil-performance.now())/1000));
+    ctx.fillStyle="rgba(5,10,18,.94)";ctx.fillRect(0,0,viewW,viewH);
+    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="800 30px system-ui";ctx.fillText("🙈 숨는 사람 준비 중",viewW/2,viewH/2-28);
+    ctx.font="900 62px system-ui";ctx.fillStyle="#86efac";ctx.fillText(String(sec),viewW/2,viewH/2+45);
+    ctx.font="600 17px system-ui";ctx.fillStyle="#cbd5e1";ctx.fillText("카운트다운이 끝나면 화면이 열리고 찾기를 시작합니다.",viewW/2,viewH/2+82);
+    ctx.textAlign="left";
+  }
+}
 
 function freePoint(){
   const pts=[[1100,650],[1500,730],[300,650],[1100,740],[1900,650],[2000,760],[1550,500],[1300,720]];
@@ -304,8 +337,9 @@ function randomDisguiseHider(i){
 function setupSeeker(){
   const p=freePoint();player={x:p.x,y:p.y,disguise:null,caught:false};
   aiSeekers=[];aiHiders=[];for(let i=0;i<12;i++)aiHiders.push(randomDisguiseHider(i));
-  searches=15;hideUntil=performance.now();roundEnd=performance.now()+180000;startTime=performance.now();mode="seeker";running=true;
-  roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("직접 돌아다니며 수상한 사물 가까이에서 SPACE! 찾기 기회는 15번뿐입니다.");
+  const now=performance.now();
+  searches=15;hideUntil=now+25000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
+  roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("숨는 사람에게 25초를 줍니다. 그동안 술래는 움직이거나 조사할 수 없습니다.");
 }
 function setupTour(){
   mode="tour";running=true;player={x:1200,y:760,disguise:null};aiHiders=[];aiSeekers=[];searches=0;hideUntil=0;roundEnd=0;roleEl.textContent="🗺 맵 구경";roleEl.className="pill";say("학교를 자유롭게 돌아다녀보세요. E로 주변 사물 변신도 시험할 수 있어요.");
@@ -334,6 +368,7 @@ addEventListener("keydown",e=>{
 addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
 
 function inspect(){
+  if(mode==="seeker"&&performance.now()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
   if(searches<=0){say("탐색 기회를 모두 사용했습니다!");return;}
   // find nearest visible thing; hidden player is indistinguishable from normal props
   let candidates=[];
@@ -380,19 +415,28 @@ function updateHud(t){
     if(t>=roundEnd)finish(true,"제한시간 끝까지 사물로 완벽하게 숨어 살아남았습니다!");
     if(searches<=0)finish(true,"술래가 탐색 기회를 모두 써버렸습니다. 숨는 사람 승리!");
   }else if(mode==="seeker"){
-    phaseEl.textContent="친구 찾는 중";phaseEl.className="pill danger";
-    const remain=Math.max(0,roundEnd-t);timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
-    triesEl.textContent="🔍 탐색 "+searches;const left=aiHiders.filter(h=>!h.found).length;aliveEl.textContent="🙈 생존 "+left;
-    if(left===0)finish(true,"숨은 친구를 모두 찾아냈습니다!");
-    else if(searches<=0)finish(false,"탐색 기회를 모두 사용했습니다. "+left+"명이 끝까지 숨어 있었습니다.");
-    else if(t>=roundEnd)finish(false,"시간 종료! "+left+"명이 살아남았습니다.");
+    const left=aiHiders.filter(h=>!h.found).length;aliveEl.textContent="🙈 생존 "+left;
+    if(t<hideUntil){
+      const wait=Math.max(0,hideUntil-t);
+      phaseEl.textContent="🙈 숨는 중 "+Math.ceil(wait/1000)+"초";phaseEl.className="pill good";
+      timerEl.textContent="⏳ "+String(Math.floor(wait/60000)).padStart(2,"0")+":"+String(Math.floor(wait/1000)%60).padStart(2,"0");
+      triesEl.textContent="🔒 탐색 잠김";
+    }else{
+      phaseEl.textContent="🔎 친구 찾는 중";phaseEl.className="pill danger";
+      const remain=Math.max(0,roundEnd-t);timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
+      triesEl.textContent="🔍 탐색 "+searches;
+      if(left===0)finish(true,"숨은 친구를 모두 찾아냈습니다!");
+      else if(searches<=0)finish(false,"탐색 기회를 모두 사용했습니다. "+left+"명이 끝까지 숨어 있었습니다.");
+      else if(t>=roundEnd)finish(false,"시간 종료! "+left+"명이 살아남았습니다.");
+    }
   }
 }
 function loop(t){
   if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;
   let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
   const sprint=keys.shift?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105*sprint;
-  if(player)moveEntity(player,dx,dy,speed,dt);
+  const seekerWaiting=(mode==="seeker"&&t<hideUntil);
+  if(player&&!seekerWaiting)moveEntity(player,dx,dy,speed,dt);
   if(mode==="hider")aiSeek(dt,t);
   if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
   updateHud(t);draw();requestAnimationFrame(loop);
