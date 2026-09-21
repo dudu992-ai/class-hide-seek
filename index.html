@@ -127,8 +127,8 @@ function randomizeWorld(){
       const t=extraTypes[Math.floor(Math.random()*extraTypes.length)];
       let px=rand(r.x+70,r.x+r.w-70), py=rand(r.y+80,r.y+r.h-70);
       // 출입문 중앙은 비워둡니다.
-      const nearDoor=Math.abs(px-(r.x+r.w/2))<85 &&
-        ((r.doorSide==="bottom"&&py>r.y+r.h-120)||(r.doorSide==="top"&&py<r.y+120));
+      const nearDoor=Math.abs(px-(r.x+r.w/2))<120 &&
+        ((r.doorSide==="bottom"&&py>r.y+r.h-150)||(r.doorSide==="top"&&py<r.y+150));
       if(!nearDoor)add(t,px,py);
     }
   }
@@ -292,8 +292,14 @@ function drawRoom(r){
   if(r.doorSide==="bottom")ctx.fillRect(s.x+r.w/2-59,s.y+r.h-20,118,24);
   if(r.doorSide==="top")ctx.fillRect(s.x+r.w/2-59,s.y-4,118,24);
   ctx.fillStyle="#6b7280";
-  if(r.doorSide==="bottom")ctx.fillRect(s.x+r.w/2-42,s.y+r.h-10,84,5);
-  if(r.doorSide==="top")ctx.fillRect(s.x+r.w/2-42,s.y+5,84,5);
+  if(r.doorSide==="bottom"){
+    ctx.fillRect(s.x+r.w/2-42,s.y+r.h-10,84,5);
+    ctx.fillStyle="rgba(37,99,235,.16)";ctx.fillRect(s.x+r.w/2-58,s.y+r.h-34,116,42);
+  }
+  if(r.doorSide==="top"){
+    ctx.fillRect(s.x+r.w/2-42,s.y+5,84,5);
+    ctx.fillStyle="rgba(37,99,235,.16)";ctx.fillRect(s.x+r.w/2-58,s.y-8,116,42);
+  }
   ctx.fillStyle="rgba(15,23,42,.78)";ctx.fillRect(s.x+22,s.y+22,Math.max(90,r.name.length*16),30);
   ctx.fillStyle="#fff";ctx.font="bold 16px system-ui";ctx.fillText(r.name,s.x+34,s.y+43);
 }
@@ -349,9 +355,22 @@ function freePoint(){
 function nearestProp(ent,range){
   let best=null,bd=range||100;for(const p of props){if(p.type==="gardenBed"||p.type==="board")continue;let d=Math.hypot(ent.x-p.x,ent.y-p.y);if(d<bd){bd=d;best=p;}}return best;
 }
+function inDoorGap(x,y){
+  for(const r of rooms){
+    const cx=r.x+r.w/2;
+    if(Math.abs(x-cx)>78)continue;
+    if(r.doorSide==="top" && y>r.y-30 && y<r.y+45)return true;
+    if(r.doorSide==="bottom" && y>r.y+r.h-45 && y<r.y+r.h+30)return true;
+  }
+  return false;
+}
 function solidAt(x,y){
   if(x<25||y<25||x>WORLD.w-25||y>WORLD.h-25)return true;
-  for(const w of walls){if(x>w.x-13&&x<w.x+w.w+13&&y>w.y-13&&y<w.y+w.h+13)return true;}
+  // 문 구역은 충돌벽보다 우선해서 항상 통과 가능하게 처리합니다.
+  if(inDoorGap(x,y))return false;
+  for(const w of walls){
+    if(x>w.x-13&&x<w.x+w.w+13&&y>w.y-13&&y<w.y+w.h+13)return true;
+  }
   return false;
 }
 function moveEntity(e,dx,dy,speed,dt){
