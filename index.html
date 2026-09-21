@@ -97,6 +97,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>술래 화면에서는 플레이어가 변신한 사물이 <b>원래 사물과 똑같이</b> 보입니다.</li>
             <li>숨는 사람 화면에서는 <b>술래와 다른 숨는 사람의 닉네임</b>을 볼 수 있습니다.</li>
             <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 자유롭게 돌아다니며 남은 게임을 구경할 수 있습니다.</li>
+            <li>옵저버의 모습은 <b>술래와 살아 있는 숨는 사람에게 보이지 않습니다.</b> 따라서 게임 중 다른 플레이어와 헷갈리지 않습니다.</li>
           </ul>
         </div>
         <div class="guideBox">
@@ -434,8 +435,11 @@ function drawWorld(){
   if(online){
     const canSeeNames=(mode==="hider"||mode==="observer");
     for(const [id,p] of Object.entries(netPlayers)){
-      if(id===uid||caughtNet[id])continue;
+      if(id===uid)continue;
       const r=roles[id];
+      const isObserver=(r==="hider"&&caughtNet[id]===true);
+      // Observers are invisible to all active players so seekers/hiders cannot confuse them with live players.
+      if(isObserver)continue;
       ctx.save();ctx.translate(-camera.x,-camera.y);
       if(r==="hider"&&p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor});
       else if(r==="hider"||r==="seeker")drawCharacter(p,r==="seeker");
