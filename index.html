@@ -18,7 +18,11 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #mini .t{font-size:12px;color:#d6deea;margin-bottom:5px;font-weight:800}
 .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07101bdd;z-index:10;padding:20px}
 .card{width:min(660px,94vw);background:#f8fafc;color:#152033;border-radius:20px;padding:24px;box-shadow:0 20px 70px #0008}
-.card h1,.card h2{margin:0 0 10px}.card p{line-height:1.55}.row{display:flex;gap:10px;flex-wrap:wrap}.card button{font:inherit;border:0;border-radius:11px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}.card button.alt{background:#334155}.card button.green{background:#15803d}.card button:focus{outline:3px solid #93c5fd}.note{font-size:13px;color:#5f6b7a;background:#eef2f7;padding:10px;border-radius:10px;margin-top:14px}
+.card h1,.card h2{margin:0 0 10px}.card p{line-height:1.55}.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:5px}.field input{width:100%;font:inherit;padding:12px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#111827}
+.codeBox{font-size:36px;font-weight:900;letter-spacing:7px;text-align:center;background:#eaf2ff;border:2px dashed #60a5fa;border-radius:14px;padding:12px;margin:12px 0}
+#playerList{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;max-height:210px;overflow:auto;margin:12px 0}
+.playerChip{background:#eef2f7;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:700}.serverOk{color:#166534}.serverBad{color:#b91c1c}.card button{font:inherit;border:0;border-radius:11px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}.card button.alt{background:#334155}.card button.green{background:#15803d}.card button:focus{outline:3px solid #93c5fd}.note{font-size:13px;color:#5f6b7a;background:#eef2f7;padding:10px;border-radius:10px;margin-top:14px}
 #result{display:none}.kbd{display:inline-block;background:#fff;color:#111827;border:1px solid #cbd5e1;border-bottom-width:3px;border-radius:6px;padding:1px 6px;font-weight:800}
 @media(max-width:760px){#mini{display:none}header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#help{font-size:11px;max-width:90%}}
 </style>
@@ -49,15 +53,25 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 
   <div id="menu" class="overlay">
     <div class="card">
-      <h1>🎮 사물로 변신하는 학교 숨바꼭질</h1>
-      <p>숨는 사람은 학교 안을 돌아다니다가 주변 사물과 <b>똑같은 모습으로 변신</b>합니다. 꽃밭에서는 꽃, 교실에서는 의자·화분·책상 주변 소품, 도서관에서는 책·화분·상자처럼 숨어요. 변신한 뒤에도 천천히 움직일 수 있습니다.</p>
-      <p>술래도 직접 이동하며 의심스러운 사물 가까이에서 <b>Space</b>로 조사합니다. 틀리면 탐색 횟수가 줄어듭니다.</p>
-      <div class="row">
-        <button id="hiderBtn" class="green">🙈 숨는 사람으로 시작</button>
-        <button id="seekerBtn">🔎 술래로 시작</button>
-        <button id="tourBtn" class="alt">🗺 맵 구경</button>
-      </div>
-      <div class="note">매 게임 시작 때 가구 방향·소품 위치·화단의 꽃 배치가 랜덤으로 바뀝니다. 술래도 숨기 시간이 끝나면 교실·도서관·과학실·급식실·체육관·휴게실 안까지 직접 들어가 찾을 수 있습니다.</div>
+      <h1>🎮 우리반 온라인 프롭 헌트</h1>
+      <p>선생님이 방을 만들고 아이들이 <b>6자리 방 코드</b>로 참가합니다. 최대 25명, 게임 시작 때 자동으로 술래가 정해집니다.</p>
+      <div class="field"><label for="nick">닉네임 — 실명 대신 번호/별명 권장</label><input id="nick" maxlength="10" placeholder="예: 12번 / 토끼"></div>
+      <div class="row"><button id="createBtn" class="green">👩‍🏫 방 만들기</button><button id="tourBtn" class="alt">🗺 혼자 맵 테스트</button></div>
+      <div class="field"><label for="joinCode">친구 방 참가</label><input id="joinCode" maxlength="6" inputmode="numeric" placeholder="6자리 방 코드"></div>
+      <div class="row"><button id="joinBtn">🚪 방 참가하기</button></div>
+      <div id="serverStatus" class="note">실시간 서버 확인 중...</div>
+    </div>
+  </div>
+
+  <div id="lobby" class="overlay" style="display:none">
+    <div class="card">
+      <h2>🏫 게임 대기실</h2>
+      <p>아이들에게 아래 방 코드만 알려주세요.</p>
+      <div id="roomCodeView" class="codeBox">------</div>
+      <div><b>접속 인원 <span id="lobbyCount">0</span>/25</b></div>
+      <div id="playerList"></div>
+      <div class="row"><button id="startOnlineBtn" class="green">▶ 게임 시작</button><button id="leaveBtn" class="alt">나가기</button></div>
+      <div id="lobbyNote" class="note">25명이면 술래 2명, 그보다 적으면 인원에 맞춰 자동 선정합니다. 숨는 시간 25초 후 술래 화면이 열립니다.</div>
     </div>
   </div>
 
@@ -73,6 +87,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
 (function(){
 "use strict";
@@ -81,6 +96,7 @@ const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast");
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
+let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[];
 
 function fit(){
   const r=game.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1);
@@ -106,13 +122,15 @@ function rectRoom(name,x,y,w,h,floor,wall,doorSide){
   walls.push({x,y,w:18,h},{x:x+w-18,y,w:18,h});
 }
 function add(type,x,y,extra){ props.push(Object.assign({type,x,y,id:"p"+props.length},extra||{})); }
-function rand(min,max){return min+Math.random()*(max-min);}
+let mapRand=Math.random;
+function seededRng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function rand(min,max){return min+mapRand()*(max-min);}
 function randomizeWorld(){
   // 방마다 가구 배치를 좌우/상하 반전 + 약간의 위치 변형으로 매 라운드 다르게 만듭니다.
   const movable=props.filter(p=>!["gardenBed","board"].includes(p.type));
   for(const r of rooms){
     const inside=movable.filter(p=>p.x>r.x+24&&p.x<r.x+r.w-24&&p.y>r.y+24&&p.y<r.y+r.h-24);
-    const flipX=Math.random()<.5, flipY=Math.random()<.35;
+    const flipX=mapRand()<.5, flipY=mapRand()<.35;
     for(const p of inside){
       if(flipX)p.x=r.x+r.w-(p.x-r.x);
       if(flipY)p.y=r.y+r.h-(p.y-r.y);
@@ -124,7 +142,7 @@ function randomizeWorld(){
     const extraTypes=["plantPot","box","trash","stool"];
     const extraCount=Math.floor(rand(1,4));
     for(let i=0;i<extraCount;i++){
-      const t=extraTypes[Math.floor(Math.random()*extraTypes.length)];
+      const t=extraTypes[Math.floor(mapRand()*extraTypes.length)];
       let px=rand(r.x+70,r.x+r.w-70), py=rand(r.y+80,r.y+r.h-70);
       // 출입문 중앙은 비워둡니다.
       const nearDoor=Math.abs(px-(r.x+r.w/2))<120 &&
@@ -137,11 +155,12 @@ function randomizeWorld(){
   for(const p of props){
     if(p.type==="flower"){
       p.x+=rand(-18,18);p.y+=rand(-18,18);
-      p.flowerColor=flowerColors[Math.floor(Math.random()*flowerColors.length)];
+      p.flowerColor=flowerColors[Math.floor(mapRand()*flowerColors.length)];
     }else if(p.type==="bush"){p.x+=rand(-18,18);p.y+=rand(-15,15);}
   }
 }
-function buildWorld(){
+function buildWorld(seed){
+  mapRand=seededRng((seed>>>0)||123456789);
   props=[];walls=[];rooms=[];
   rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
   rectRoom("도서관",720,70,600,430,"#c6a06d","#75573f","bottom");
@@ -191,7 +210,7 @@ function buildWorld(){
   for(let i=0;i<7;i++)add("plantPot",1450+i*120,720);
   randomizeWorld();
 }
-buildWorld();
+buildWorld(currentSeed);
 
 const sizes={
  desk:[66,42],chair:[34,34],teacherDesk:[96,48],board:[160,24],cabinet:[52,74],plantPot:[38,48],trash:[32,42],
@@ -311,10 +330,32 @@ function drawWorld(){
   for(let gx=Math.floor(camera.x/64)*64;gx<camera.x+viewW;gx+=64){let sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();}
   for(let gy=Math.floor(camera.y/64)*64;gy<camera.y+viewH;gy+=64){let sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();}
   rooms.forEach(drawRoom);
-  props.forEach(p=>{let b=propBounds(p);if(inView(40,b.x,b.y,b.w,b.h)){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp(p);ctx.restore();}});
-  // ai hidden props: exact same rendering as normal props, no marker
-  aiHiders.forEach(h=>{if(h.found)return;if(h.disguise){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp({type:h.disguise,x:h.x,y:h.y,flowerColor:h.flowerColor});ctx.restore();}else{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(h,false);ctx.restore();}});
-  aiSeekers.forEach(s=>{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(s,true);ctx.restore();});
+  const occupied=new Set();
+  if(online){
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(id===uid||caughtNet[id]||roles[id]!=="hider"||!p.disguiseOriginId)continue;
+      const origin=props.find(o=>o.id===p.disguiseOriginId);
+      if(origin&&Math.hypot(origin.x-p.x,origin.y-p.y)<9)occupied.add(p.disguiseOriginId);
+    }
+    if(player&&mode==="hider"&&player.disguiseOriginId){
+      const origin=props.find(o=>o.id===player.disguiseOriginId);
+      if(origin&&Math.hypot(origin.x-player.x,origin.y-player.y)<9)occupied.add(player.disguiseOriginId);
+    }
+  }
+  props.forEach(p=>{if(occupied.has(p.id))return;let b=propBounds(p);if(inView(40,b.x,b.y,b.w,b.h)){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp(p);ctx.restore();}});
+  if(online){
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(id===uid||caughtNet[id])continue;
+      const r=roles[id];
+      ctx.save();ctx.translate(-camera.x,-camera.y);
+      if(r==="hider"&&p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor});
+      else if(r==="hider"||r==="seeker")drawCharacter(p,r==="seeker");
+      ctx.restore();
+    }
+  }else{
+    aiHiders.forEach(h=>{if(h.found)return;if(h.disguise){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp({type:h.disguise,x:h.x,y:h.y,flowerColor:h.flowerColor});ctx.restore();}else{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(h,false);ctx.restore();}});
+    aiSeekers.forEach(s=>{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(s,true);ctx.restore();});
+  }
   if(player){
     ctx.save();ctx.translate(-camera.x,-camera.y);
     if(player.disguise){
@@ -326,7 +367,7 @@ function drawWorld(){
   }
 }
 function drawMini(){
-  if(mode==="seeker"&&performance.now()<hideUntil){
+  if(mode==="seeker"&&gameNow()<hideUntil){
     mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#111827";mctx.fillRect(0,0,mini.width,mini.height);
     mctx.fillStyle="#e5e7eb";mctx.font="bold 13px system-ui";mctx.textAlign="center";mctx.fillText("숨는 시간",mini.width/2,mini.height/2-5);mctx.fillText("지도 잠김",mini.width/2,mini.height/2+15);mctx.textAlign="left";return;
   }
@@ -334,12 +375,12 @@ function drawMini(){
   rooms.forEach(r=>{mctx.fillStyle=r.floor;mctx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);mctx.strokeStyle="#64748b";mctx.strokeRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);});
   mctx.fillStyle="#5c8f4d";mctx.fillRect(1375*sx,110*sy,360*sx,540*sy);
   if(player){mctx.fillStyle=mode==="seeker"?"#ef4444":"#2563eb";mctx.beginPath();mctx.arc(player.x*sx,player.y*sy,4,0,Math.PI*2);mctx.fill();}
-  if(mode==="hider"){mctx.fillStyle="#ef4444";aiSeekers.forEach(s=>{mctx.beginPath();mctx.arc(s.x*sx,s.y*sy,3,0,Math.PI*2);mctx.fill();});}
+  if(!online&&mode==="hider"){mctx.fillStyle="#ef4444";aiSeekers.forEach(s=>{mctx.beginPath();mctx.arc(s.x*sx,s.y*sx,3,0,Math.PI*2);mctx.fill();});}
 }
 function draw(){
   drawWorld();drawMini();
-  if(mode==="seeker"&&performance.now()<hideUntil){
-    const sec=Math.max(0,Math.ceil((hideUntil-performance.now())/1000));
+  if(mode==="seeker"&&gameNow()<hideUntil){
+    const sec=Math.max(0,Math.ceil((hideUntil-gameNow())/1000));
     ctx.fillStyle="rgba(5,10,18,.94)";ctx.fillRect(0,0,viewW,viewH);
     ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="800 30px system-ui";ctx.fillText("🙈 숨는 사람 준비 중",viewW/2,viewH/2-28);
     ctx.font="900 62px system-ui";ctx.fillStyle="#86efac";ctx.fillText(String(sec),viewW/2,viewH/2+45);
@@ -378,6 +419,108 @@ function moveEntity(e,dx,dy,speed,dt){
   if(!solidAt(nx,e.y))e.x=nx;if(!solidAt(e.x,ny))e.y=ny;
 }
 function say(t){toast.textContent=t;lastToast=performance.now();}
+
+function gameNow(){return online?Date.now()+serverOffset:performance.now();}
+function cleanName(v){return (v||"").trim().replace(/[<>]/g,"").slice(0,10)||"학생";}
+async function ensureFirebase(){
+  if(fb)return true;
+  const status=document.getElementById("serverStatus");
+  if(!window.FIREBASE_CONFIG){status.textContent="⚠️ Firebase 설정 전입니다. 아래 안내대로 1회 연결하면 25명이 동시에 플레이할 수 있어요.";status.className="note serverBad";return false;}
+  try{
+    const [appm,authm,dbm]=await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js")
+    ]);
+    const app=appm.initializeApp(window.FIREBASE_CONFIG);
+    auth=authm.getAuth(app);await authm.signInAnonymously(auth);uid=auth.currentUser.uid;
+    db=dbm.getDatabase(app);fb=dbm;
+    dbm.onValue(dbm.ref(db,".info/serverTimeOffset"),snap=>serverOffset=snap.val()||0);
+    status.textContent="✅ 실시간 서버 연결됨 — 방을 만들거나 참가할 수 있습니다.";status.className="note serverOk";
+    return true;
+  }catch(err){status.textContent="❌ 서버 연결 실패: "+(err&&err.message?err.message:"Firebase 설정을 확인하세요.");status.className="note serverBad";return false;}
+}
+function showLobby(){
+  document.getElementById("menu").style.display="none";document.getElementById("lobby").style.display="flex";document.getElementById("result").style.display="none";
+  document.getElementById("roomCodeView").textContent=roomCode||"------";updateLobby();
+}
+function updateLobby(){
+  const ids=Object.keys(netPlayers);document.getElementById("lobbyCount").textContent=ids.length;
+  const list=document.getElementById("playerList");list.innerHTML="";
+  ids.sort((a,b)=>(netPlayers[a].joinedAt||0)-(netPlayers[b].joinedAt||0)).forEach((id,i)=>{
+    const d=document.createElement("div");d.className="playerChip";d.textContent=(id===uid?"⭐ ":"")+(netPlayers[id].name||("학생"+(i+1)));list.appendChild(d);
+  });
+  const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=ids.length<2;
+  document.getElementById("lobbyNote").textContent=isHost?(ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"준비되면 게임 시작! "+ids.length+"명 접속 중"):"선생님이 게임을 시작할 때까지 기다려 주세요.";
+}
+function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
+async function subscribeRoom(){
+  clearSubs();online=true;showLobby();
+  const base="rooms/"+roomCode;
+  unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{roomState=snap.val()||{};if(roomState.seed&&roomState.seed!==currentSeed){currentSeed=roomState.seed>>>0;buildWorld(currentSeed);}if(roomState.phase==="lobby")showLobby();maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{netPlayers=snap.val()||{};updateLobby();maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/roles"),snap=>{roles=snap.val()||{};maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{caughtNet=snap.val()||{};}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
+}
+function maybeEnterRound(){
+  if(!online||roomState.phase!=="hide"||!roles[uid]||!netPlayers[uid])return;
+  const round=Number(roomState.round||1);
+  if(roundApplied===round&&running)return;
+  roundApplied=round;mode=roles[uid];player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
+  hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);searches=Number(searchesNet[uid]||0);
+  document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
+  if(mode==="seeker")say("숨는 사람에게 25초를 줍니다. 화면이 열리면 직접 돌아다니며 찾으세요!");
+  else say("25초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  const was=running;running=true;last=performance.now();if(!was)requestAnimationFrame(loop);
+}
+async function createRoom(){
+  if(!(await ensureFirebase()))return;
+  const name=cleanName(document.getElementById("nick").value);
+  let code="",triesCode=0;
+  while(triesCode++<12){code=String(Math.floor(100000+Math.random()*900000));const snap=await fb.get(fb.ref(db,"rooms/"+code+"/hostUid"));if(!snap.exists())break;}
+  roomCode=code;isHost=true;
+  const base="rooms/"+roomCode,now=Date.now()+serverOffset;
+  await fb.set(fb.ref(db,base+"/hostUid"),uid);
+  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),createdAt:now});
+  const pr=fb.ref(db,base+"/players/"+uid);await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,joinedAt:now});
+  fb.onDisconnect(pr).remove();await subscribeRoom();
+}
+async function joinRoom(){
+  if(!(await ensureFirebase()))return;
+  const code=(document.getElementById("joinCode").value||"").replace(/\D/g,"").slice(0,6);
+  if(code.length!==6){say("6자리 방 코드를 입력하세요.");return;}
+  const base="rooms/"+code;
+  const [hostSnap,stateSnap,playersSnap]=await Promise.all([fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),fb.get(fb.ref(db,base+"/players"))]);
+  if(!hostSnap.exists()){say("없는 방 코드입니다.");return;}
+  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 다음 라운드를 기다려 주세요.");return;}
+  const ps=playersSnap.val()||{};if(Object.keys(ps).length>=25){say("방이 가득 찼습니다.");return;}
+  roomCode=code;isHost=hostSnap.val()===uid;
+  const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid);
+  await fb.set(pr,{name:cleanName(document.getElementById("nick").value),x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,joinedAt:now});
+  fb.onDisconnect(pr).remove();await subscribeRoom();
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+async function startOnlineRound(){
+  if(!online||!isHost)return;
+  const ids=Object.keys(netPlayers);if(ids.length<2){say("2명 이상 있어야 시작할 수 있습니다.");return;}
+  const shuffled=shuffle(ids.slice()),seekerCount=ids.length>=12?2:1,seekers=new Set(shuffled.slice(0,seekerCount));
+  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+25000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
+  const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260]];
+  const updates={};
+  ids.forEach((id,i)=>{
+    const r=seekers.has(id)?"seeker":"hider";updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?15:0;
+    let x,y;if(r==="seeker"){x=1120+(i%2)*90;y=655;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
+    updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;
+  });
+  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,hideEndsAt:hideEnd,seekEndsAt:seekEnd};
+  await fb.update(fb.ref(db),updates);
+}
+async function syncPlayerNow(){
+  if(!online||!uid||!player||!roomCode)return;
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),{x:Math.round(player.x*10)/10,y:Math.round(player.y*10)/10,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null});
+}
 function setupHider(){
   const p=freePoint();player={x:p.x,y:p.y,disguise:null,flowerColor:null,caught:false};
   aiHiders=[];aiSeekers=[Object.assign(freePoint(),{vx:0,vy:0,nextThink:0}),Object.assign(freePoint(),{vx:0,vy:0,nextThink:0})];
@@ -400,42 +543,54 @@ function setupTour(){
   mode="tour";running=true;player={x:1200,y:760,disguise:null};aiHiders=[];aiSeekers=[];searches=0;hideUntil=0;roundEnd=0;roleEl.textContent="🗺 맵 구경";roleEl.className="pill";say("학교를 자유롭게 돌아다녀보세요. E로 주변 사물 변신도 시험할 수 있어요.");
 }
 function startGame(which){
-  document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
-  buildWorld();
-  if(which==="hider")setupHider();else if(which==="seeker")setupSeeker();else setupTour();
-  last=performance.now();requestAnimationFrame(loop);
+  online=false;clearSubs();document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  buildWorld((Date.now()>>>0));setupTour();last=performance.now();requestAnimationFrame(loop);
 }
-document.getElementById("hiderBtn").onclick=()=>startGame("hider");
-document.getElementById("seekerBtn").onclick=()=>startGame("seeker");
+document.getElementById("createBtn").onclick=createRoom;
+document.getElementById("joinBtn").onclick=joinRoom;
 document.getElementById("tourBtn").onclick=()=>startGame("tour");
-document.getElementById("again").onclick=()=>startGame(mode==="tour"?"tour":mode);
-document.getElementById("menuBtn").onclick=()=>{running=false;document.getElementById("result").style.display="none";document.getElementById("menu").style.display="flex";mode="menu";player=null;draw();};
+document.getElementById("startOnlineBtn").onclick=startOnlineRound;
+document.getElementById("leaveBtn").onclick=()=>location.reload();
+document.getElementById("again").onclick=()=>{if(online&&isHost)startOnlineRound();else if(!online)startGame("tour");};
+document.getElementById("menuBtn").onclick=()=>{if(online){location.reload();return;}running=false;document.getElementById("result").style.display="none";document.getElementById("menu").style.display="flex";mode="menu";player=null;draw();};
+ensureFirebase();
 
 addEventListener("keydown",e=>{
   if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
   const k=e.key.toLowerCase();keys[k]=true;
   if(!running||!player)return;
   if(k==="e"&&(mode==="hider"||mode==="tour")){
-    if(player.disguise){player.disguise=null;player.flowerColor=null;say("변신을 해제했습니다.");}
-    else{const p=nearestProp(player,105);if(p){player.disguise=p.type;player.flowerColor=p.flowerColor||null;say(p.type==="flower"?"꽃으로 변신! 다른 꽃들과 똑같이 보입니다.":"주변 사물로 변신했습니다. 술래에게는 일반 사물과 똑같이 보입니다.");}else say("변신할 사물에 조금 더 가까이 가세요.");}
+    if(player.disguise){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;say("변신을 해제했습니다.");if(online)syncPlayerNow();}
+    else{const p=nearestProp(player,105);if(p){player.disguise=p.type;player.flowerColor=p.flowerColor||null;player.disguiseOriginId=p.id;player.x=p.x;player.y=p.y;say(p.type==="flower"?"꽃으로 변신! 다른 꽃과 완전히 같은 모습입니다.":"주변 사물과 똑같이 변신했습니다.");if(online)syncPlayerNow();}else say("변신할 사물에 조금 더 가까이 가세요.");}
   }
   if(e.code==="Space"&&mode==="seeker"){e.preventDefault();inspect();}
 });
 addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
 
-function inspect(){
-  if(mode==="seeker"&&performance.now()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
+async function inspect(){
+  if(mode==="seeker"&&gameNow()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
+  if(online)searches=Number(searchesNet[uid]||0);
   if(searches<=0){say("탐색 기회를 모두 사용했습니다!");return;}
-  // find nearest visible thing; hidden player is indistinguishable from normal props
   let candidates=[];
   props.forEach(p=>{if(p.type!=="gardenBed"&&p.type!=="board")candidates.push({kind:"prop",obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});});
-  aiHiders.forEach(h=>{if(!h.found)candidates.push({kind:"hider",obj:h,d:Math.hypot(player.x-h.x,player.y-h.y)});});
-  candidates.sort((a,b)=>a.d-b.d);const c=candidates[0];
+  if(online){
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
+      candidates.push({kind:"hider",id,obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});
+    }
+  }else{
+    aiHiders.forEach(h=>{if(!h.found)candidates.push({kind:"hider",obj:h,d:Math.hypot(player.x-h.x,player.y-h.y)});});
+  }
+  candidates.sort((a,b)=>a.d-b.d);let c=candidates[0];
   if(!c||c.d>82){say("조사할 사물에 더 가까이 가세요.");return;}
+  const hidden=candidates.find(v=>v.kind==="hider"&&v.d<=c.d+4);if(hidden)c=hidden;
   searches--;
-  if(c.kind==="hider"){c.obj.found=true;say("🎉 찾았다! 숨어 있던 친구를 발견했습니다.");}
-  else say("❌ 그냥 평범한 사물이었습니다.");
-  updateHud(performance.now());
+  if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/searches/"+uid),searches);
+  if(c.kind==="hider"){
+    if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),true);else c.obj.found=true;
+    say("🎉 찾았다! 숨어 있던 친구를 발견했습니다.");
+  }else say("❌ 그냥 평범한 사물이었습니다.");
+  updateHud(gameNow());
 }
 function aiSeek(dt,t){
   if(t<hideUntil)return;
@@ -459,43 +614,50 @@ function finish(win,msg){
   if(!running)return;running=false;
   document.getElementById("resultTitle").textContent=win?"🏆 승리!":"😵 라운드 종료";
   document.getElementById("resultText").textContent=msg;
+  const a=document.getElementById("again"),m=document.getElementById("menuBtn");
+  if(online){a.style.display=isHost?"inline-block":"none";a.textContent="다음 라운드 시작";m.textContent="방 나가기";}else{a.style.display="inline-block";a.textContent="다시 하기";m.textContent="역할 선택";}
   document.getElementById("result").style.display="flex";
 }
 function updateHud(t){
   if(mode==="tour"){phaseEl.textContent="자유 탐험";timerEl.textContent="⏱ --:--";triesEl.textContent="🔍 --";aliveEl.textContent="🙈 --";return;}
+  const onlineHiders=online?Object.keys(netPlayers).filter(id=>roles[id]==="hider"):[],aliveHiders=online?onlineHiders.filter(id=>!caughtNet[id]).length:0;
+  const teamSearch=online?Object.keys(netPlayers).filter(id=>roles[id]==="seeker").reduce((sum,id)=>sum+Number(searchesNet[id]||0),0):searches;
   if(mode==="hider"){
     if(t<hideUntil){phaseEl.textContent="숨기 "+Math.ceil((hideUntil-t)/1000)+"초";phaseEl.className="pill good";}
     else{phaseEl.textContent="술래 탐색 중";phaseEl.className="pill danger";}
     const remain=Math.max(0,roundEnd-t);timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
-    triesEl.textContent="🔍 술래 탐색 "+searches;aliveEl.textContent=player&&player.caught?"🙈 0":"🙈 1";
-    if(t>=roundEnd)finish(true,"제한시간 끝까지 사물로 완벽하게 숨어 살아남았습니다!");
-    if(searches<=0)finish(true,"술래가 탐색 기회를 모두 써버렸습니다. 숨는 사람 승리!");
+    triesEl.textContent=online?"🔍 술래 팀 "+teamSearch:"🔍 술래 탐색 "+searches;aliveEl.textContent=online?"🙈 생존 "+aliveHiders:(player&&player.caught?"🙈 0":"🙈 1");
+    if(online&&caughtNet[uid])finish(false,"술래에게 발견되었습니다. 다음 라운드를 기다려 주세요.");
+    else if(t>=roundEnd)finish(true,"제한시간 끝까지 사물로 숨어 살아남았습니다!");
+    else if(teamSearch<=0&&t>=hideUntil)finish(true,"술래들이 탐색 기회를 모두 사용했습니다. 숨는 사람 승리!");
   }else if(mode==="seeker"){
-    const left=aiHiders.filter(h=>!h.found).length;aliveEl.textContent="🙈 생존 "+left;
+    const left=online?aliveHiders:aiHiders.filter(h=>!h.found).length;aliveEl.textContent="🙈 생존 "+left;
     if(t<hideUntil){
-      const wait=Math.max(0,hideUntil-t);
-      phaseEl.textContent="🙈 숨는 중 "+Math.ceil(wait/1000)+"초";phaseEl.className="pill good";
-      timerEl.textContent="⏳ "+String(Math.floor(wait/60000)).padStart(2,"0")+":"+String(Math.floor(wait/1000)%60).padStart(2,"0");
-      triesEl.textContent="🔒 탐색 잠김";
+      const wait=Math.max(0,hideUntil-t);phaseEl.textContent="🙈 숨는 중 "+Math.ceil(wait/1000)+"초";phaseEl.className="pill good";
+      timerEl.textContent="⏳ "+String(Math.floor(wait/60000)).padStart(2,"0")+":"+String(Math.floor(wait/1000)%60).padStart(2,"0");triesEl.textContent="🔒 탐색 잠김";
     }else{
-      phaseEl.textContent="🔎 친구 찾는 중";phaseEl.className="pill danger";
-      const remain=Math.max(0,roundEnd-t);timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
-      triesEl.textContent="🔍 탐색 "+searches;
+      phaseEl.textContent="🔎 친구 찾는 중";phaseEl.className="pill danger";const remain=Math.max(0,roundEnd-t);
+      timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
+      triesEl.textContent=online?"🔍 내 "+Number(searchesNet[uid]||0)+" / 팀 "+teamSearch:"🔍 탐색 "+searches;
       if(left===0)finish(true,"숨은 친구를 모두 찾아냈습니다!");
-      else if(searches<=0)finish(false,"탐색 기회를 모두 사용했습니다. "+left+"명이 끝까지 숨어 있었습니다.");
+      else if(teamSearch<=0)finish(false,"술래 팀의 탐색 기회를 모두 사용했습니다. "+left+"명이 살아남았습니다.");
       else if(t>=roundEnd)finish(false,"시간 종료! "+left+"명이 살아남았습니다.");
     }
   }
 }
 function loop(t){
-  if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;
+  if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;const now=gameNow();
   let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
   const sprint=keys.shift?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105*sprint;
-  const seekerWaiting=(mode==="seeker"&&t<hideUntil);
-  if(player&&!seekerWaiting)moveEntity(player,dx,dy,speed,dt);
-  if(mode==="hider")aiSeek(dt,t);
+  const seekerWaiting=(mode==="seeker"&&now<hideUntil);
+  if(player&&!seekerWaiting){
+    if(player.disguiseOriginId&&(dx||dy))player.disguiseOriginId=null;
+    moveEntity(player,dx,dy,speed,dt);
+  }
+  if(!online&&mode==="hider")aiSeek(dt,t);
+  if(online&&player&&t-lastNetSync>130){lastNetSync=t;syncPlayerNow();}
   if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
-  updateHud(t);draw();requestAnimationFrame(loop);
+  updateHud(now);draw();requestAnimationFrame(loop);
 }
 fit();camera.x=1000;camera.y=450;draw();
 })();
