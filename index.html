@@ -57,7 +57,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
         <button id="seekerBtn">🔎 술래로 시작</button>
         <button id="tourBtn" class="alt">🗺 맵 구경</button>
       </div>
-      <div class="note">현재 버전은 게임 방식과 맵을 확인하는 완성형 로컬 데모입니다. 이 느낌이 맞으면 같은 게임에 25대 크롬북이 접속하도록 실시간 서버만 연결하면 됩니다.</div>
+      <div class="note">매 게임 시작 때 가구 방향·소품 위치·화단의 꽃 배치가 랜덤으로 바뀝니다. 술래도 숨기 시간이 끝나면 교실·도서관·과학실·급식실·체육관·휴게실 안까지 직접 들어가 찾을 수 있습니다.</div>
     </div>
   </div>
 
@@ -106,6 +106,41 @@ function rectRoom(name,x,y,w,h,floor,wall,doorSide){
   walls.push({x,y,w:18,h},{x:x+w-18,y,w:18,h});
 }
 function add(type,x,y,extra){ props.push(Object.assign({type,x,y,id:"p"+props.length},extra||{})); }
+function rand(min,max){return min+Math.random()*(max-min);}
+function randomizeWorld(){
+  // 방마다 가구 배치를 좌우/상하 반전 + 약간의 위치 변형으로 매 라운드 다르게 만듭니다.
+  const movable=props.filter(p=>!["gardenBed","board"].includes(p.type));
+  for(const r of rooms){
+    const inside=movable.filter(p=>p.x>r.x+24&&p.x<r.x+r.w-24&&p.y>r.y+24&&p.y<r.y+r.h-24);
+    const flipX=Math.random()<.5, flipY=Math.random()<.35;
+    for(const p of inside){
+      if(flipX)p.x=r.x+r.w-(p.x-r.x);
+      if(flipY)p.y=r.y+r.h-(p.y-r.y);
+      const jitter=["flower","stool","ball","cone","plantPot","box","trash"].includes(p.type)?18:8;
+      p.x=Math.max(r.x+35,Math.min(r.x+r.w-35,p.x+rand(-jitter,jitter)));
+      p.y=Math.max(r.y+35,Math.min(r.y+r.h-35,p.y+rand(-jitter,jitter)));
+    }
+    // 작은 소품을 랜덤 추가해서 외워서 찾기 어렵게 만듭니다.
+    const extraTypes=["plantPot","box","trash","stool"];
+    const extraCount=Math.floor(rand(1,4));
+    for(let i=0;i<extraCount;i++){
+      const t=extraTypes[Math.floor(Math.random()*extraTypes.length)];
+      let px=rand(r.x+70,r.x+r.w-70), py=rand(r.y+80,r.y+r.h-70);
+      // 출입문 중앙은 비워둡니다.
+      const nearDoor=Math.abs(px-(r.x+r.w/2))<85 &&
+        ((r.doorSide==="bottom"&&py>r.y+r.h-120)||(r.doorSide==="top"&&py<r.y+120));
+      if(!nearDoor)add(t,px,py);
+    }
+  }
+  // 화단은 꽃의 위치와 색도 매번 바뀝니다.
+  const flowerColors=["#ef4444","#f59e0b","#f9a8d4","#a78bfa","#ffffff","#fde047","#fb7185","#60a5fa"];
+  for(const p of props){
+    if(p.type==="flower"){
+      p.x+=rand(-18,18);p.y+=rand(-18,18);
+      p.flowerColor=flowerColors[Math.floor(Math.random()*flowerColors.length)];
+    }else if(p.type==="bush"){p.x+=rand(-18,18);p.y+=rand(-15,15);}
+  }
+}
 function buildWorld(){
   props=[];walls=[];rooms=[];
   rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
@@ -114,8 +149,8 @@ function buildWorld(){
   rectRoom("급식실",720,820,620,690,"#d9c49a","#8a6f50","top");
   rectRoom("체육관",1390,820,930,690,"#c99356","#7f5b3e","top");
   rectRoom("학생휴게실",1780,70,540,430,"#d9c1a2","#82634b","bottom");
-  // hallway
-  walls.push({x:40,y:535,w:2300,h:18},{x:40,y:770,w:2300,h:18});
+  // 복도는 모든 방의 출입문과 연결되는 열린 공간입니다.
+  // 예전 버전의 가로 충돌벽은 삭제하여 술래/숨는 사람 모두 자유롭게 방에 들어갈 수 있습니다.
   // classroom furniture
   for(let r=0;r<3;r++)for(let c=0;c<5;c++){add("desk",150+c*95,190+r*88);add("chair",150+c*95,225+r*88);}
   add("teacherDesk",500,120); add("board",270,95); add("cabinet",85,115); add("cabinet",590,115);
@@ -154,6 +189,7 @@ function buildWorld(){
   add("tree",1690,185);add("tree",1695,560);add("bench",1450,700);add("bench",1650,700);
   // outdoor hallway planters
   for(let i=0;i<7;i++)add("plantPot",1450+i*120,720);
+  randomizeWorld();
 }
 buildWorld();
 
@@ -346,6 +382,7 @@ function setupTour(){
 }
 function startGame(which){
   document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  buildWorld();
   if(which==="hider")setupHider();else if(which==="seeker")setupSeeker();else setupTour();
   last=performance.now();requestAnimationFrame(loop);
 }
