@@ -20,6 +20,16 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #mini{position:absolute;right:12px;top:12px;width:190px;background:#0b1220e8;border:1px solid #34455e;border-radius:14px;padding:8px;z-index:4}
 #mini canvas{width:174px;height:112px;border-radius:8px;background:#d7dfd2}
 #mini .t{font-size:12px;color:#d6deea;margin-bottom:5px;font-weight:800}
+#touchControls{display:none;position:absolute;left:0;right:0;bottom:12px;z-index:8;padding:0 14px;justify-content:space-between;align-items:flex-end;pointer-events:none;user-select:none;-webkit-user-select:none}
+.touchDpad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;pointer-events:auto}
+.touchActions{display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
+.touchBtn{width:56px;height:56px;border:2px solid rgba(255,255,255,.35);border-radius:16px;background:rgba(15,23,42,.72);color:#fff;font:900 24px system-ui;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);touch-action:none;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.touchBtn:active,.touchBtn.pressed{transform:scale(.94);background:rgba(37,99,235,.82)}
+.touchBtn:disabled{opacity:.35;transform:none}
+#touchUp{grid-column:2;grid-row:1}#touchLeft{grid-column:1;grid-row:2}#touchDown{grid-column:2;grid-row:2}#touchRight{grid-column:3;grid-row:2}
+.touchActionBtn{width:78px;height:64px;font-size:15px;line-height:1.15;padding:4px}
+#touchSprint{background:rgba(127,29,29,.78)}
+@media(max-width:480px){.touchDpad{grid-template-columns:repeat(3,50px);grid-template-rows:repeat(2,50px);gap:5px}.touchBtn{width:50px;height:50px;border-radius:14px}.touchActionBtn{width:68px;height:58px;font-size:14px}#touchControls{padding:0 9px;bottom:9px}}
 .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07101bdd;z-index:10;padding:20px}
 .card{width:min(660px,94vw);background:#f8fafc;color:#152033;border-radius:20px;padding:24px;box-shadow:0 20px 70px #0008}
 .card h1,.card h2{margin:0 0 10px}.card p{line-height:1.55}.row{display:flex;gap:10px;flex-wrap:wrap}
@@ -53,6 +63,18 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   <div id="proximity">📡 근처에 숨은 사람이 있어요!</div>
   <div id="huntStartSignal">🚨 술래 출발!<br><span style="font-size:.55em">지금부터 찾기 시작!</span></div>
   <div id="mini"><div class="t">학교 전체 지도</div><canvas id="map" width="174" height="112"></canvas></div>
+  <div id="touchControls" aria-label="모바일 터치 조작">
+    <div class="touchDpad">
+      <button id="touchUp" class="touchBtn" type="button" data-key="arrowup" aria-label="위로 이동">▲</button>
+      <button id="touchLeft" class="touchBtn" type="button" data-key="arrowleft" aria-label="왼쪽 이동">◀</button>
+      <button id="touchDown" class="touchBtn" type="button" data-key="arrowdown" aria-label="아래로 이동">▼</button>
+      <button id="touchRight" class="touchBtn" type="button" data-key="arrowright" aria-label="오른쪽 이동">▶</button>
+    </div>
+    <div class="touchActions">
+      <button id="touchAction" class="touchBtn touchActionBtn" type="button">🪄<br>변신</button>
+      <button id="touchSprint" class="touchBtn touchActionBtn" type="button">🏃<br>달리기</button>
+    </div>
+  </div>
 
   <div id="menu" class="overlay">
     <div class="card">
@@ -142,7 +164,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           </ul>
         </div>
       </div>
-      <div class="guideWarn"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 게임 중 새로고침은 하지 않는 것이 좋습니다.</div>
+      <div class="guideWarn"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 숨는 사람은 <b>변신</b> 버튼, 술래는 <b>조사·달리기</b> 버튼을 사용합니다. 옵저버는 이동 방향키로 돌아다닐 수 있습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 게임 중 새로고침은 하지 않는 것이 좋습니다.</div>
       <div class="row" style="margin-top:14px"><button id="closeGuideBtn" class="green">✅ 설명서 확인했어요</button></div>
     </div>
   </div>
@@ -177,6 +200,8 @@ window.FIREBASE_CONFIG = {
 const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
+const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
+const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
@@ -710,14 +735,79 @@ document.getElementById("again").onclick=()=>{if(online&&isHost)startOnlineRound
 document.getElementById("menuBtn").onclick=()=>{if(online){location.reload();return;}running=false;document.getElementById("result").style.display="none";document.getElementById("menu").style.display="flex";mode="menu";player=null;draw();};
 ensureFirebase();
 
+function toggleDisguise(){
+  if(!running||!player||!(mode==="hider"||mode==="tour"))return;
+  if(player.disguise){
+    player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;
+    say("변신을 해제했습니다.");if(online)syncPlayerNow();
+  }else{
+    const p=nearestProp(player,105);
+    if(p){
+      player.disguise=p.type;player.flowerColor=p.flowerColor||null;player.disguiseOriginId=p.id;player.x=p.x;player.y=p.y;
+      say(p.type==="flower"?"꽃으로 변신! 다른 꽃과 완전히 같은 모습입니다.":"주변 사물과 똑같이 변신했습니다.");
+      if(online)syncPlayerNow();
+    }else say("변신할 사물에 조금 더 가까이 가세요.");
+  }
+}
+function updateTouchControls(now){
+  if(!touchCapable||!running||!player){
+    touchControls.style.display="none";return;
+  }
+  touchControls.style.display="flex";
+  const waiting=(mode==="seeker"&&now<hideUntil);
+  if(mode==="hider"||mode==="tour"){
+    touchAction.style.display="block";touchAction.disabled=false;touchAction.innerHTML="🪄<br>변신";
+    touchSprint.style.display="none";keys.shift=false;
+  }else if(mode==="seeker"){
+    touchAction.style.display="block";touchAction.disabled=waiting;touchAction.innerHTML="🔍<br>조사";
+    touchSprint.style.display="block";touchSprint.disabled=waiting;
+    if(waiting)keys.shift=false;
+  }else{
+    touchAction.style.display="none";touchSprint.style.display="none";keys.shift=false;
+  }
+}
+document.querySelectorAll("#touchControls [data-key]").forEach(btn=>{
+  const key=btn.dataset.key;
+  const press=e=>{
+    e.preventDefault();
+    if(!running||!player)return;
+    keys[key]=true;btn.classList.add("pressed");
+    try{btn.setPointerCapture(e.pointerId);}catch{}
+  };
+  const release=e=>{
+    e.preventDefault();keys[key]=false;btn.classList.remove("pressed");
+  };
+  btn.addEventListener("pointerdown",press);
+  btn.addEventListener("pointerup",release);
+  btn.addEventListener("pointercancel",release);
+  btn.addEventListener("lostpointercapture",release);
+  btn.addEventListener("contextmenu",e=>e.preventDefault());
+});
+touchAction.addEventListener("pointerdown",e=>{
+  e.preventDefault();
+  if(touchAction.disabled||!running||!player)return;
+  if(mode==="seeker")inspect();else toggleDisguise();
+});
+const sprintPress=e=>{
+  e.preventDefault();
+  if(touchSprint.disabled||mode!=="seeker")return;
+  keys.shift=true;touchSprint.classList.add("pressed");
+  try{touchSprint.setPointerCapture(e.pointerId);}catch{}
+};
+const sprintRelease=e=>{
+  e.preventDefault();keys.shift=false;touchSprint.classList.remove("pressed");
+};
+touchSprint.addEventListener("pointerdown",sprintPress);
+touchSprint.addEventListener("pointerup",sprintRelease);
+touchSprint.addEventListener("pointercancel",sprintRelease);
+touchSprint.addEventListener("lostpointercapture",sprintRelease);
+touchSprint.addEventListener("contextmenu",e=>e.preventDefault());
+
 addEventListener("keydown",e=>{
   if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
   const k=e.key.toLowerCase();keys[k]=true;
   if(!running||!player)return;
-  if(k==="e"&&(mode==="hider"||mode==="tour")){
-    if(player.disguise){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;say("변신을 해제했습니다.");if(online)syncPlayerNow();}
-    else{const p=nearestProp(player,105);if(p){player.disguise=p.type;player.flowerColor=p.flowerColor||null;player.disguiseOriginId=p.id;player.x=p.x;player.y=p.y;say(p.type==="flower"?"꽃으로 변신! 다른 꽃과 완전히 같은 모습입니다.":"주변 사물과 똑같이 변신했습니다.");if(online)syncPlayerNow();}else say("변신할 사물에 조금 더 가까이 가세요.");}
-  }
+  if(k==="e"&&(mode==="hider"||mode==="tour"))toggleDisguise();
   if(e.code==="Space"&&mode==="seeker"){e.preventDefault();inspect();}
 });
 addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
@@ -834,9 +924,10 @@ function enterObserver(){
   roleEl.className="pill";
   proximityEl.style.display="none";
   say("👀 잡혔습니다! 내 화면에서는 캐릭터로 움직이며 구경할 수 있어요. 술래에게는 보이지 않습니다.");
+  updateTouchControls(gameNow());
 }
 function finish(win,msg){
-  if(!running)return;running=false;
+  if(!running)return;running=false;touchControls.style.display="none";keys.shift=false;
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
     title.textContent="📊 라운드 결과";
@@ -931,7 +1022,7 @@ function loop(t){
   if(!online&&mode==="hider")aiSeek(dt,t);
   if(online&&player&&mode!=="observer"&&t-lastNetSync>130){lastNetSync=t;syncPlayerNow();}
   if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
-  updateHud(now);updateHuntStartSignal(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
+  updateHud(now);updateTouchControls(now);updateHuntStartSignal(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
 }
 fit();camera.x=1000;camera.y=450;draw();
 })();
