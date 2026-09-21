@@ -352,8 +352,14 @@ function randomizeWorld(){
       p.x=Math.max(r.x+35,Math.min(r.x+r.w-35,p.x+rand(-jitter,jitter)));
       p.y=Math.max(r.y+35,Math.min(r.y+r.h-35,p.y+rand(-jitter,jitter)));
     }
-    // 작은 소품을 랜덤 추가해서 외워서 찾기 어렵게 만듭니다.
-    const extraTypes=["plantPot","box","trash","stool"];
+    // 맵 테마에 맞는 작은 소품을 랜덤 추가해서 외워서 찾기 어렵게 만듭니다.
+    const themeExtras={
+      school1:["plantPot","box","trash","stool"],
+      school2:["cushion","musicStand","paintBucket","smallSpeaker"],
+      museum:["artifact","museumPot","smallStatue","displayCase"],
+      amusement:["balloon","plush","popcorn","giftBox"]
+    };
+    const extraTypes=themeExtras[currentMapKey]||themeExtras.school1;
     const extraCount=Math.floor(rand(1,4));
     for(let i=0;i<extraCount;i++){
       const t=extraTypes[Math.floor(mapRand()*extraTypes.length)];
@@ -374,77 +380,149 @@ function randomizeWorld(){
   }
 }
 const MAP_THEMES={
-  school1:{name:"학교 1층",rooms:["6학년 교실","도서관","과학실","급식실","체육관","학생휴게실"],floors:["#d6b47d","#c6a06d","#cfd5d9","#d9c49a","#c99356","#d9c1a2"]},
-  school2:{name:"학교 2층",rooms:["음악실","컴퓨터실","미술실","방송실","강당","상담실"],floors:["#d8c9a6","#b9cbd8","#e3c7d5","#c8d6c0","#c7a06b","#d7c5af"]},
-  museum:{name:"박물관",rooms:["역사전시관","세계문화관","자연사관","과학전시관","특별전시관","뮤지엄 라운지"],floors:["#d8c7a4","#c8b89e","#c6d1c4","#cbd3dc","#bfa889","#d8cec0"]},
-  amusement:{name:"놀이공원",rooms:["게임존","기념품샵","실내놀이터","푸드코트","공연장","휴게존"],floors:["#e7c4a4","#d8b7cf","#bcd8d0","#e7d2a5","#cbb4df","#d6c8b4"]}
-};
-function applyMapTheme(key){
-  const theme=MAP_THEMES[key]||MAP_THEMES.school1;
-  rooms.forEach((r,i)=>{r.name=theme.rooms[i]||r.name;r.floor=theme.floors[i]||r.floor;});
-  if(key==="school2"){
-    for(let i=0;i<7;i++)add("locker",1450+i*105,760);
-    add("globe",1560,420);add("roundTable",2050,300);
-  }else if(key==="museum"){
-    for(let i=0;i<5;i++)add("cabinet",1460+i*145,930);
-    add("skeleton",1590,1240);add("globe",2060,1160);add("bench",1540,760);add("bench",2070,760);
-  }else if(key==="amusement"){
-    for(let i=0;i<7;i++)add("ball",1480+i*65,980);
-    for(let i=0;i<6;i++)add("cone",1510+i*110,1260+(i%2)*80);
-    add("sofa",1880,350);add("sofa",2140,350);add("vending",1720,720);add("vending",1800,720);
+  school1:{
+    name:"학교 1층",bg:"#c8d0c5",grid:"#b5bdb3",accent:"#5c8f4d",
+    rooms:["6학년 교실","도서관","과학실","급식실","체육관","학생휴게실"],
+    floors:["#d6b47d","#c6a06d","#cfd5d9","#d9c49a","#c99356","#d9c1a2"],
+    walls:["#8b6d50","#75573f","#718096","#8a6f50","#7f5b3e","#82634b"]
+  },
+  school2:{
+    name:"학교 2층",bg:"#c9d9e4",grid:"#a9c0d0",accent:"#6b8fa3",
+    rooms:["음악실","컴퓨터실","미술실","방송실","강당","상담실"],
+    floors:["#e2d2a8","#b9cedc","#ead0db","#c2d5ca","#b78f60","#ddd0bd"],
+    walls:["#9b815c","#66849a","#a9788e","#6e927d","#74583d","#8c765f"]
+  },
+  museum:{
+    name:"박물관",bg:"#756f67",grid:"#8c857c",accent:"#b89a62",
+    rooms:["역사전시관","세계문화관","자연사관","과학전시관","특별전시관","뮤지엄 라운지"],
+    floors:["#cbbd9e","#b8aa91","#b9c2b5","#b7c2ca","#a99170","#c8bfb0"],
+    walls:["#665a49","#675d50","#59655a","#53636d","#604f3a","#756858"]
+  },
+  amusement:{
+    name:"놀이공원",bg:"#efdcae",grid:"#dfc88f",accent:"#e879a0",
+    rooms:["게임존","기념품샵","실내놀이터","푸드코트","공연장","휴게존"],
+    floors:["#8dc7d8","#f0b7cf","#a8d9c9","#f3d69d","#bba4dc","#d9c8ad"],
+    walls:["#397f94","#b96387","#568d7c","#a98243","#71579b","#8a7455"]
   }
+};
+function buildRoomShell(key){
+  const theme=MAP_THEMES[key]||MAP_THEMES.school1;
+  const g=[
+    [60,70,620,430,"bottom"],[720,70,600,430,"bottom"],[60,820,620,690,"top"],
+    [720,820,620,690,"top"],[1390,820,930,690,"top"],[1780,70,540,430,"bottom"]
+  ];
+  g.forEach((v,i)=>rectRoom(theme.rooms[i],v[0],v[1],v[2],v[3],theme.floors[i],theme.walls[i],v[4]));
 }
-function buildWorld(seed,mapKey=currentMapKey){
-  mapRand=seededRng((seed>>>0)||123456789);
-  props=[];walls=[];rooms=[];
-  rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
-  rectRoom("도서관",720,70,600,430,"#c6a06d","#75573f","bottom");
-  rectRoom("과학실",60,820,620,690,"#cfd5d9","#718096","top");
-  rectRoom("급식실",720,820,620,690,"#d9c49a","#8a6f50","top");
-  rectRoom("체육관",1390,820,930,690,"#c99356","#7f5b3e","top");
-  rectRoom("학생휴게실",1780,70,540,430,"#d9c1a2","#82634b","bottom");
-  // 복도는 모든 방의 출입문과 연결되는 열린 공간입니다.
-  // 예전 버전의 가로 충돌벽은 삭제하여 술래/숨는 사람 모두 자유롭게 방에 들어갈 수 있습니다.
-  // classroom furniture
+function addSchool1Props(){
   for(let r=0;r<3;r++)for(let c=0;c<5;c++){add("desk",150+c*95,190+r*88);add("chair",150+c*95,225+r*88);}
-  add("teacherDesk",500,120); add("board",270,95); add("cabinet",85,115); add("cabinet",590,115);
+  add("teacherDesk",500,120);add("board",270,95);add("cabinet",85,115);add("cabinet",590,115);
   add("plantPot",105,405);add("plantPot",620,400);add("trash",645,310);
-  // library
-  for(let i=0;i<5;i++) add("bookshelf",760+i*105,105);
-  for(let i=0;i<4;i++) add("bookshelf",760+i*140,385);
-  add("roundTable",950,275);for(let a=0;a<6;a++){let ang=a*Math.PI/3;add("stool",950+Math.cos(ang)*82,275+Math.sin(ang)*62);}
+  for(let i=0;i<5;i++)add("bookshelf",760+i*105,105);
+  for(let i=0;i<4;i++)add("bookshelf",760+i*140,385);
+  add("roundTable",950,275);for(let a=0;a<6;a++){const an=a*Math.PI/3;add("stool",950+Math.cos(an)*82,275+Math.sin(an)*62);}
   add("globe",1215,255);add("plantPot",1270,420);add("box",760,440);add("box",800,440);
-  // science
-  for(let r=0;r<3;r++)for(let c=0;c<3;c++) add("labTable",150+c*165,930+r*150);
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++)add("labTable",150+c*165,930+r*150);
   add("skeleton",590,930);add("microscope",175,925);add("microscope",505,1225);add("cabinet",90,1360);add("plantPot",620,1430);
-  // cafeteria
   for(let r=0;r<3;r++)for(let c=0;c<2;c++){add("cafTable",845+c*265,950+r*175);for(let k=0;k<4;k++)add("stool",790+c*265+k*55,1010+r*175);}
-  for(let i=0;i<5;i++) add("vending",760+i*105,865);
+  for(let i=0;i<5;i++)add("vending",760+i*105,865);
   add("cone",1265,1390);add("trash",1285,900);add("plantPot",750,1440);
-  // gym
   add("basket",1450,900);add("basket",2250,900);for(let i=0;i<6;i++)add("ball",1510+i*45,1420);
   add("mat",2100,1000);add("mat",2100,1090);add("cone",1500,1120);add("cone",1600,1220);add("cone",1700,1120);
   add("bench",1810,1450);add("bench",2010,1450);
-  // lounge
   add("sofa",1840,160);add("sofa",2070,160);add("roundTable",1980,320);add("plantPot",1815,430);add("plantPot",2260,430);
-  add("locker",1820,390);add("locker",1890,390);add("locker",1960,390);add("locker",2030,390);add("locker",2100,390);add("locker",2170,390);
-  // hallway lockers & benches
+  for(let i=0;i<6;i++)add("locker",1820+i*70,390);
   for(let i=0;i<8;i++)add("locker",95+i*73,590);
-  add("bench",760,690);add("bench",1030,690);add("bench",1810,690);add("bench",2070,690);
-  add("trash",1340,700);add("plantPot",1600,695);
-  // central garden: lots of indistinguishable flowers
+  add("bench",760,690);add("bench",1030,690);add("bench",1810,690);add("bench",2070,690);add("trash",1340,700);add("plantPot",1600,695);
   add("gardenBed",1375,110,{w:360,h:540});
   const flowerColors=["#ef4444","#f59e0b","#f9a8d4","#a78bfa","#ffffff","#fde047"];
   for(let r=0;r<8;r++)for(let c=0;c<6;c++){
-    const jitterX=((r*13+c*17)%19)-9,jitterY=((r*23+c*11)%17)-8;
-    add("flower",1435+c*48+jitterX,165+r*55+jitterY,{flowerColor:flowerColors[(r+c)%flowerColors.length]});
+    const jx=((r*13+c*17)%19)-9,jy=((r*23+c*11)%17)-8;
+    add("flower",1435+c*48+jx,165+r*55+jy,{flowerColor:flowerColors[(r+c)%flowerColors.length]});
   }
-  for(let i=0;i<9;i++) add("bush",1405+(i%3)*125,130+Math.floor(i/3)*220);
+  for(let i=0;i<9;i++)add("bush",1405+(i%3)*125,130+Math.floor(i/3)*220);
   add("tree",1690,185);add("tree",1695,560);add("bench",1450,700);add("bench",1650,700);
-  // outdoor hallway planters
   for(let i=0;i<7;i++)add("plantPot",1450+i*120,720);
+}
+function addSchool2Props(){
+  // 음악실
+  add("piano",185,170);add("piano",485,170);for(let i=0;i<8;i++)add("musicStand",135+(i%4)*135,310+Math.floor(i/4)*85);
+  add("smallSpeaker",610,410);add("cushion",105,410);
+  // 컴퓨터실
+  for(let r=0;r<3;r++)for(let c=0;c<4;c++){add("computer",790+c*125,165+r*105);add("officeChair",790+c*125,205+r*105);}
+  add("serverRack",1245,290);
+  // 미술실
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++)add("easel",155+c*170,950+r*155);
+  add("paintShelf",585,1040);for(let i=0;i<5;i++)add("paintBucket",125+i*90,1410);
+  // 방송실
+  add("camera",815,960);add("camera",1115,960);add("controlDesk",965,1130);add("smallSpeaker",790,1375);add("smallSpeaker",1240,1375);
+  // 강당
+  add("stageLight",1480,920);add("stageLight",2220,920);add("bigSpeaker",1510,1320);add("bigSpeaker",2200,1320);
+  for(let r=0;r<4;r++)for(let c=0;c<7;c++)add("auditoriumChair",1570+c*90,1030+r*90);
+  // 상담실
+  add("sofa",1880,175);add("sofa",2140,175);add("roundTable",2020,320);for(let i=0;i<4;i++)add("cushion",1870+i*105,405);
+  add("plantPot",1815,425);add("plantPot",2260,425);
+  // 2층 중앙 휴게홀 / 복도
+  for(let i=0;i<8;i++)add("locker",80+i*74,600);
+  for(let i=0;i<5;i++)add("vending",1425+i*115,665);
+  add("sofa",1480,560);add("sofa",1660,560);add("roundTable",1570,650);
+  add("smallSpeaker",1830,690);add("plantPot",2040,690);add("bench",2140,690);
+}
+function addMuseumProps(){
+  // 역사전시관
+  add("sarcophagus",160,185);add("sarcophagus",510,185);add("displayCase",330,340);add("ancientVase",110,405);add("ancientVase",620,405);
+  add("column",95,120);add("column",645,120);
+  // 세계문화관
+  for(let i=0;i<5;i++)add("displayCase",785+i*115,180+(i%2)*145);
+  add("maskStand",1215,375);add("ancientVase",760,420);add("artifact",1280,420);
+  // 자연사관
+  add("dinosaur",335,1080);add("fossil",150,930);add("fossil",530,1320);add("displayCase",110,1410);add("displayCase",610,1410);
+  // 과학전시관
+  add("planetModel",825,965);add("planetModel",1115,965);add("displayCase",950,1160);add("telescope",790,1370);add("telescope",1240,1370);
+  // 특별전시관
+  for(let i=0;i<5;i++)add("statue",1510+i*160,1010+(i%2)*250);
+  for(let i=0;i<4;i++)add("displayCase",1580+i*180,1420);
+  // 뮤지엄 라운지
+  add("museumBench",1870,180);add("museumBench",2140,180);add("museumTable",2010,330);add("museumPot",1815,420);add("museumPot",2260,420);
+  // 중앙 대리석 로비
+  for(let i=0;i<4;i++)add("column",1425+i*105,180);
+  add("statue",1510,470);add("statue",1690,470);add("museumBench",1490,690);add("museumBench",1690,690);
+  add("displayCase",1880,690);add("displayCase",2080,690);
+}
+function addAmusementProps(){
+  // 게임존
+  for(let r=0;r<2;r++)for(let c=0;c<5;c++)add("arcade",125+c*105,155+r*175);
+  add("prizeMachine",590,340);add("balloon",100,420);add("balloon",640,420);
+  // 기념품샵
+  for(let i=0;i<5;i++)add("giftShelf",770+i*105,145);
+  for(let i=0;i<7;i++)add("plush",785+i*75,355+(i%2)*55);
+  add("giftBox",1245,420);
+  // 실내놀이터
+  for(let i=0;i<5;i++)add("rideHorse",135+i*110,970+(i%2)*170);
+  for(let i=0;i<7;i++)add("balloon",110+(i%4)*145,1340+Math.floor(i/4)*90);
+  add("ballPit",350,1210);
+  // 푸드코트
+  for(let r=0;r<3;r++)for(let c=0;c<2;c++){add("foodTable",830+c*280,960+r*175);for(let k=0;k<4;k++)add("colorStool",785+c*280+k*55,1020+r*175);}
+  add("popcorn",780,1400);add("popcorn",1260,1400);add("drinkCup",900,900);add("drinkCup",1140,900);
+  // 공연장
+  add("stageLight",1480,920);add("stageLight",2220,920);add("bigSpeaker",1510,1370);add("bigSpeaker",2200,1370);
+  for(let i=0;i<8;i++)add("festivalChair",1600+(i%4)*160,1080+Math.floor(i/4)*170);
+  add("mascotStatue",1850,1320);
+  // 휴게존
+  add("candyBench",1860,180);add("candyBench",2150,180);add("iceCream",1980,330);for(let i=0;i<5;i++)add("balloon",1840+i*95,410);
+  // 중앙 광장
+  add("ticketBooth",1510,300);add("carouselHorse",1690,300);add("popcorn",1470,600);add("iceCream",1695,600);
+  for(let i=0;i<7;i++)add("balloon",1425+i*120,720);
+  add("candyBench",1930,700);add("candyBench",2160,700);
+}
+function buildWorld(seed,mapKey=currentMapKey){
   currentMapKey=MAP_THEMES[mapKey]?mapKey:"school1";
-  applyMapTheme(currentMapKey);
+  mapRand=seededRng((seed>>>0)||123456789);
+  props=[];walls=[];rooms=[];
+  buildRoomShell(currentMapKey);
+  if(currentMapKey==="school2")addSchool2Props();
+  else if(currentMapKey==="museum")addMuseumProps();
+  else if(currentMapKey==="amusement")addAmusementProps();
+  else addSchool1Props();
   const mt=document.querySelector("#mini .t");if(mt)mt.textContent=(MAP_THEMES[currentMapKey]?.name||"학교")+" 미니맵";
   randomizeWorld();
 }
