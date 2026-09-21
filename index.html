@@ -771,13 +771,61 @@ function drawNameLabel(p,name,role){
   ctx.fillStyle="#fff";ctx.fillText(text,p.x,y);
   ctx.restore();
 }
+function drawMapBackground(){
+  const theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
+  ctx.fillStyle=theme.bg;ctx.fillRect(0,0,viewW,viewH);
+  ctx.strokeStyle=theme.grid;ctx.lineWidth=1;
+
+  if(currentMapKey==="museum"){
+    // 박물관: 큼직한 석재 타일 + 금빛 중앙 로비 띠
+    const tile=96;
+    for(let gx=Math.floor(camera.x/tile)*tile;gx<camera.x+viewW;gx+=tile){
+      const sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();
+    }
+    for(let gy=Math.floor(camera.y/tile)*tile;gy<camera.y+viewH;gy+=tile){
+      const sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();
+    }
+    ctx.fillStyle="rgba(184,154,98,.22)";
+    ctx.fillRect(1340-camera.x,35-camera.y,430,700);
+    ctx.strokeStyle="rgba(231,211,165,.45)";ctx.lineWidth=4;ctx.strokeRect(1350-camera.x,45-camera.y,410,680);
+  }else if(currentMapKey==="amusement"){
+    // 놀이공원: 밝은 광장 바닥 + 색색의 타일/컨페티
+    const tile=72;
+    for(let gx=Math.floor(camera.x/tile)*tile;gx<camera.x+viewW;gx+=tile){
+      const sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();
+    }
+    for(let gy=Math.floor(camera.y/tile)*tile;gy<camera.y+viewH;gy+=tile){
+      const sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();
+    }
+    const dots=["#ef444455","#3b82f655","#22c55e55","#a855f755","#f59e0b55"];
+    for(let wx=Math.floor(camera.x/180)*180;wx<camera.x+viewW+180;wx+=180){
+      for(let wy=Math.floor(camera.y/160)*160;wy<camera.y+viewH+160;wy+=160){
+        ctx.fillStyle=dots[Math.abs(Math.floor(wx/180)+Math.floor(wy/160))%dots.length];
+        ctx.beginPath();ctx.arc(wx-camera.x+35,wy-camera.y+28,7,0,Math.PI*2);ctx.fill();
+      }
+    }
+    ctx.fillStyle="rgba(244,114,182,.16)";ctx.beginPath();ctx.arc(1570-camera.x,390-camera.y,260,0,Math.PI*2);ctx.fill();
+  }else if(currentMapKey==="school2"){
+    // 학교 2층: 밝은 복도 타일 + 파란 중앙 휴게홀
+    const tile=64;
+    for(let gx=Math.floor(camera.x/tile)*tile;gx<camera.x+viewW;gx+=tile){
+      const sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();
+    }
+    for(let gy=Math.floor(camera.y/tile)*tile;gy<camera.y+viewH;gy+=tile){
+      const sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();
+    }
+    ctx.fillStyle="rgba(96,165,250,.12)";ctx.fillRect(1370-camera.x,80-camera.y,400,650);
+    ctx.strokeStyle="rgba(255,255,255,.34)";ctx.lineWidth=3;
+    for(let y=130;y<710;y+=90){ctx.beginPath();ctx.moveTo(1380-camera.x,y-camera.y);ctx.lineTo(1760-camera.x,y-camera.y);ctx.stroke();}
+  }else{
+    // 학교 1층: 기존 회색 보도블록 느낌
+    for(let gx=Math.floor(camera.x/64)*64;gx<camera.x+viewW;gx+=64){const sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();}
+    for(let gy=Math.floor(camera.y/64)*64;gy<camera.y+viewH;gy+=64){const sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();}
+  }
+}
 function drawWorld(){
   ctx.clearRect(0,0,viewW,viewH);
-  ctx.fillStyle="#c8d0c5";ctx.fillRect(0,0,viewW,viewH);
-  // outdoor paving
-  ctx.strokeStyle="#b5bdb3";ctx.lineWidth=1;
-  for(let gx=Math.floor(camera.x/64)*64;gx<camera.x+viewW;gx+=64){let sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();}
-  for(let gy=Math.floor(camera.y/64)*64;gy<camera.y+viewH;gy+=64){let sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();}
+  drawMapBackground();
   rooms.forEach(drawRoom);
 
   // 1) 배경 사물은 항상 가장 아래 레이어에 그립니다.
@@ -878,9 +926,15 @@ function drawMini(){
     mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#111827";mctx.fillRect(0,0,mini.width,mini.height);
     mctx.fillStyle="#e5e7eb";mctx.font="bold 13px system-ui";mctx.textAlign="center";mctx.fillText("숨는 시간",mini.width/2,mini.height/2-5);mctx.fillText("지도 잠김",mini.width/2,mini.height/2+15);mctx.textAlign="left";return;
   }
-  const sx=mini.width/WORLD.w,sy=mini.height/WORLD.h;mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#cbd5c7";mctx.fillRect(0,0,mini.width,mini.height);
-  rooms.forEach(r=>{mctx.fillStyle=r.floor;mctx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);mctx.strokeStyle="#64748b";mctx.strokeRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);});
-  mctx.fillStyle="#5c8f4d";mctx.fillRect(1375*sx,110*sy,360*sx,540*sy);
+  const sx=mini.width/WORLD.w,sy=mini.height/WORLD.h;mctx.clearRect(0,0,mini.width,mini.height);
+  const theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
+  mctx.fillStyle=theme.bg;mctx.fillRect(0,0,mini.width,mini.height);
+  rooms.forEach(r=>{mctx.fillStyle=r.floor;mctx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);mctx.strokeStyle=r.wall||"#64748b";mctx.strokeRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);});
+  mctx.fillStyle=theme.accent;
+  if(currentMapKey==="school1")mctx.fillRect(1375*sx,110*sy,360*sx,540*sy);
+  else if(currentMapKey==="museum")mctx.fillRect(1370*sx,90*sy,390*sx,620*sy);
+  else if(currentMapKey==="school2")mctx.fillRect(1390*sx,120*sy,340*sx,560*sy);
+  else if(currentMapKey==="amusement"){mctx.beginPath();mctx.arc(1570*sx,390*sy,250*sx,0,Math.PI*2);mctx.fill();}
   if(player){mctx.fillStyle=mode==="seeker"?"#ef4444":mode==="observer"?"#7c3aed":"#2563eb";mctx.beginPath();mctx.arc(player.x*sx,player.y*sy,4,0,Math.PI*2);mctx.fill();}
   if(!online&&mode==="hider"){mctx.fillStyle="#ef4444";aiSeekers.forEach(s=>{mctx.beginPath();mctx.arc(s.x*sx,s.y*sx,3,0,Math.PI*2);mctx.fill();});}
 }
