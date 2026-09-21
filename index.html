@@ -703,45 +703,199 @@ async function ensureFirebase(){
     return true;
   }catch(err){status.textContent="❌ 서버 연결 실패: "+(err&&err.message?err.message:"Firebase 설정을 확인하세요.");status.className="note serverBad";return false;}
 }
+function activePlayerIds(){
+  return Object.keys(netPlayers).filter(id=>netPlayers[id]&&netPlayers[id].connected!==false);
+}
+function saveSession(){
+  try{
+    const p=player||netPlayers[uid]||{};
+    localStorage.setItem("kkok_session",JSON.stringify({
+      roomCode,name:(netPlayers[uid]&&netPlayers[uid].name)||document.getElementById("nick").value||"학생",
+      x:Number(p.x||1200),y:Number(p.y||650),disguise:p.disguise||null,flowerColor:p.flowerColor||null,disguiseOriginId:p.disguiseOriginId||null
+    }));
+  }catch{}
+}
+function clearSession(){try{localStorage.removeItem("kkok_session");}catch{}}
+async function restoreSession(){
+  if(sessionRestoreAttempted||!fb||online)return;
+  sessionRestoreAttempted=true;
+  let saved=null;
+  try{saved=JSON.parse(localStorage.getItem("kkok_session")||"null");}catch{}
+  if(!saved||!/^[0-9]{6}$/.test(String(saved.roomCode||"")))return;
+  const code=String(saved.roomCode),base="rooms/"+code;
+  try{
+    const [hostSnap,stateSnap,playerSnap,roleSnap]=await Promise.all([
+      fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),
+      fb.get(fb.ref(db,base+"/players/"+uid)),fb.get(fb.ref(db,base+"/roles/"+uid))
+    ]);
+    if(!hostSnap.exists()){clearSession();return;}
+    roomCode=code;isHost=hostSnap.val()===uid;
+    const state=stateSnap.val()||{};
+    const pr=fb.ref(db,base+"/players/"+uid);
+    if(playerSnap.exists()){
+      await fb.update(pr,{connected:true,name:cleanName(playerSnap.val().name||saved.name)});
+    }else if(state.phase==="lobby"||roleSnap.exists()){
+      const now=Date.now()+serverOffset;
+      await fb.set(pr,{
+        name:cleanName(saved.name),x:Number(saved.x||1200),y:Number(saved.y||650),
+        disguise:saved.disguise||null,flowerColor:saved.flowerColor||null,disguiseOriginId:saved.disguiseOriginId||null,
+        wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}
+      });
+    }else{clearSession();return;}
+    try{await fb.onDisconnect(pr).update({connected:false});}catch{}
+    document.getElementById("nick").value=cleanName(saved.name);
+    await subscribeRoom();
+    say("🔄 이전 방에 다시 연결되었습니다.");
+  }catch{clearSession();}
+}
+async function leaveRoom(){
+  clearSession();
+  if(fb&&roomCode&&uid){
+    try{
+      const updates={};
+      updates["rooms/"+roomCode+"/players/"+uid]=null;
+      updates["rooms/"+roomCode+"/roles/"+uid]=null;
+      updates["rooms/"+roomCode+"/caught/"+uid]=null;
+      updates["rooms/"+roomCode+"/searches/"+uid]=null;
+      await fb.update(fb.ref(db),updates);
+    }catch{}
+  }
+  location.reload();
+}
 function showLobby(){
   document.getElementById("menu").style.display="none";document.getElementById("lobby").style.display="flex";document.getElementById("result").style.display="none";
+  roleReveal.style.display="none";pauseBanner.style.display="none";rotateHint.style.display="none";
   document.getElementById("roomCodeView").textContent=roomCode||"------";updateLobby();
 }
 function updateLobby(){
-  const ids=Object.keys(netPlayers);document.getElementById("lobbyCount").textContent=ids.length;
+  const ids=activePlayerIds();document.getElementById("lobbyCount").textContent=ids.length;
   const wantIds=ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true);
+  const readyIds=ids.filter(id=>netPlayers[id]&&netPlayers[id].ready===true);
   document.getElementById("wantCount").textContent=wantIds.length;
+  document.getElementById("readyCount").textContent=readyIds.length;
   const list=document.getElementById("playerList");list.innerHTML="";
   ids.sort((a,b)=>(netPlayers[a].joinedAt||0)-(netPlayers[b].joinedAt||0)).forEach((id,i)=>{
-    const d=document.createElement("div");d.className="playerChip";
-    const want=netPlayers[id]&&netPlayers[id].wantSeeker===true;
-    d.textContent=(id===uid?"⭐ ":"")+(netPlayers[id].name||("학생"+(i+1)))+(want?"  🔎희망":"");
-    list.appendChild(d);
+    const p=netPlayers[id]||{},d=document.createElement("div");d.className="playerChip";
+    const main=document.createElement("div");
+    main.textContent=(id===uid?"⭐ ":"")+(p.name||("학생"+(i+1)))+(p.ready?"  ✅준비":"  ⏳")+(p.wantSeeker?"  🔎희망":"");
+    const st=p.stats||{},small=document.createElement("small");
+    small.textContent="기록: 생존 "+Number(st.survived||0)+"회 · 잡음 "+Number(st.catches||0)+"명 · 최고 "+Number(st.bestSurvivalSec||0)+"초";
+    d.appendChild(main);d.appendChild(small);list.appendChild(d);
   });
+  const mine=!!(netPlayers[uid]&&netPlayers[uid].wantSeeker),myReady=!!(netPlayers[uid]&&netPlayers[uid].ready);
   const wantBtn=document.getElementById("wantSeekerBtn");
-  const mine=!!(netPlayers[uid]&&netPlayers[uid].wantSeeker);
-  wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";
-  wantBtn.className=mine?"green":"alt";
-  const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=ids.length<2;
+  wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";wantBtn.className=mine?"green":"alt";
+  readyBtn.textContent=myReady?"↩ 준비 취소":"✅ 준비 완료";readyBtn.className=myReady?"alt":"green";
+  mapSelect.value=(roomState.mapKey&&MAP_THEMES[roomState.mapKey])?roomState.mapKey:currentMapKey;
+  mapSelect.disabled=!isHost;
+  lobbyAdminBtn.style.display=isHost?"inline-block":"none";
+  const allReady=ids.length>=2&&readyIds.length===ids.length;
+  const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=!allReady;
   if(isHost){
-    const need=calcSeekerCount(ids.length);
-    const hiders=Math.max(0,ids.length-need),totalAttempts=hiders*2;
-    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"이번 게임 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 술래 팀 총 탐색 "+totalAttempts+"회. 희망자를 우선해서 랜덤 선정합니다.";
+    const need=calcSeekerCount(ids.length),hiders=Math.max(0,ids.length-need),totalAttempts=hiders*2;
+    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"준비 "+readyIds.length+"/"+ids.length+" · 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 팀 탐색 "+totalAttempts+"회. 모두 준비되면 시작 버튼이 열립니다.";
   }else{
-    document.getElementById("lobbyNote").textContent=mine?"술래 희망을 눌렀습니다. 희망자가 많으면 그중 랜덤으로 선정됩니다.":"술래를 하고 싶으면 ‘술래 희망하기’를 눌러 주세요.";
+    document.getElementById("lobbyNote").textContent=myReady?"준비 완료! 선생님이 시작할 때까지 기다려 주세요.":"‘준비 완료’를 누른 뒤 기다려 주세요. 술래 희망은 따로 선택할 수 있습니다.";
   }
+  updateAdminPanel();
+}
+async function toggleReady(){
+  if(!online||!uid||!roomCode||!netPlayers[uid])return;
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/ready"),!(netPlayers[uid].ready===true));
 }
 async function toggleSeekerPreference(){
   if(!online||!uid||!roomCode||!netPlayers[uid])return;
   const next=!(netPlayers[uid].wantSeeker===true);
   await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/wantSeeker"),next);
 }
+async function setLobbyMap(){
+  if(!online||!isHost||!MAP_THEMES[mapSelect.value])return;
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/state/mapKey"),mapSelect.value);
+}
 function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
+function handleKicked(){
+  if(!online)return;
+  clearSession();online=false;running=false;touchControls.style.display="none";
+  document.getElementById("lobby").style.display="none";teacherPanel.style.display="none";
+  document.getElementById("resultTitle").textContent="🚪 방에서 나왔습니다";
+  document.getElementById("resultText").textContent="선생님이 이 기기를 방에서 내보냈습니다.";
+  document.getElementById("again").style.display="none";document.getElementById("menuBtn").textContent="처음 화면";
+  document.getElementById("result").style.display="flex";
+}
+function updateAdminPanel(){
+  teacherBtn.style.display=(online&&isHost&&running)?"inline-block":"none";
+  if(!isHost){lobbyAdminBtn.style.display="none";return;}
+  const ids=activePlayerIds();
+  const phase=roomState.phase||"lobby";
+  adminStatus.textContent="방 "+roomCode+" · "+(phase==="lobby"?"대기실":phase==="hide"?(roomState.paused?"게임 일시정지":"게임 진행 중"):phase==="ended"?"라운드 종료":"상태 확인 중")+" · 접속 "+ids.length+"명";
+  adminPauseBtn.disabled=phase!=="hide";adminPauseBtn.textContent=roomState.paused?"▶ 다시 시작":"⏸ 일시정지";
+  adminForceEndBtn.disabled=phase!=="hide";
+  adminKickList.innerHTML="";
+  ids.filter(id=>id!==uid).forEach(id=>{
+    const row=document.createElement("div");row.className="adminKickRow";
+    const name=document.createElement("span");name.textContent=(netPlayers[id]&&netPlayers[id].name)||"학생";
+    const b=document.createElement("button");b.type="button";b.textContent="내보내기";b.dataset.kickUid=id;
+    row.appendChild(name);row.appendChild(b);adminKickList.appendChild(row);
+  });
+  if(!adminKickList.children.length)adminKickList.textContent="내보낼 다른 참가자가 없습니다.";
+}
+function openAdminPanel(){if(!isHost)return;updateAdminPanel();teacherPanel.style.display="flex";}
+function closeAdminPanel(){teacherPanel.style.display="none";}
+async function adminTogglePause(){
+  if(!online||!isHost||roomState.phase!=="hide")return;
+  const now=Date.now()+serverOffset;
+  if(roomState.paused){
+    const delta=Math.max(0,now-Number(roomState.pausedAt||now));
+    await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{
+      paused:false,pausedAt:null,
+      revealEndsAt:Number(roomState.revealEndsAt||0)+delta,
+      hideEndsAt:Number(roomState.hideEndsAt||0)+delta,
+      seekEndsAt:Number(roomState.seekEndsAt||0)+delta
+    });
+  }else{
+    await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{paused:true,pausedAt:now});
+  }
+}
+async function adminForceEnd(){
+  if(!online||!isHost||roomState.phase!=="hide")return;
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{phase:"ended",paused:false,endedAt:Date.now()+serverOffset,endReason:"선생님이 게임을 종료했습니다."});
+  closeAdminPanel();
+}
+async function kickPlayer(id){
+  if(!online||!isHost||!id||id===uid)return;
+  const updates={};
+  updates["rooms/"+roomCode+"/players/"+id]=null;
+  updates["rooms/"+roomCode+"/roles/"+id]=null;
+  updates["rooms/"+roomCode+"/caught/"+id]=null;
+  updates["rooms/"+roomCode+"/searches/"+id]=null;
+  await fb.update(fb.ref(db),updates);
+}
 async function subscribeRoom(){
   clearSubs();online=true;showLobby();
   const base="rooms/"+roomCode;
-  unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{roomState=snap.val()||{};if(roomState.seed&&roomState.seed!==currentSeed){currentSeed=roomState.seed>>>0;buildWorld(currentSeed);}if(roomState.phase==="lobby")showLobby();maybeEnterRound();}));
-  unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{netPlayers=snap.val()||{};updateLobby();maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{
+    roomState=snap.val()||{};
+    const nextMap=(roomState.mapKey&&MAP_THEMES[roomState.mapKey])?roomState.mapKey:"school1";
+    if((roomState.seed&&roomState.seed!==currentSeed)||nextMap!==currentMapKey){
+      if(roomState.seed)currentSeed=roomState.seed>>>0;
+      currentMapKey=nextMap;buildWorld(currentSeed,currentMapKey);
+    }
+    pauseBanner.style.display=(running&&roomState.paused)?"block":"none";
+    if(roomState.phase==="lobby")showLobby();
+    if(roomState.phase==="ended"&&running)finish(false,roomState.endReason||"선생님이 라운드를 종료했습니다.");
+    maybeEnterRound();updateAdminPanel();
+  }));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{
+    netPlayers=snap.val()||{};
+    if(netPlayers[uid]){hadPlayerRecord=true;saveSession();}
+    else if(hadPlayerRecord){handleKicked();return;}
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(!renderPlayers[id])renderPlayers[id]=Object.assign({},p);
+      else Object.assign(renderPlayers[id],{name:p.name,disguise:p.disguise,flowerColor:p.flowerColor,disguiseOriginId:p.disguiseOriginId,connected:p.connected});
+    }
+    Object.keys(renderPlayers).forEach(id=>{if(!netPlayers[id])delete renderPlayers[id];});
+    updateLobby();maybeEnterRound();updateAdminPanel();
+  }));
   unsubs.push(fb.onValue(fb.ref(db,base+"/roles"),snap=>{roles=snap.val()||{};maybeEnterRound();}));
   unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{caughtNet=snap.val()||{};}));
   unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
@@ -751,12 +905,20 @@ function maybeEnterRound(){
   const round=Number(roomState.round||1);
   if(roundApplied===round)return;
   roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=roles[uid];
-  helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
-  hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);searches=Number(searchesNet[uid]||0);
-  document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
+  player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
+  hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);roleRevealUntil=Number(roomState.revealEndsAt||0);searches=Number(searchesNet[uid]||0);
+  document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";teacherPanel.style.display="none";
   roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
-  if(mode==="seeker")say("숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 돌아다니며 찾으세요!");
-  else say("40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  if(gameNow()<roleRevealUntil){
+    roleRevealBig.textContent=mode==="seeker"?"🔎 당신은 술래!":"🙈 당신은 숨는 사람!";
+    roleRevealSub.textContent=mode==="seeker"?"역할 공개 후 40초 동안 기다립니다.":"역할 공개가 끝나면 40초 동안 숨으세요!";
+    roleReveal.style.display="flex";playSfx("role");
+  }else roleReveal.style.display="none";
+  if(mode==="seeker")say("역할 공개 후 숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 찾으세요!");
+  else say("역할 공개 후 40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  seenTaunts={};lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,at:0};
+  saveSession();updateAdminPanel();updateOrientationHint();
   const was=running;running=true;last=performance.now();if(!was)requestAnimationFrame(loop);
 }
 async function createRoom(){
@@ -767,9 +929,11 @@ async function createRoom(){
   roomCode=code;isHost=true;
   const base="rooms/"+roomCode,now=Date.now()+serverOffset;
   await fb.set(fb.ref(db,base+"/hostUid"),uid);
-  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),createdAt:now});
-  const pr=fb.ref(db,base+"/players/"+uid);await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
-  fb.onDisconnect(pr).remove();await subscribeRoom();
+  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",createdAt:now,paused:false});
+  const pr=fb.ref(db,base+"/players/"+uid);
+  await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
+  try{await fb.onDisconnect(pr).update({connected:false});}catch{}
+  hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
 async function joinRoom(){
   if(!(await ensureFirebase()))return;
@@ -778,12 +942,18 @@ async function joinRoom(){
   const base="rooms/"+code;
   const [hostSnap,stateSnap,playersSnap]=await Promise.all([fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),fb.get(fb.ref(db,base+"/players"))]);
   if(!hostSnap.exists()){say("없는 방 코드입니다.");return;}
-  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 다음 라운드를 기다려 주세요.");return;}
-  const ps=playersSnap.val()||{};if(Object.keys(ps).length>=30){say("방이 가득 찼습니다.");return;}
+  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 이전 참가자는 새로고침 후 자동 복구됩니다.");return;}
+  const ps=playersSnap.val()||{},activeCount=Object.values(ps).filter(p=>p&&p.connected!==false).length;
+  if(activeCount>=30){say("방이 가득 찼습니다.");return;}
   roomCode=code;isHost=hostSnap.val()===uid;
-  const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid);
-  await fb.set(pr,{name:cleanName(document.getElementById("nick").value),x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
-  fb.onDisconnect(pr).remove();await subscribeRoom();
+  const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid),old=ps[uid]||{};
+  await fb.set(pr,{
+    name:cleanName(document.getElementById("nick").value),x:Number(old.x||1200),y:Number(old.y||650),
+    disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,ready:false,connected:true,
+    joinedAt:Number(old.joinedAt||now),tauntAt:0,stats:old.stats||{rounds:0,survived:0,catches:0,bestSurvivalSec:0}
+  });
+  try{await fb.onDisconnect(pr).update({connected:false});}catch{}
+  hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
 function calcSeekerCount(total){
