@@ -178,7 +178,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           </ul>
         </div>
       </div>
-      <div class="guideWarn"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
+      <div class="guideWarn"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 숨는 사람은 <b>변신</b> 버튼, 술래는 <b>조사·달리기</b> 버튼을 사용합니다. 옵저버는 이동 방향키로 돌아다닐 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 게임 중 새로고침은 하지 않는 것이 좋습니다.</div>
       <div class="row" style="margin-top:14px"><button id="closeGuideBtn" class="green">✅ 설명서 확인했어요</button></div>
@@ -223,6 +224,42 @@ let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,h
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
 let helpPanelOpen=false,mapVisible=true;
 let touchMove={up:false,down:false,left:false,right:false};
+let audioCtx=null;
+
+function ensureAudio(){
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
+  }catch{}
+}
+function tone(freq,start,duration,type="sine",volume=.12,endFreq=null){
+  if(!audioCtx)return;
+  try{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    const t=audioCtx.currentTime+start;
+    o.type=type;o.frequency.setValueAtTime(freq,t);
+    if(endFreq)o.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),t+duration);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(volume,t+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+    o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+duration+.03);
+  }catch{}
+}
+function playSfx(kind){
+  ensureAudio();if(!audioCtx)return;
+  if(kind==="start"){
+    tone(440,0,.13,"square",.09,660);tone(660,.14,.13,"square",.09,880);tone(880,.29,.24,"square",.11,1040);
+  }else if(kind==="catch"){
+    tone(520,0,.10,"triangle",.12,760);tone(760,.10,.12,"triangle",.13,1040);tone(1040,.22,.25,"sine",.12,1320);
+  }else if(kind==="miss"){
+    tone(260,0,.13,"sawtooth",.07,190);tone(180,.14,.22,"sawtooth",.065,120);
+  }else if(kind==="finish"){
+    tone(740,0,.16,"triangle",.10,620);tone(620,.17,.18,"triangle",.10,520);tone(520,.36,.34,"sine",.11,360);
+  }
+}
+// Mobile/desktop browsers allow game audio after the first user interaction.
+addEventListener("pointerdown",ensureAudio,{once:true,capture:true});
+addEventListener("keydown",ensureAudio,{once:true,capture:true});
 
 function fit(){
   const r=game.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1);
@@ -911,8 +948,12 @@ async function inspect(){
       caughtNet[c.id]=info;
       await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),info);
     }else c.obj.found=true;
+    playSfx("catch");
     say("🎉 찾았다! 숨어 있던 친구를 발견했습니다.");
-  }else say("❌ 그냥 평범한 사물이었습니다.");
+  }else{
+    playSfx("miss");
+    say("❌ 그냥 평범한 사물이었습니다.");
+  }
   updateHud(gameNow());
 }
 function aiSeek(dt,t){
@@ -992,6 +1033,7 @@ function buildOnlineResultHtml(msg){
 }
 function enterObserver(){
   if(mode==="observer")return;
+  playSfx("catch");
   mode="observer";
   if(player){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;}
   roleEl.textContent="👀 옵저버";
@@ -1001,7 +1043,9 @@ function enterObserver(){
   updateTouchControls(gameNow());
 }
 function finish(win,msg){
-  if(!running)return;running=false;touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
+  if(!running)return;
+  playSfx("finish");
+  running=false;touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
     title.textContent="📊 라운드 결과";
@@ -1056,6 +1100,7 @@ function updateHuntStartSignal(now){
   const round=online?Number(roomState.round||0):1;
   if(huntSignalShownRound===round)return;
   huntSignalShownRound=round;
+  playSfx("start");
   if(huntSignalTimer)clearTimeout(huntSignalTimer);
   huntStartSignal.style.display="block";
   huntSignalTimer=setTimeout(()=>{huntStartSignal.style.display="none";},2800);
