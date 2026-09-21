@@ -13,6 +13,8 @@ header b{font-size:19px}.pill{background:#202c3d;border:1px solid #34455e;border
 canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 14px;border-radius:12px;font-weight:800;pointer-events:none;max-width:80%;text-align:center}
 #proximity{display:none;position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:6;background:#7c2d12f2;border:2px solid #fb923c;color:#fff;padding:10px 16px;border-radius:14px;font-weight:900;pointer-events:none;text-align:center;box-shadow:0 0 0 0 rgba(251,146,60,.55);animation:proxPulse 1s infinite}
+#huntStartSignal{display:none;position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);z-index:9;background:rgba(127,29,29,.96);border:3px solid #fca5a5;color:#fff;padding:18px 28px;border-radius:18px;font-size:clamp(22px,3vw,38px);font-weight:1000;text-align:center;pointer-events:none;box-shadow:0 10px 35px rgba(0,0,0,.35);animation:huntPop .35s ease-out}
+@keyframes huntPop{from{transform:translate(-50%,-50%) scale(.7);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
 @keyframes proxPulse{0%{box-shadow:0 0 0 0 rgba(251,146,60,.5)}70%{box-shadow:0 0 0 12px rgba(251,146,60,0)}100%{box-shadow:0 0 0 0 rgba(251,146,60,0)}}
 #help{position:absolute;left:12px;bottom:12px;z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5}
 #mini{position:absolute;right:12px;top:12px;width:190px;background:#0b1220e8;border:1px solid #34455e;border-radius:14px;padding:8px;z-index:4}
@@ -47,6 +49,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   <canvas id="game"></canvas>
   <div id="toast">원하는 역할을 골라 체험해보세요.</div>
   <div id="proximity">📡 근처에 숨은 사람이 있어요!</div>
+  <div id="huntStartSignal">🚨 술래 출발!<br><span style="font-size:.55em">지금부터 찾기 시작!</span></div>
   <div id="mini"><div class="t">학교 전체 지도</div><canvas id="map" width="174" height="112"></canvas></div>
 
   <div id="menu" class="overlay">
@@ -83,7 +86,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <h2>📖 우리반 온라인 프롭 헌트 설명서</h2>
       <p><b>목표:</b> 숨는 사람은 학교의 사물로 변신해 끝까지 살아남고, 술래는 제한된 탐색 횟수 안에 숨은 친구들을 찾아야 합니다.</p>
       <div class="guideFlow">
-        <span class="guideStep">① 방 코드로 참가</span><span class="guideStep">② 술래 희망 선택</span><span class="guideStep">③ 역할 랜덤 배정</span><span class="guideStep">④ 25초 숨기</span><span class="guideStep">⑤ 3분 찾기</span>
+        <span class="guideStep">① 방 코드로 참가</span><span class="guideStep">② 술래 희망 선택</span><span class="guideStep">③ 역할 랜덤 배정</span><span class="guideStep">④ 40초 숨기</span><span class="guideStep">⑤ 3분 찾기</span>
       </div>
       <div class="guideGrid">
         <div class="guideBox">
@@ -103,9 +106,10 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
         <div class="guideBox">
           <h3>🔎 술래</h3>
           <ul>
-            <li>숨는 사람에게 먼저 <b>25초</b>가 주어집니다.</li>
+            <li>숨는 사람에게 먼저 <b>40초</b>가 주어집니다.</li>
             <li>그동안 술래 화면과 이동은 잠겨 있습니다.</li>
-            <li>25초 후 직접 학교 안을 돌아다니며 찾습니다.</li>
+            <li>40초 후 직접 학교 안을 돌아다니며 찾습니다.</li>
+            <li>숨는 시간이 끝나면 모든 화면에 <b>“🚨 술래 출발! 지금부터 찾기 시작!”</b> 신호가 크게 표시됩니다.</li>
             <li>술래만 <b>Shift</b>를 눌러 빠르게 달릴 수 있습니다.</li>
             <li>의심스러운 사물 가까이에서 <b>Space</b>를 눌러 조사합니다.</li>
             <li>숨은 사람이 적당한 거리 안에 들어오면 술래 화면에 <b>“📡 근처에 숨은 사람이 있어요!”</b> 알림이 뜹니다.</li>
@@ -169,10 +173,10 @@ window.FIREBASE_CONFIG = {
 "use strict";
 const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
-const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity");
+const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
-let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[];
+let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
 
 function fit(){
   const r=game.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1);
@@ -583,12 +587,12 @@ function maybeEnterRound(){
   if(!online||roomState.phase!=="hide"||!roles[uid]||!netPlayers[uid])return;
   const round=Number(roomState.round||1);
   if(roundApplied===round)return;
-  roundApplied=round;mode=roles[uid];player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
+  roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=roles[uid];player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
   hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);searches=Number(searchesNet[uid]||0);
   document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
   roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
-  if(mode==="seeker")say("숨는 사람에게 25초를 줍니다. 화면이 열리면 직접 돌아다니며 찾으세요!");
-  else say("25초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  if(mode==="seeker")say("숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 돌아다니며 찾으세요!");
+  else say("40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
   const was=running;running=true;last=performance.now();if(!was)requestAnimationFrame(loop);
 }
 async function createRoom(){
@@ -635,7 +639,7 @@ async function startOnlineRound(){
   const extraSearches=totalSearches%seekerCount;
   const seekerQuota={};
   selected.forEach((id,idx)=>{seekerQuota[id]=baseSearches+(idx<extraSearches?1:0);});
-  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+25000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
+  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+40000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
   const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260]];
   const updates={};
   ids.forEach((id,i)=>{
@@ -651,10 +655,11 @@ async function syncPlayerNow(){
   await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),{x:Math.round(player.x*10)/10,y:Math.round(player.y*10)/10,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null});
 }
 function setupHider(){
+  huntSignalShownRound=0;huntStartSignal.style.display="none";
   const p=freePoint();player={x:p.x,y:p.y,disguise:null,flowerColor:null,caught:false};
   aiHiders=[];aiSeekers=[Object.assign(freePoint(),{vx:0,vy:0,nextThink:0}),Object.assign(freePoint(),{vx:0,vy:0,nextThink:0})];
-  searches=18;hideUntil=performance.now()+25000;roundEnd=performance.now()+205000;startTime=performance.now();mode="hider";running=true;
-  roleEl.textContent="🙈 숨는 사람";roleEl.className="pill good";say("25초 동안 숨어라! 사물 가까이에서 E를 누르면 똑같은 모습으로 변신합니다.");
+  searches=18;hideUntil=performance.now()+40000;roundEnd=hideUntil+180000;startTime=performance.now();mode="hider";running=true;
+  roleEl.textContent="🙈 숨는 사람";roleEl.className="pill good";say("40초 동안 숨어라! 사물 가까이에서 E를 누르면 똑같은 모습으로 변신합니다.");
 }
 function randomDisguiseHider(i){
   const choices=props.filter(p=>p.type!=="gardenBed"&&p.type!=="board"&&p.type!=="teacherDesk");
@@ -662,11 +667,12 @@ function randomDisguiseHider(i){
   return{x:base.x+(Math.random()*36-18),y:base.y+(Math.random()*36-18),disguise:base.type,flowerColor:base.flowerColor||null,found:false,name:"학생"+(i+1)};
 }
 function setupSeeker(){
+  huntSignalShownRound=0;huntStartSignal.style.display="none";
   const p=freePoint();player={x:p.x,y:p.y,disguise:null,caught:false};
   aiSeekers=[];aiHiders=[];for(let i=0;i<12;i++)aiHiders.push(randomDisguiseHider(i));
   const now=performance.now();
-  searches=24;hideUntil=now+25000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
-  roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("숨는 사람에게 25초를 줍니다. 그동안 술래는 움직이거나 조사할 수 없습니다.");
+  searches=24;hideUntil=now+40000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
+  roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("숨는 사람에게 40초를 줍니다. 그동안 술래는 움직이거나 조사할 수 없습니다.");
 }
 function setupTour(){
   mode="tour";running=true;player={x:1200,y:760,disguise:null};aiHiders=[];aiSeekers=[];searches=0;hideUntil=0;roundEnd=0;roleEl.textContent="🗺 맵 구경";roleEl.className="pill";say("학교를 자유롭게 돌아다녀보세요. E로 주변 사물 변신도 시험할 수 있어요.");
@@ -803,6 +809,15 @@ function updateHud(t){
     }
   }
 }
+function updateHuntStartSignal(now){
+  if(!running||mode==="tour"||now<hideUntil)return;
+  const round=online?Number(roomState.round||0):1;
+  if(huntSignalShownRound===round)return;
+  huntSignalShownRound=round;
+  if(huntSignalTimer)clearTimeout(huntSignalTimer);
+  huntStartSignal.style.display="block";
+  huntSignalTimer=setTimeout(()=>{huntStartSignal.style.display="none";},2800);
+}
 function updateSeekerProximity(now){
   if(!proximityEl)return;
   if(!online||mode!=="seeker"||!player||now<hideUntil||!running){
@@ -839,7 +854,7 @@ function loop(t){
   if(!online&&mode==="hider")aiSeek(dt,t);
   if(online&&player&&mode!=="observer"&&t-lastNetSync>130){lastNetSync=t;syncPlayerNow();}
   if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
-  updateHud(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
+  updateHud(now);updateHuntStartSignal(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
 }
 fit();camera.x=1000;camera.y=450;draw();
 })();
