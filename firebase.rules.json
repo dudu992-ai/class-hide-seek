@@ -1,0 +1,35 @@
+{
+  "rules": {
+    "rooms": {
+      "$room": {
+        ".read": "auth != null",
+        "hostUid": {
+          ".write": "auth != null && ((!data.exists() && newData.val() === auth.uid) || data.val() === auth.uid)"
+        },
+        "state": {
+          ".write": "auth != null && root.child('rooms').child($room).child('hostUid').val() === auth.uid"
+        },
+        "players": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms').child($room).child('hostUid').val() === auth.uid)"
+          }
+        },
+        "roles": {
+          "$uid": {
+            ".write": "auth != null && root.child('rooms').child($room).child('hostUid').val() === auth.uid"
+          }
+        },
+        "caught": {
+          "$uid": {
+            ".write": "auth != null && (root.child('rooms').child($room).child('hostUid').val() === auth.uid || root.child('rooms').child($room).child('roles').child(auth.uid).val() === 'seeker')"
+          }
+        },
+        "searches": {
+          "$uid": {
+            ".write": "auth != null && (auth.uid === $uid || root.child('rooms').child($room).child('hostUid').val() === auth.uid)"
+          }
+        }
+      }
+    }
+  }
+}
