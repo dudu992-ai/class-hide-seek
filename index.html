@@ -90,7 +90,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <h3>🙈 숨는 사람</h3>
           <ul>
             <li><b>WASD / 방향키</b>로 이동합니다.</li>
-            <li><b>Shift</b>를 누르면 더 빠르게 달립니다.</li>
+            <li>숨는 사람은 <b>달릴 수 없습니다.</b> Shift를 눌러도 이동 속도가 빨라지지 않습니다.</li>
             <li>사물 가까이에서 <b>E</b>를 누르면 그 사물로 변신합니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
@@ -106,6 +106,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>숨는 사람에게 먼저 <b>25초</b>가 주어집니다.</li>
             <li>그동안 술래 화면과 이동은 잠겨 있습니다.</li>
             <li>25초 후 직접 학교 안을 돌아다니며 찾습니다.</li>
+            <li>술래만 <b>Shift</b>를 눌러 빠르게 달릴 수 있습니다.</li>
             <li>의심스러운 사물 가까이에서 <b>Space</b>를 눌러 조사합니다.</li>
             <li>숨은 사람이 적당한 거리 안에 들어오면 술래 화면에 <b>“📡 근처에 숨은 사람이 있어요!”</b> 알림이 뜹니다.</li>
             <li>알림은 <b>한 단계만</b> 표시되며, “아주 가까워요” 같은 추가 힌트나 정확한 방향·거리는 알려주지 않습니다.</li>
@@ -824,7 +825,7 @@ function updateSeekerProximity(now){
 function loop(t){
   if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;const now=gameNow();
   let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
-  const sprint=keys.shift?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105*sprint;
+  const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
   const seekerWaiting=(mode==="seeker"&&now<hideUntil);
   if(player&&mode==="observer"){
     const len=Math.hypot(dx,dy)||1;
