@@ -1,106 +1,33 @@
 <!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>25명 교실 숨바꼭질</title>
-<style>
-html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,sans-serif;background:#17202a;color:white}
-#top{height:54px;display:flex;align-items:center;gap:16px;padding:0 16px;background:#111827;box-sizing:border-box}
-#top b{font-size:18px} #status{margin-left:auto}
-canvas{display:block;background:#dfe7d8}
-#join,#end{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:#101827dd;z-index:5}
-.card{background:white;color:#17202a;padding:24px;border-radius:18px;width:min(420px,88vw);box-shadow:0 15px 50px #0007}
-input,button{font-size:18px;padding:12px;border-radius:10px;border:1px solid #bbb}
-input{width:100%;box-sizing:border-box;margin:8px 0 12px}
-button{cursor:pointer;background:#2563eb;color:white;border:0;font-weight:700}
-.small{font-size:13px;color:#5b6470;line-height:1.5}
-#controls{position:fixed;bottom:14px;left:14px;background:#111b;padding:10px 14px;border-radius:12px;font-size:13px}
-#msg{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#111d;padding:9px 15px;border-radius:12px;font-weight:700}
-</style>
-</head><body>
-<div id="top"><b>🏫 우리반 숨바꼭질</b><span id="role">대기 중</span><span id="timer"></span><span id="status"></span></div>
-<canvas id="game"></canvas><div id="msg">25명까지 접속 가능</div>
-<div id="controls">이동: WASD / 방향키　·　술래 잡기: SPACE　·　H: 사물로 위장</div>
-<div id="join"><div class="card"><h2>🏫 25명 교실 숨바꼭질</h2>
-<label>닉네임</label><input id="name" maxlength="10" placeholder="예: 6사고뭉치 1번">
-<button id="start">게임 들어가기</button>
-<p class="small">이 파일만으로는 각자 다른 크롬북이 자동 연결되지는 않습니다. 같은 URL로 25명이 실시간 플레이하려면 아래 README의 Firebase 설정을 1회 해야 합니다.</p>
-</div></div>
-<script type="module">
-const firebaseConfig = window.FIREBASE_CONFIG || null;
-const cvs=document.querySelector('#game'),ctx=cvs.getContext('2d');
-function resize(){cvs.width=innerWidth;cvs.height=innerHeight-54} resize(); addEventListener('resize',resize);
-const obstacles=[
-{x:110,y:90,w:210,h:80,t:'책상'}, {x:390,y:80,w:180,h:105,t:'사물함'},
-{x:680,y:85,w:190,h:70,t:'책장'}, {x:950,y:80,w:220,h:100,t:'급식대'},
-{x:170,y:310,w:190,h:100,t:'소파'}, {x:490,y:330,w:230,h:70,t:'긴 책상'},
-{x:820,y:300,w:120,h:130,t:'화분'}, {x:1040,y:330,w:180,h:80,t:'캐비닛'}
-];
-let me={id:crypto.randomUUID(),name:'',x:80+Math.random()*700,y:220+Math.random()*250,seeker:false,caught:false,hide:false};
-let players={}, keys={}, startAt=0, seekAt=0, endAt=0, db=null, ref=null, room='CLASS25';
-const role=document.querySelector('#role'), timer=document.querySelector('#timer'), status=document.querySelector('#status');
-document.querySelector('#start').onclick=async()=>{
- me.name=document.querySelector('#name').value.trim()||'학생';
- document.querySelector('#join').style.display='none';
- if(firebaseConfig){
-   const {initializeApp}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js");
-   const {getDatabase,ref:rf,set,onValue,onDisconnect}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
-   db=getDatabase(initializeApp(firebaseConfig)); ref=rf(db,'rooms/'+room+'/players/'+me.id);
-   onDisconnect(ref).remove(); set(ref,me);
-   onValue(rf(db,'rooms/'+room+'/players'),s=>{players=s.val()||{}; assign();});
- }else{
-   players[me.id]=me; assign();
-   document.querySelector('#msg').textContent='연습 모드 — 서버 설정 후 25명 멀티 가능';
- }
-};
-function assign(){
- let ids=Object.keys(players).sort();
- if(ids.length && !players[ids[0]].seeker && Date.now()-startAt>1000){
-   // deterministic: first 2 IDs are seekers in display; clients infer roles
- }
- me.seeker=ids.indexOf(me.id)<Math.min(2,Math.max(1,Math.floor(ids.length/12)));
- status.textContent=`접속 ${ids.length}/25`;
- role.textContent=me.seeker?'🔎 술래':'🙈 숨는 사람';
-}
-addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=1;if(e.key.toLowerCase()==='h'&&!me.seeker)me.hide=!me.hide;if(e.code==='Space'&&me.seeker)catchNear()});
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>우리반 숨바꼭질</title><style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:system-ui,sans-serif;background:#172033;color:#fff;overflow:hidden}
+header{height:58px;display:flex;align-items:center;gap:14px;padding:0 18px;background:#101722}header b{font-size:19px}#hud{margin-left:auto;display:flex;gap:14px}
+canvas{display:block;background:#d9e8d0}.overlay{position:fixed;inset:58px 0 0;display:flex;align-items:center;justify-content:center;background:#111a;z-index:3}
+.card{width:min(520px,92vw);background:#fff;color:#172033;border-radius:20px;padding:24px;box-shadow:0 20px 70px #0008}
+input,button{font:inherit;padding:12px;border-radius:10px}input{border:1px solid #bbb;width:100%;margin:8px 0 12px}button{border:0;background:#2563eb;color:#fff;font-weight:800;cursor:pointer}.secondary{background:#475569}.row{display:flex;gap:10px;flex-wrap:wrap}.small{font-size:13px;color:#667085}.badge{padding:5px 9px;border-radius:999px;background:#263244}
+#help{position:fixed;left:14px;bottom:14px;background:#101722dd;padding:9px 12px;border-radius:10px;font-size:13px}#toast{position:fixed;top:70px;left:50%;transform:translateX(-50%);background:#111d;padding:9px 14px;border-radius:10px}
+</style></head><body>
+<header><b>🏫 우리반 숨바꼭질</b><span id="phase" class="badge">연습 게임</span><div id="hud"><span id="alive">🙈 23</span><span id="time">⏱ 03:00</span></div></header>
+<canvas id="c"></canvas><div id="toast">닉네임을 입력하고 시작하세요!</div><div id="help">이동 WASD/방향키 · H 위장 · 술래 SPACE 잡기</div>
+<div id="join" class="overlay"><div class="card"><h2>🎮 우리반 숨바꼭질</h2><p>학교 안에서 술래를 피해 숨어보세요. 25명 플레이를 위한 완성 화면을 먼저 체험할 수 있습니다.</p>
+<label>닉네임 (실명 말고 번호/별명 권장)</label><input id="nick" maxlength="10" placeholder="예: 12번 / 토끼">
+<div class="row"><button id="play">게임 시작</button><button id="demo" class="secondary">25명 데모 보기</button></div>
+<p class="small">현재는 멀티 서버 연결 전이라 데모/연습 모드입니다. Firebase 연결 후 같은 화면에서 25명이 실제로 함께 움직입니다.</p></div></div>
+<script>
+const c=document.querySelector('#c'),x=c.getContext('2d');let W,H,keys={},running=false,last=0,me=null,bots=[],hidden=false,seeker=false,start=0;
+const obs=[['교실',.05,.08,.22,.14],['사물함',.38,.07,.18,.16],['도서관',.68,.07,.25,.16],['급식실',.06,.67,.25,.19],['보건실',.40,.70,.18,.16],['체육창고',.70,.68,.23,.18],['화분',.46,.34,.08,.12],['책장',.16,.37,.13,.18],['긴 책상',.68,.38,.18,.10]];
+function size(){W=c.width=innerWidth;H=c.height=innerHeight-58}size();addEventListener('resize',size);
+function rand(){return {x:40+Math.random()*(W-80),y:50+Math.random()*(H-100),vx:(Math.random()-.5)*90,vy:(Math.random()-.5)*90,caught:false}}
+function begin(demo){document.querySelector('#join').style.display='none';running=true;me={...rand(),name:document.querySelector('#nick').value.trim()||'나'};bots=[];for(let i=0;i<(demo?24:8);i++)bots.push({...rand(),name:(i+1)+'번'});seeker=Math.random()<.12;start=performance.now();document.querySelector('#phase').textContent=seeker?'🔎 나는 술래':'🙈 숨는 사람';requestAnimationFrame(loop)}
+document.querySelector('#play').onclick=()=>begin(false);document.querySelector('#demo').onclick=()=>begin(true);
+addEventListener('keydown',e=>{if(!running)return;let k=e.key.toLowerCase();keys[k]=1;if(k==='h'&&!seeker)hidden=!hidden;if(e.code==='Space'&&seeker){for(const b of bots)if(!b.caught&&Math.hypot(b.x-me.x,b.y-me.y)<60)b.caught=true}});
 addEventListener('keyup',e=>keys[e.key.toLowerCase()]=0);
-function catchNear(){
- for(const [id,p] of Object.entries(players)){
-  if(id===me.id||p.seeker||p.caught)continue;
-  if(Math.hypot(p.x-me.x,p.y-me.y)<58){ p.caught=true; if(db) syncOther(id,p); }
- }
-}
-async function syncOther(id,p){
- const {ref:rf,set}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");
- set(rf(db,'rooms/'+room+'/players/'+id),p);
-}
-function blocked(nx,ny){
- return obstacles.some(o=>nx>o.x-18&&nx<o.x+o.w+18&&ny>o.y-18&&ny<o.y+o.h+18)
-}
-let last=performance.now(),sync=0;
-async function frame(t){
- let dt=Math.min(.03,(t-last)/1000);last=t;
- let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0);
- let dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
- let len=Math.hypot(dx,dy)||1,nx=me.x+dx/len*190*dt,ny=me.y+dy/len*190*dt;
- nx=Math.max(22,Math.min(cvs.width-22,nx));ny=Math.max(22,Math.min(cvs.height-22,ny));
- if(!blocked(nx,me.y))me.x=nx;if(!blocked(me.x,ny))me.y=ny;
- players[me.id]=me;
- if(db&&t-sync>90){sync=t; try{const {set}=await import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js");await set(ref,me)}catch{}}
- draw();requestAnimationFrame(frame)
-}requestAnimationFrame(frame);
-function draw(){
- ctx.clearRect(0,0,cvs.width,cvs.height);
- ctx.fillStyle='#dfe7d8';ctx.fillRect(0,0,cvs.width,cvs.height);
- ctx.fillStyle='#c7d2b7';for(let x=0;x<cvs.width;x+=80)ctx.fillRect(x,0,2,cvs.height);
- for(const o of obstacles){ctx.fillStyle='#8b6b4a';ctx.fillRect(o.x,o.y,o.w,o.h);ctx.fillStyle='#fff';ctx.font='14px sans-serif';ctx.fillText(o.t,o.x+8,o.y+22)}
- for(const [id,p] of Object.entries(players)){
-   if(p.caught) continue;
-   if(p.hide&&!p.seeker&&id!==me.id){ctx.fillStyle='#6b8e23';ctx.fillRect(p.x-16,p.y-16,32,32)}
-   else{ctx.beginPath();ctx.fillStyle=p.seeker?'#e63946':'#2563eb';ctx.arc(p.x,p.y,16,0,Math.PI*2);ctx.fill()}
-   ctx.fillStyle='#17202a';ctx.font='12px sans-serif';ctx.textAlign='center';ctx.fillText(p.name,p.x,p.y-23);ctx.textAlign='start'
- }
-}
-</script>
-<script src="config.js"></script>
-</body></html>
+function loop(t){let dt=Math.min(.03,(t-last)/1000||0);last=t;let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0),l=Math.hypot(dx,dy)||1;me.x=Math.max(18,Math.min(W-18,me.x+dx/l*210*dt));me.y=Math.max(18,Math.min(H-18,me.y+dy/l*210*dt));
+for(const b of bots){if(b.caught)continue;b.x+=b.vx*dt;b.y+=b.vy*dt;if(b.x<20||b.x>W-20)b.vx*=-1;if(b.y<20||b.y>H-20)b.vy*=-1;if(!seeker&&Math.random()<.008){let a=Math.atan2(me.y-b.y,me.x-b.x);b.vx=Math.cos(a)*110;b.vy=Math.sin(a)*110;if(Math.hypot(b.x-me.x,b.y-me.y)<28){document.querySelector('#toast').textContent='잡혔어요! 데모에서는 계속 연습할 수 있어요.'}}}
+draw();let sec=Math.max(0,180-Math.floor((t-start)/1000));document.querySelector('#time').textContent='⏱ '+String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');document.querySelector('#alive').textContent='🙈 '+(bots.filter(b=>!b.caught).length+(seeker?0:1));if(running)requestAnimationFrame(loop)}
+function draw(){x.clearRect(0,0,W,H);x.fillStyle='#dcebd3';x.fillRect(0,0,W,H);x.strokeStyle='#c3d3ba';x.lineWidth=2;for(let i=0;i<W;i+=90){x.beginPath();x.moveTo(i,0);x.lineTo(i,H);x.stroke()}for(const [n,px,py,pw,ph] of obs){let ox=px*W,oy=py*H,ow=pw*W,oh=ph*H;x.fillStyle='#8b6a49';x.fillRect(ox,oy,ow,oh);x.fillStyle='#fff';x.font='bold 14px system-ui';x.fillText(n,ox+10,oy+22)}
+for(const b of bots){if(b.caught)continue;person(b,false,false)}person(me,seeker,hidden)}
+function person(p,isSeek,isHide){x.save();if(isHide&&!isSeek){x.fillStyle='#56824a';x.fillRect(p.x-17,p.y-17,34,34);x.fillStyle='#244';x.fillText('🌿',p.x-10,p.y+6)}else{x.beginPath();x.fillStyle=isSeek?'#e63946':'#2563eb';x.arc(p.x,p.y,17,0,Math.PI*2);x.fill()}x.fillStyle='#172033';x.font='12px system-ui';x.textAlign='center';x.fillText(p.name,p.x,p.y-24);x.restore()}
+draw();
+</script></body></html>
