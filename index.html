@@ -28,7 +28,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #touchControls{display:none;position:absolute;left:0;right:0;bottom:12px;z-index:8;padding:0 14px;justify-content:space-between;align-items:flex-end;pointer-events:none;user-select:none;-webkit-user-select:none}
 .touchDpad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;pointer-events:auto}
 .touchActions{display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
-.touchBtn{width:56px;height:56px;border:2px solid rgba(255,255,255,.35);border-radius:16px;background:rgba(15,23,42,.72);color:#fff;font:900 24px system-ui;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);touch-action:none;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.touchBtn{width:56px;height:56px;border:2px solid rgba(255,255,255,.35);border-radius:16px;background:rgba(15,23,42,.72);color:#fff;font:900 24px system-ui;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);touch-action:none;-webkit-touch-callout:none;box-shadow:0 4px 14px rgba(0,0,0,.22)}
 .touchBtn:active,.touchBtn.pressed{transform:scale(.94);background:rgba(37,99,235,.82)}
 .touchBtn:disabled{opacity:.35;transform:none}
 #touchUp{grid-column:2;grid-row:1}#touchLeft{grid-column:1;grid-row:2}#touchDown{grid-column:2;grid-row:2}#touchRight{grid-column:3;grid-row:2}
@@ -221,6 +221,7 @@ const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
 let helpPanelOpen=false,mapVisible=true;
+let touchMove={up:false,down:false,left:false,right:false};
 
 function fit(){
   const r=game.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1);
@@ -817,39 +818,53 @@ function updateTouchControls(now){
 }
 document.querySelectorAll("#touchControls [data-key]").forEach(btn=>{
   const key=btn.dataset.key;
-  const press=e=>{
-    e.preventDefault();
-    if(!running||!player)return;
-    keys[key]=true;btn.classList.add("pressed");
+  const dir=key.replace("arrow","");
+  const setPressed=(on)=>{
+    if(!running||!player){touchMove[dir]=false;return;}
+    touchMove[dir]=on;
+    keys[key]=on;
+    btn.classList.toggle("pressed",on);
+  };
+  btn.addEventListener("pointerdown",e=>{
+    e.preventDefault();setPressed(true);
     try{btn.setPointerCapture(e.pointerId);}catch{}
-  };
-  const release=e=>{
-    e.preventDefault();keys[key]=false;btn.classList.remove("pressed");
-  };
-  btn.addEventListener("pointerdown",press);
-  btn.addEventListener("pointerup",release);
-  btn.addEventListener("pointercancel",release);
-  btn.addEventListener("lostpointercapture",release);
+  });
+  btn.addEventListener("pointerup",e=>{e.preventDefault();setPressed(false);});
+  btn.addEventListener("pointercancel",e=>{e.preventDefault();setPressed(false);});
+  btn.addEventListener("lostpointercapture",()=>setPressed(false));
+  // iPhone/iPad Safari fallback.
+  btn.addEventListener("touchstart",e=>{e.preventDefault();setPressed(true);},{passive:false});
+  btn.addEventListener("touchend",e=>{e.preventDefault();setPressed(false);},{passive:false});
+  btn.addEventListener("touchcancel",e=>{e.preventDefault();setPressed(false);},{passive:false});
   btn.addEventListener("contextmenu",e=>e.preventDefault());
 });
-touchAction.addEventListener("pointerdown",e=>{
-  e.preventDefault();
+let lastTouchActionAt=0;
+function runTouchAction(){
   if(touchAction.disabled||!running||!player)return;
   if(mode==="seeker")inspect();else toggleDisguise();
-});
-const sprintPress=e=>{
+}
+touchAction.addEventListener("touchstart",e=>{
+  e.preventDefault();lastTouchActionAt=Date.now();runTouchAction();
+},{passive:false});
+touchAction.addEventListener("click",e=>{
   e.preventDefault();
-  if(touchSprint.disabled||mode!=="seeker")return;
-  keys.shift=true;touchSprint.classList.add("pressed");
+  if(Date.now()-lastTouchActionAt<500)return;
+  runTouchAction();
+});
+const setSprintPressed=(on)=>{
+  if(touchSprint.disabled||mode!=="seeker")on=false;
+  keys.shift=on;touchSprint.classList.toggle("pressed",on);
+};
+touchSprint.addEventListener("pointerdown",e=>{
+  e.preventDefault();setSprintPressed(true);
   try{touchSprint.setPointerCapture(e.pointerId);}catch{}
-};
-const sprintRelease=e=>{
-  e.preventDefault();keys.shift=false;touchSprint.classList.remove("pressed");
-};
-touchSprint.addEventListener("pointerdown",sprintPress);
-touchSprint.addEventListener("pointerup",sprintRelease);
-touchSprint.addEventListener("pointercancel",sprintRelease);
-touchSprint.addEventListener("lostpointercapture",sprintRelease);
+});
+touchSprint.addEventListener("pointerup",e=>{e.preventDefault();setSprintPressed(false);});
+touchSprint.addEventListener("pointercancel",e=>{e.preventDefault();setSprintPressed(false);});
+touchSprint.addEventListener("lostpointercapture",()=>setSprintPressed(false));
+touchSprint.addEventListener("touchstart",e=>{e.preventDefault();setSprintPressed(true);},{passive:false});
+touchSprint.addEventListener("touchend",e=>{e.preventDefault();setSprintPressed(false);},{passive:false});
+touchSprint.addEventListener("touchcancel",e=>{e.preventDefault();setSprintPressed(false);},{passive:false});
 touchSprint.addEventListener("contextmenu",e=>e.preventDefault());
 
 addEventListener("keydown",e=>{
@@ -860,6 +875,11 @@ addEventListener("keydown",e=>{
   if(e.code==="Space"&&mode==="seeker"){e.preventDefault();inspect();}
 });
 addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
+addEventListener("blur",()=>{
+  touchMove={up:false,down:false,left:false,right:false};
+  keys.arrowup=keys.arrowdown=keys.arrowleft=keys.arrowright=keys.shift=false;
+  document.querySelectorAll("#touchControls .pressed").forEach(b=>b.classList.remove("pressed"));
+});
 
 async function inspect(){
   if(mode==="seeker"&&gameNow()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
@@ -976,7 +996,7 @@ function enterObserver(){
   updateTouchControls(gameNow());
 }
 function finish(win,msg){
-  if(!running)return;running=false;touchControls.style.display="none";keys.shift=false;
+  if(!running)return;running=false;touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
     title.textContent="📊 라운드 결과";
@@ -1056,7 +1076,7 @@ function updateSeekerProximity(now){
 }
 function loop(t){
   if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;const now=gameNow();
-  let dx=(keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0),dy=(keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0);
+  let dx=((keys.d||keys.arrowright||touchMove.right)?1:0)-((keys.a||keys.arrowleft||touchMove.left)?1:0),dy=((keys.s||keys.arrowdown||touchMove.down)?1:0)-((keys.w||keys.arrowup||touchMove.up)?1:0);
   const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
   const seekerWaiting=(mode==="seeker"&&now<hideUntil);
   if(player&&mode==="observer"){
