@@ -1,0 +1,1149 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>꼭꼭숨어라 머리카락보인다 MADE BY 두두쌤</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;height:100%;overflow:hidden;font-family:system-ui,-apple-system,"Noto Sans KR",sans-serif;background:#0d1420;color:#fff}
+header{height:62px;display:flex;align-items:center;gap:12px;padding:0 16px;background:#0b1220;border-bottom:1px solid #2a3546}
+header b{font-size:19px}.pill{background:#202c3d;border:1px solid #34455e;border-radius:999px;padding:7px 11px;font-weight:700}.danger{background:#5a1b22}.good{background:#17472e}
+#hud{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+#gameWrap{position:relative;height:calc(100% - 62px);background:#111827}
+canvas{width:100%;height:100%;display:block;image-rendering:auto}
+#toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 14px;border-radius:12px;font-weight:800;pointer-events:none;max-width:80%;text-align:center}
+#proximity{display:none;position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:6;background:#7c2d12f2;border:2px solid #fb923c;color:#fff;padding:10px 16px;border-radius:14px;font-weight:900;pointer-events:none;text-align:center;box-shadow:0 0 0 0 rgba(251,146,60,.55);animation:proxPulse 1s infinite}
+#huntStartSignal{display:none;position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);z-index:9;background:rgba(127,29,29,.96);border:3px solid #fca5a5;color:#fff;padding:18px 28px;border-radius:18px;font-size:clamp(22px,3vw,38px);font-weight:1000;text-align:center;pointer-events:none;box-shadow:0 10px 35px rgba(0,0,0,.35);animation:huntPop .35s ease-out}
+@keyframes huntPop{from{transform:translate(-50%,-50%) scale(.7);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@keyframes proxPulse{0%{box-shadow:0 0 0 0 rgba(251,146,60,.5)}70%{box-shadow:0 0 0 12px rgba(251,146,60,0)}100%{box-shadow:0 0 0 0 rgba(251,146,60,0)}}
+#help{position:absolute;left:12px;bottom:12px;z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5}
+#gameToggles{position:absolute;right:12px;top:10px;z-index:8;display:flex;gap:7px}
+.gameToggleBtn{border:1px solid #475569;border-radius:10px;background:rgba(15,23,42,.88);color:#fff;padding:8px 10px;font:800 13px system-ui;cursor:pointer;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.gameToggleBtn.on{background:rgba(37,99,235,.92);border-color:#93c5fd}
+#gameHelpPanel{display:none;position:absolute;left:12px;top:58px;z-index:7;width:min(330px,calc(100% - 24px));background:rgba(11,18,32,.94);border:1px solid #475569;border-radius:14px;padding:11px 13px;color:#fff;font-size:13px;line-height:1.55;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+#gameHelpPanel b{color:#bfdbfe}#gameHelpPanel .helpTitle{font-weight:900;font-size:14px;margin-bottom:4px}
+#mini{position:absolute;right:12px;top:56px;width:190px;background:#0b1220e8;border:1px solid #34455e;border-radius:14px;padding:8px;z-index:4}
+#mini canvas{width:174px;height:112px;border-radius:8px;background:#d7dfd2}
+#mini .t{font-size:12px;color:#d6deea;margin-bottom:5px;font-weight:800}
+#touchControls{display:none;position:absolute;left:0;right:0;bottom:12px;z-index:8;padding:0 14px;justify-content:space-between;align-items:flex-end;pointer-events:none;user-select:none;-webkit-user-select:none}
+.touchDpad{display:grid;grid-template-columns:repeat(3,56px);grid-template-rows:repeat(2,56px);gap:6px;pointer-events:auto}
+.touchActions{display:flex;gap:10px;align-items:flex-end;pointer-events:auto}
+.touchBtn{width:56px;height:56px;border:2px solid rgba(255,255,255,.35);border-radius:16px;background:rgba(15,23,42,.72);color:#fff;font:900 24px system-ui;backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);touch-action:none;-webkit-touch-callout:none;box-shadow:0 4px 14px rgba(0,0,0,.22)}
+.touchBtn:active,.touchBtn.pressed{transform:scale(.94);background:rgba(37,99,235,.82)}
+.touchBtn:disabled{opacity:.35;transform:none}
+#touchUp{grid-column:2;grid-row:1}#touchLeft{grid-column:1;grid-row:2}#touchDown{grid-column:2;grid-row:2}#touchRight{grid-column:3;grid-row:2}
+.touchActionBtn{width:78px;height:64px;font-size:15px;line-height:1.15;padding:4px}
+#touchSprint{background:rgba(127,29,29,.78)}
+@media(max-width:480px){.touchDpad{grid-template-columns:repeat(3,50px);grid-template-rows:repeat(2,50px);gap:5px}.touchBtn{width:50px;height:50px;border-radius:14px}.touchActionBtn{width:68px;height:58px;font-size:14px}#touchControls{padding:0 9px;bottom:9px}}
+.overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#07101bdd;z-index:10;padding:20px}
+.card{width:min(660px,94vw);background:#f8fafc;color:#152033;border-radius:20px;padding:24px;box-shadow:0 20px 70px #0008}
+.card h1,.card h2{margin:0 0 10px}.card p{line-height:1.55}.row{display:flex;gap:10px;flex-wrap:wrap}
+.field{margin:12px 0}.field label{display:block;font-size:13px;font-weight:800;margin-bottom:5px}.field input{width:100%;font:inherit;padding:12px 13px;border:1px solid #cbd5e1;border-radius:10px;background:#fff;color:#111827}
+.codeBox{font-size:36px;font-weight:900;letter-spacing:7px;text-align:center;background:#eaf2ff;border:2px dashed #60a5fa;border-radius:14px;padding:12px;margin:12px 0}
+#playerList{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:7px;max-height:210px;overflow:auto;margin:12px 0}
+.playerChip{background:#eef2f7;border-radius:9px;padding:8px 10px;font-size:13px;font-weight:700}.serverOk{color:#166534}.serverBad{color:#b91c1c}
+.guideGrid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}.guideBox{background:#eef2f7;border-radius:12px;padding:12px}.guideBox h3{margin:0 0 7px;font-size:16px}.guideBox p,.guideBox li{font-size:14px;line-height:1.55}.guideBox ul{margin:6px 0 0;padding-left:20px}.guideFlow{display:flex;gap:7px;flex-wrap:wrap;margin:10px 0}.guideStep{background:#eaf2ff;border:1px solid #bfdbfe;border-radius:999px;padding:7px 10px;font-size:13px;font-weight:800}.guideWarn{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;font-size:13px;line-height:1.5}
+.resultSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.resultStat{background:#eef2f7;border-radius:12px;padding:10px;text-align:center}.resultStat b{display:block;font-size:22px;margin-top:3px}.resultCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.resultBox{background:#eef2f7;border-radius:12px;padding:11px}.resultBox h3{margin:0 0 7px;font-size:15px}.resultList{margin:0;padding-left:19px;font-size:13px;line-height:1.65}.resultSeeker{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.6}
+@media(max-width:640px){.resultSummary{grid-template-columns:1fr 1fr 1fr}.resultCols{grid-template-columns:1fr}}
+@media(max-width:640px){.guideGrid{grid-template-columns:1fr}}.card button{font:inherit;border:0;border-radius:11px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}.card button.alt{background:#334155}.card button.green{background:#15803d}.card button:focus{outline:3px solid #93c5fd}.note{font-size:13px;color:#5f6b7a;background:#eef2f7;padding:10px;border-radius:10px;margin-top:14px}
+#result{display:none}.kbd{display:inline-block;background:#fff;color:#111827;border:1px solid #cbd5e1;border-bottom-width:3px;border-radius:6px;padding:1px 6px;font-weight:800}
+@media(max-width:760px){header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#mini{width:168px}#mini canvas{width:152px;height:98px}#gameToggles{right:8px;top:8px}.gameToggleBtn{padding:7px 8px;font-size:12px}#gameHelpPanel{left:8px;top:52px;width:min(300px,calc(100% - 16px));font-size:12px}}
+</style>
+</head>
+<body>
+<header>
+  <b>🏫 꼭꼭숨어라 머리카락보인다 <span style="font-size:.68em;font-weight:700;opacity:.78">MADE BY 두두쌤</span></b>
+  <span id="role" class="pill">대기</span>
+  <div id="hud">
+    <span id="phase" class="pill">라운드 준비</span>
+    <span id="timer" class="pill">⏱ 03:00</span>
+    <span id="tries" class="pill">🔍 탐색 --</span>
+    <span id="alive" class="pill good">🙈 생존 0</span>
+  </div>
+</header>
+
+<div id="gameWrap">
+  <canvas id="game"></canvas>
+  <div id="toast">원하는 역할을 골라 체험해보세요.</div>
+  <div id="proximity">📡 근처에 숨은 사람이 있어요!</div>
+  <div id="huntStartSignal">🚨 술래 출발!<br><span style="font-size:.55em">지금부터 찾기 시작!</span></div>
+  <div id="gameToggles">
+    <button id="helpToggleBtn" class="gameToggleBtn" type="button">🎮 조작법</button>
+    <button id="mapToggleBtn" class="gameToggleBtn on" type="button">🗺 미니맵</button>
+  </div>
+  <div id="gameHelpPanel">
+    <div class="helpTitle">🎮 게임 중 조작법</div>
+    <div id="gameHelpContent"></div>
+  </div>
+  <div id="mini"><div class="t">학교 전체 지도</div><canvas id="map" width="174" height="112"></canvas></div>
+  <div id="touchControls" aria-label="모바일 터치 조작">
+    <div class="touchDpad">
+      <button id="touchUp" class="touchBtn" type="button" data-key="arrowup" aria-label="위로 이동">▲</button>
+      <button id="touchLeft" class="touchBtn" type="button" data-key="arrowleft" aria-label="왼쪽 이동">◀</button>
+      <button id="touchDown" class="touchBtn" type="button" data-key="arrowdown" aria-label="아래로 이동">▼</button>
+      <button id="touchRight" class="touchBtn" type="button" data-key="arrowright" aria-label="오른쪽 이동">▶</button>
+    </div>
+    <div class="touchActions">
+      <button id="touchAction" class="touchBtn touchActionBtn" type="button">🪄<br>변신</button>
+      <button id="touchSprint" class="touchBtn touchActionBtn" type="button">🏃<br>달리기</button>
+    </div>
+  </div>
+
+  <div id="menu" class="overlay">
+    <div class="card">
+      <h1>🎮 꼭꼭숨어라 머리카락보인다 <span style="font-size:.52em;font-weight:700;color:#64748b">MADE BY 두두쌤</span></h1>
+      <p>선생님이 방을 만들고 아이들이 <b>6자리 방 코드</b>로 참가합니다. 최대 30명, 게임 시작 때 자동으로 술래가 정해집니다.</p>
+      <div class="field"><label for="nick">닉네임 — 실명 대신 번호/별명 권장</label><input id="nick" maxlength="10" placeholder="예: 12번 / 토끼"></div>
+      <div class="row"><button id="createBtn" class="green">👩‍🏫 방 만들기</button><button id="guideBtn" class="alt">📖 게임 설명서</button><button id="tourBtn" class="alt">🗺 혼자 맵 테스트</button></div>
+      <div class="field"><label for="joinCode">친구 방 참가</label><input id="joinCode" maxlength="6" inputmode="numeric" placeholder="6자리 방 코드"></div>
+      <div class="row"><button id="joinBtn">🚪 방 참가하기</button></div>
+      <div id="serverStatus" class="note">실시간 서버 확인 중...</div>
+    </div>
+  </div>
+
+  <div id="lobby" class="overlay" style="display:none">
+    <div class="card">
+      <h2>🏫 게임 대기실</h2>
+      <p>아이들에게 아래 방 코드만 알려주세요.</p>
+      <div id="roomCodeView" class="codeBox">------</div>
+      <div><b>접속 인원 <span id="lobbyCount">0</span>/30</b> · 🔎 술래 희망 <b><span id="wantCount">0</span>명</b></div>
+      <div id="playerList"></div>
+      <div class="row">
+        <button id="wantSeekerBtn" class="alt">🔎 술래 희망하기</button>
+        <button id="lobbyGuideBtn" class="alt">📖 게임 설명서</button>
+        <button id="startOnlineBtn" class="green">▶ 게임 시작</button>
+        <button id="leaveBtn" class="alt">나가기</button>
+      </div>
+      <div id="lobbyNote" class="note">술래 희망자가 있으면 희망자 중에서 먼저 랜덤 선정합니다. 희망자가 부족하면 나머지 인원 중에서 랜덤으로 채웁니다.</div>
+    </div>
+  </div>
+
+  <div id="guide" class="overlay" style="display:none">
+    <div class="card" style="width:min(820px,96vw);max-height:88%;overflow:auto">
+      <h2>📖 꼭꼭숨어라 머리카락보인다 설명서</h2>
+      <p><b>목표:</b> 숨는 사람은 학교의 사물로 변신해 끝까지 살아남고, 술래는 제한된 탐색 횟수 안에 숨은 친구들을 찾아야 합니다. 한 방에 <b>최대 30명</b>까지 참가할 수 있습니다.</p>
+      <div class="guideFlow">
+        <span class="guideStep">① 방 코드로 참가</span><span class="guideStep">② 술래 희망 선택</span><span class="guideStep">③ 역할 랜덤 배정</span><span class="guideStep">④ 40초 숨기</span><span class="guideStep">⑤ 3분 찾기</span>
+      </div>
+      <div class="guideGrid">
+        <div class="guideBox">
+          <h3>🙈 숨는 사람</h3>
+          <ul>
+            <li><b>WASD / 방향키</b>로 이동합니다.</li>
+            <li>숨는 사람은 <b>달릴 수 없습니다.</b> Shift를 눌러도 이동 속도가 빨라지지 않습니다.</li>
+            <li>사물 가까이에서 <b>E</b>를 누르면 그 사물로 변신합니다.</li>
+            <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
+            <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
+            <li>술래 화면에서는 플레이어가 변신한 사물이 <b>원래 사물과 똑같이</b> 보입니다.</li>
+            <li>숨는 사람 화면에서는 <b>술래와 다른 숨는 사람의 닉네임</b>을 볼 수 있습니다.</li>
+            <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 바뀌어 자신의 캐릭터를 움직이며 남은 게임을 구경할 수 있습니다.</li>
+            <li>옵저버 캐릭터는 <b>본인 화면에만 보이고</b>, 술래와 살아 있는 숨는 사람 화면에는 표시되지 않습니다.</li>
+          </ul>
+        </div>
+        <div class="guideBox">
+          <h3>🔎 술래</h3>
+          <ul>
+            <li>숨는 사람에게 먼저 <b>40초</b>가 주어집니다.</li>
+            <li>그동안 술래 화면과 이동은 잠겨 있습니다.</li>
+            <li>40초 후 직접 학교 안을 돌아다니며 찾습니다.</li>
+            <li>숨는 시간이 끝나면 모든 화면에 <b>“🚨 술래 출발! 지금부터 찾기 시작!”</b> 신호가 크게 표시됩니다.</li>
+            <li>술래만 <b>Shift</b>를 눌러 빠르게 달릴 수 있습니다.</li>
+            <li>의심스러운 사물 가까이에서 <b>Space</b>를 눌러 조사합니다.</li>
+            <li>숨은 사람이 적당한 거리 안에 들어오면 술래 화면에 <b>“📡 근처에 숨은 사람이 있어요!”</b> 알림이 뜹니다.</li>
+            <li>알림은 <b>한 단계만</b> 표시되며, “아주 가까워요” 같은 추가 힌트나 정확한 방향·거리는 알려주지 않습니다.</li>
+            <li>틀린 사물을 조사해도 탐색 기회가 1회 줄어듭니다.</li>
+            <li>술래 팀의 <b>총 탐색 횟수는 ‘숨는 사람 수 × 2회’</b>입니다.</li>
+            <li>예: 숨는 사람이 20명이면 술래 팀 전체가 <b>40회</b> 조사할 수 있습니다.</li>
+            <li>술래가 여러 명이면 총 횟수를 최대한 비슷하게 나눠 가집니다. 예: 40회이고 술래가 2명이면 <b>20회 + 20회</b>입니다.</li>
+          </ul>
+        </div>
+        <div class="guideBox">
+          <h3>🎲 술래 정하기</h3>
+          <ul>
+            <li>대기실에서 <b>술래 희망하기</b>를 누를 수 있습니다.</li>
+            <li>희망자가 많으면 희망자 중에서 랜덤 선정됩니다.</li>
+            <li>희망자가 부족하면 나머지 인원 중 랜덤으로 채웁니다.</li>
+            <li>술래는 <b>참가자 7명당 1명</b>으로 정합니다. 인원이 7명을 넘을 때마다 술래가 1명씩 늘어납니다.</li>
+            <li>예: 2~7명 → 술래 1명, 8~14명 → 2명, 15~21명 → 3명, 22~28명 → 4명, 29~30명 → 5명입니다.</li>
+          </ul>
+        </div>
+        <div class="guideBox">
+          <h3>🗺 맵과 승리 조건</h3>
+          <ul>
+            <li>교실·도서관·과학실·급식실·체육관·휴게실·화단을 자유롭게 이동할 수 있습니다.</li>
+            <li>게임 시작 때마다 가구·소품·꽃 배치가 랜덤으로 달라집니다.</li>
+            <li>숨는 사람은 3분 동안 살아남거나 술래의 탐색 기회가 모두 소진되면 승리합니다.</li>
+            <li>술래는 제한시간 안에 숨는 사람을 모두 찾으면 승리합니다.</li>
+            <li>라운드가 끝나면 <b>생존자·잡힌 사람·잡힌 시간·잡은 술래·술래별 잡은 인원</b>이 결과 화면에 표시됩니다.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="guideWarn"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>📱 핸드폰에서도 가능:</b> 터치 기기에서는 화면 아래에 이동 방향키가 자동으로 나타납니다. 숨는 사람은 <b>변신</b> 버튼, 술래는 <b>조사·달리기</b> 버튼을 사용합니다. 옵저버는 이동 방향키로 돌아다닐 수 있습니다.</div>
+      <div class="guideWarn" style="margin-top:8px"><b>수업 약속:</b> 실명 대신 번호나 별명을 사용합니다. 잡힌 뒤에는 옵저버로 구경할 수 있지만 <b>친구의 위치를 말로 알려주면 안 됩니다.</b> 게임 중 새로고침은 하지 않는 것이 좋습니다.</div>
+      <div class="row" style="margin-top:14px"><button id="closeGuideBtn" class="green">✅ 설명서 확인했어요</button></div>
+    </div>
+  </div>
+
+  <div id="result" class="overlay">
+    <div class="card" style="width:min(820px,96vw);max-height:88%;overflow:auto">
+      <h2 id="resultTitle">라운드 종료</h2>
+      <div id="resultText"></div>
+      <div class="row">
+        <button id="again">다시 하기</button>
+        <button id="menuBtn" class="alt">역할 선택</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyATPcgnnZdTMi_0mkVVQf1Cc9U0WA_gtlQ",
+  authDomain: "dudugames.firebaseapp.com",
+  databaseURL: "https://dudugames-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "dudugames",
+  storageBucket: "dudugames.firebasestorage.app",
+  messagingSenderId: "873679617890",
+  appId: "1:873679617890:web:eef8b375ccaf68a243363b",
+  measurementId: "G-0LZZ7TXKGX"
+};
+</script>
+<script>
+(function(){
+"use strict";
+const game=document.getElementById("game"),ctx=game.getContext("2d");
+const mini=document.getElementById("map"),mctx=mini.getContext("2d");
+const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
+const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
+const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
+const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
+const WORLD={w:2400,h:1600};
+let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
+let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
+let helpPanelOpen=false,mapVisible=true;
+let touchMove={up:false,down:false,left:false,right:false};
+let audioCtx=null;
+
+function ensureAudio(){
+  try{
+    if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(audioCtx.state==="suspended")audioCtx.resume().catch(()=>{});
+  }catch{}
+}
+function tone(freq,start,duration,type="sine",volume=.12,endFreq=null){
+  if(!audioCtx)return;
+  try{
+    const o=audioCtx.createOscillator(),g=audioCtx.createGain();
+    const t=audioCtx.currentTime+start;
+    o.type=type;o.frequency.setValueAtTime(freq,t);
+    if(endFreq)o.frequency.exponentialRampToValueAtTime(Math.max(1,endFreq),t+duration);
+    g.gain.setValueAtTime(.0001,t);
+    g.gain.exponentialRampToValueAtTime(volume,t+.015);
+    g.gain.exponentialRampToValueAtTime(.0001,t+duration);
+    o.connect(g);g.connect(audioCtx.destination);o.start(t);o.stop(t+duration+.03);
+  }catch{}
+}
+function playSfx(kind){
+  ensureAudio();if(!audioCtx)return;
+  if(kind==="start"){
+    tone(440,0,.13,"square",.09,660);tone(660,.14,.13,"square",.09,880);tone(880,.29,.24,"square",.11,1040);
+  }else if(kind==="catch"){
+    tone(520,0,.10,"triangle",.12,760);tone(760,.10,.12,"triangle",.13,1040);tone(1040,.22,.25,"sine",.12,1320);
+  }else if(kind==="miss"){
+    tone(260,0,.13,"sawtooth",.07,190);tone(180,.14,.22,"sawtooth",.065,120);
+  }else if(kind==="finish"){
+    tone(740,0,.16,"triangle",.10,620);tone(620,.17,.18,"triangle",.10,520);tone(520,.36,.34,"sine",.11,360);
+  }
+}
+// Mobile/desktop browsers allow game audio after the first user interaction.
+addEventListener("pointerdown",ensureAudio,{once:true,capture:true});
+addEventListener("keydown",ensureAudio,{once:true,capture:true});
+
+function fit(){
+  const r=game.getBoundingClientRect(); dpr=Math.min(2,window.devicePixelRatio||1);
+  viewW=r.width; viewH=r.height; game.width=Math.round(r.width*dpr); game.height=Math.round(r.height*dpr);
+  ctx.setTransform(dpr,0,0,dpr,0,0); draw();
+}
+addEventListener("resize",fit);
+
+function rectRoom(name,x,y,w,h,floor,wall,doorSide){
+  const gap=118, half=gap/2;
+  rooms.push({name,x,y,w,h,floor,wall,doorSide});
+  // 벽은 실제 충돌 판정에 사용하되, 복도와 연결되는 출입문 부분은 비워 둡니다.
+  if(doorSide==="top"){
+    walls.push({x,y,w:w/2-half,h:18},{x:x+w/2+half,y,w:w/2-half,h:18});
+  }else{
+    walls.push({x,y,w,h:18});
+  }
+  if(doorSide==="bottom"){
+    walls.push({x,y:y+h-18,w:w/2-half,h:18},{x:x+w/2+half,y:y+h-18,w:w/2-half,h:18});
+  }else{
+    walls.push({x,y:y+h-18,w,h:18});
+  }
+  walls.push({x,y,w:18,h},{x:x+w-18,y,w:18,h});
+}
+function add(type,x,y,extra){ props.push(Object.assign({type,x,y,id:"p"+props.length},extra||{})); }
+let mapRand=Math.random;
+function seededRng(seed){let a=seed>>>0;return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
+function rand(min,max){return min+mapRand()*(max-min);}
+function randomizeWorld(){
+  // 방마다 가구 배치를 좌우/상하 반전 + 약간의 위치 변형으로 매 라운드 다르게 만듭니다.
+  const movable=props.filter(p=>!["gardenBed","board"].includes(p.type));
+  for(const r of rooms){
+    const inside=movable.filter(p=>p.x>r.x+24&&p.x<r.x+r.w-24&&p.y>r.y+24&&p.y<r.y+r.h-24);
+    const flipX=mapRand()<.5, flipY=mapRand()<.35;
+    for(const p of inside){
+      if(flipX)p.x=r.x+r.w-(p.x-r.x);
+      if(flipY)p.y=r.y+r.h-(p.y-r.y);
+      const jitter=["flower","stool","ball","cone","plantPot","box","trash"].includes(p.type)?18:8;
+      p.x=Math.max(r.x+35,Math.min(r.x+r.w-35,p.x+rand(-jitter,jitter)));
+      p.y=Math.max(r.y+35,Math.min(r.y+r.h-35,p.y+rand(-jitter,jitter)));
+    }
+    // 작은 소품을 랜덤 추가해서 외워서 찾기 어렵게 만듭니다.
+    const extraTypes=["plantPot","box","trash","stool"];
+    const extraCount=Math.floor(rand(1,4));
+    for(let i=0;i<extraCount;i++){
+      const t=extraTypes[Math.floor(mapRand()*extraTypes.length)];
+      let px=rand(r.x+70,r.x+r.w-70), py=rand(r.y+80,r.y+r.h-70);
+      // 출입문 중앙은 비워둡니다.
+      const nearDoor=Math.abs(px-(r.x+r.w/2))<120 &&
+        ((r.doorSide==="bottom"&&py>r.y+r.h-150)||(r.doorSide==="top"&&py<r.y+150));
+      if(!nearDoor)add(t,px,py);
+    }
+  }
+  // 화단은 꽃의 위치와 색도 매번 바뀝니다.
+  const flowerColors=["#ef4444","#f59e0b","#f9a8d4","#a78bfa","#ffffff","#fde047","#fb7185","#60a5fa"];
+  for(const p of props){
+    if(p.type==="flower"){
+      p.x+=rand(-18,18);p.y+=rand(-18,18);
+      p.flowerColor=flowerColors[Math.floor(mapRand()*flowerColors.length)];
+    }else if(p.type==="bush"){p.x+=rand(-18,18);p.y+=rand(-15,15);}
+  }
+}
+function buildWorld(seed){
+  mapRand=seededRng((seed>>>0)||123456789);
+  props=[];walls=[];rooms=[];
+  rectRoom("6학년 교실",60,70,620,430,"#d6b47d","#8b6d50","bottom");
+  rectRoom("도서관",720,70,600,430,"#c6a06d","#75573f","bottom");
+  rectRoom("과학실",60,820,620,690,"#cfd5d9","#718096","top");
+  rectRoom("급식실",720,820,620,690,"#d9c49a","#8a6f50","top");
+  rectRoom("체육관",1390,820,930,690,"#c99356","#7f5b3e","top");
+  rectRoom("학생휴게실",1780,70,540,430,"#d9c1a2","#82634b","bottom");
+  // 복도는 모든 방의 출입문과 연결되는 열린 공간입니다.
+  // 예전 버전의 가로 충돌벽은 삭제하여 술래/숨는 사람 모두 자유롭게 방에 들어갈 수 있습니다.
+  // classroom furniture
+  for(let r=0;r<3;r++)for(let c=0;c<5;c++){add("desk",150+c*95,190+r*88);add("chair",150+c*95,225+r*88);}
+  add("teacherDesk",500,120); add("board",270,95); add("cabinet",85,115); add("cabinet",590,115);
+  add("plantPot",105,405);add("plantPot",620,400);add("trash",645,310);
+  // library
+  for(let i=0;i<5;i++) add("bookshelf",760+i*105,105);
+  for(let i=0;i<4;i++) add("bookshelf",760+i*140,385);
+  add("roundTable",950,275);for(let a=0;a<6;a++){let ang=a*Math.PI/3;add("stool",950+Math.cos(ang)*82,275+Math.sin(ang)*62);}
+  add("globe",1215,255);add("plantPot",1270,420);add("box",760,440);add("box",800,440);
+  // science
+  for(let r=0;r<3;r++)for(let c=0;c<3;c++) add("labTable",150+c*165,930+r*150);
+  add("skeleton",590,930);add("microscope",175,925);add("microscope",505,1225);add("cabinet",90,1360);add("plantPot",620,1430);
+  // cafeteria
+  for(let r=0;r<3;r++)for(let c=0;c<2;c++){add("cafTable",845+c*265,950+r*175);for(let k=0;k<4;k++)add("stool",790+c*265+k*55,1010+r*175);}
+  for(let i=0;i<5;i++) add("vending",760+i*105,865);
+  add("cone",1265,1390);add("trash",1285,900);add("plantPot",750,1440);
+  // gym
+  add("basket",1450,900);add("basket",2250,900);for(let i=0;i<6;i++)add("ball",1510+i*45,1420);
+  add("mat",2100,1000);add("mat",2100,1090);add("cone",1500,1120);add("cone",1600,1220);add("cone",1700,1120);
+  add("bench",1810,1450);add("bench",2010,1450);
+  // lounge
+  add("sofa",1840,160);add("sofa",2070,160);add("roundTable",1980,320);add("plantPot",1815,430);add("plantPot",2260,430);
+  add("locker",1820,390);add("locker",1890,390);add("locker",1960,390);add("locker",2030,390);add("locker",2100,390);add("locker",2170,390);
+  // hallway lockers & benches
+  for(let i=0;i<8;i++)add("locker",95+i*73,590);
+  add("bench",760,690);add("bench",1030,690);add("bench",1810,690);add("bench",2070,690);
+  add("trash",1340,700);add("plantPot",1600,695);
+  // central garden: lots of indistinguishable flowers
+  add("gardenBed",1375,110,{w:360,h:540});
+  const flowerColors=["#ef4444","#f59e0b","#f9a8d4","#a78bfa","#ffffff","#fde047"];
+  for(let r=0;r<8;r++)for(let c=0;c<6;c++){
+    const jitterX=((r*13+c*17)%19)-9,jitterY=((r*23+c*11)%17)-8;
+    add("flower",1435+c*48+jitterX,165+r*55+jitterY,{flowerColor:flowerColors[(r+c)%flowerColors.length]});
+  }
+  for(let i=0;i<9;i++) add("bush",1405+(i%3)*125,130+Math.floor(i/3)*220);
+  add("tree",1690,185);add("tree",1695,560);add("bench",1450,700);add("bench",1650,700);
+  // outdoor hallway planters
+  for(let i=0;i<7;i++)add("plantPot",1450+i*120,720);
+  randomizeWorld();
+}
+buildWorld(currentSeed);
+
+const sizes={
+ desk:[66,42],chair:[34,34],teacherDesk:[96,48],board:[160,24],cabinet:[52,74],plantPot:[38,48],trash:[32,42],
+ bookshelf:[82,66],roundTable:[78,58],stool:[30,30],globe:[38,48],box:[42,38],labTable:[110,58],skeleton:[38,74],
+ microscope:[34,34],cafTable:[170,64],vending:[54,70],cone:[28,36],basket:[44,78],ball:[26,26],mat:[110,42],
+ bench:[100,34],sofa:[130,62],locker:[58,76],gardenBed:[360,540],flower:[26,30],bush:[72,60],tree:[104,124]
+};
+
+function propSize(p){ return sizes[p.type]||[40,40]; }
+function propBounds(p){let s=propSize(p);return{x:p.x-s[0]/2,y:p.y-s[1]/2,w:s[0],h:s[1]};}
+
+function drawShadow(x,y,w,h,a){ctx.fillStyle="rgba(0,0,0,"+(a||.16)+")";ctx.beginPath();ctx.ellipse(x+4,y+h*.35,w*.45,h*.22,0,0,Math.PI*2);ctx.fill();}
+function drawProp(p){
+  const x=p.x,y=p.y,t=p.type,s=propSize(p),w=s[0],h=s[1];
+  ctx.save();
+  if(t!=="board"&&t!=="gardenBed")drawShadow(x,y,w,h,.14);
+  if(t==="desk"||t==="teacherDesk"){
+    ctx.fillStyle=t==="teacherDesk"?"#9a6638":"#b77b45";ctx.fillRect(x-w/2,y-h/2,w,h*.58);
+    ctx.fillStyle="#6b4428";ctx.fillRect(x-w/2+7,y+h*.08,7,h*.45);ctx.fillRect(x+w/2-14,y+h*.08,7,h*.45);
+    ctx.fillStyle="#d6a15e";ctx.fillRect(x-w/2+5,y-h/2+5,w-10,6);
+  } else if(t==="chair"||t==="stool"){
+    ctx.fillStyle=t==="stool"?"#6a9a52":"#6f5139";ctx.fillRect(x-w*.36,y-h*.28,w*.72,h*.36);
+    ctx.fillStyle="#4b392b";ctx.fillRect(x-w*.3,y+h*.05,5,h*.38);ctx.fillRect(x+w*.22,y+h*.05,5,h*.38);
+    if(t==="chair"){ctx.fillStyle="#85664d";ctx.fillRect(x-w*.36,y-h*.48,w*.72,7);}
+  } else if(t==="board"){
+    ctx.fillStyle="#5b4635";ctx.fillRect(x-w/2-6,y-h/2-6,w+12,h+12);ctx.fillStyle="#1f5b45";ctx.fillRect(x-w/2,y-h/2,w,h);
+    ctx.strokeStyle="#dce8dd";ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x-55,y+2);ctx.lineTo(x+50,y+2);ctx.stroke();
+  } else if(t==="cabinet"||t==="locker"){
+    ctx.fillStyle=t==="locker"?"#9aa6b2":"#7b8794";ctx.fillRect(x-w/2,y-h/2,w,h);ctx.strokeStyle="#586473";ctx.strokeRect(x-w/2,y-h/2,w,h);
+    ctx.fillStyle="#d7dee5";ctx.fillRect(x+w*.24,y-3,4,9); if(t==="locker"){ctx.strokeStyle="#6b7280";ctx.strokeRect(x-w/2+5,y-h/2+7,w-10,h*.32);}
+  } else if(t==="plantPot"){
+    ctx.fillStyle="#a85f35";ctx.beginPath();ctx.moveTo(x-14,y+8);ctx.lineTo(x+14,y+8);ctx.lineTo(x+10,y+25);ctx.lineTo(x-10,y+25);ctx.closePath();ctx.fill();
+    ctx.strokeStyle="#2f6b3f";ctx.lineWidth=5;for(let a=-2;a<=2;a++){ctx.beginPath();ctx.moveTo(x,y+8);ctx.quadraticCurveTo(x+a*8,y-10,x+a*11,y-22);ctx.stroke();}
+    ctx.fillStyle="#4e965a";for(let a=-2;a<=2;a++){ctx.beginPath();ctx.ellipse(x+a*9,y-18+Math.abs(a)*2,9,5,a*.35,0,Math.PI*2);ctx.fill();}
+  } else if(t==="trash"){
+    ctx.fillStyle="#5b6775";ctx.fillRect(x-13,y-14,26,31);ctx.fillStyle="#303946";ctx.fillRect(x-15,y-19,30,7);ctx.strokeStyle="#8491a0";for(let i=-8;i<=8;i+=8){ctx.beginPath();ctx.moveTo(x+i,y-10);ctx.lineTo(x+i,y+13);ctx.stroke();}
+  } else if(t==="bookshelf"){
+    ctx.fillStyle="#744c2f";ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillStyle="#52341f";for(let yy=-16;yy<=17;yy+=17)ctx.fillRect(x-w/2+4,y+yy,w-8,4);
+    const cs=["#a94442","#d4a017","#496b9a","#487a55","#7b4e8f"];for(let r=0;r<3;r++)for(let i=0;i<7;i++){ctx.fillStyle=cs[(r+i)%cs.length];ctx.fillRect(x-w/2+8+i*10,y-h/2+7+r*17,7,13);}
+  } else if(t==="roundTable"){
+    ctx.fillStyle="#a66f42";ctx.beginPath();ctx.ellipse(x,y,w/2,h/2,0,0,Math.PI*2);ctx.fill();ctx.fillStyle="#d29a5c";ctx.beginPath();ctx.ellipse(x,y-3,w*.4,h*.32,0,0,Math.PI*2);ctx.fill();
+  } else if(t==="globe"){
+    ctx.strokeStyle="#7d5b35";ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(x,y+6);ctx.lineTo(x,y+22);ctx.stroke();ctx.fillStyle="#477db3";ctx.beginPath();ctx.arc(x,y-7,18,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#5fa56b";ctx.lineWidth=4;ctx.beginPath();ctx.arc(x-4,y-9,8,.2,2.8);ctx.stroke();ctx.fillStyle="#7d5b35";ctx.fillRect(x-13,y+20,26,5);
+  } else if(t==="box"){
+    ctx.fillStyle="#b77f42";ctx.fillRect(x-w/2,y-h/2,w,h);ctx.strokeStyle="#7f552f";ctx.strokeRect(x-w/2,y-h/2,w,h);ctx.beginPath();ctx.moveTo(x-w/2,y-h/2);ctx.lineTo(x+w/2,y+h/2);ctx.stroke();
+  } else if(t==="labTable"){
+    ctx.fillStyle="#46515f";ctx.fillRect(x-w/2,y-h/2,w,h*.48);ctx.fillStyle="#d9e1e7";ctx.fillRect(x-w/2+4,y-h/2+4,w-8,6);ctx.fillStyle="#313a45";ctx.fillRect(x-w/2+9,y,w-18,h*.34);
+  } else if(t==="skeleton"){
+    ctx.strokeStyle="#e5e7eb";ctx.lineWidth=3;ctx.beginPath();ctx.arc(x,y-24,9,0,Math.PI*2);ctx.moveTo(x,y-14);ctx.lineTo(x,y+20);ctx.moveTo(x,y-4);ctx.lineTo(x-14,y+7);ctx.moveTo(x,y-4);ctx.lineTo(x+14,y+7);ctx.moveTo(x,y+20);ctx.lineTo(x-10,y+34);ctx.moveTo(x,y+20);ctx.lineTo(x+10,y+34);ctx.stroke();
+  } else if(t==="microscope"){
+    ctx.strokeStyle="#3b556b";ctx.lineWidth=6;ctx.beginPath();ctx.arc(x-2,y-4,11,-1.5,1.3);ctx.stroke();ctx.fillStyle="#6e8799";ctx.fillRect(x-13,y+10,28,7);ctx.fillRect(x+3,y-18,7,20);
+  } else if(t==="cafTable"){
+    ctx.fillStyle="#aa7543";ctx.fillRect(x-w/2,y-h/2,w,h*.58);ctx.fillStyle="#6f4b2e";ctx.fillRect(x-w/2+12,y+5,8,22);ctx.fillRect(x+w/2-20,y+5,8,22);
+  } else if(t==="vending"){
+    ctx.fillStyle="#65717d";ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillStyle="#26394d";ctx.fillRect(x-w/2+6,y-h/2+7,w-12,23);ctx.fillStyle="#e8edf2";for(let i=0;i<3;i++)ctx.fillRect(x-w/2+9+i*13,y-h/2+11,8,14);ctx.fillStyle="#1f2937";ctx.fillRect(x+4,y+10,13,18);
+  } else if(t==="cone"){
+    ctx.fillStyle="#f97316";ctx.beginPath();ctx.moveTo(x,y-h/2);ctx.lineTo(x-w/2,y+h*.32);ctx.lineTo(x+w/2,y+h*.32);ctx.closePath();ctx.fill();ctx.fillStyle="#fff";ctx.fillRect(x-8,y,16,5);ctx.fillStyle="#b45309";ctx.fillRect(x-w/2-3,y+h*.30,w+6,7);
+  } else if(t==="basket"){
+    ctx.strokeStyle="#5b3927";ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(x,y-10);ctx.lineTo(x,y+32);ctx.stroke();ctx.strokeStyle="#e5e7eb";ctx.lineWidth=3;ctx.strokeRect(x-20,y-h/2,40,28);ctx.strokeStyle="#ef4444";ctx.beginPath();ctx.arc(x,y-3,15,0,Math.PI);ctx.stroke();
+  } else if(t==="ball"){
+    ctx.fillStyle="#d97706";ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fill();ctx.strokeStyle="#5b3412";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.moveTo(x-13,y);ctx.lineTo(x+13,y);ctx.moveTo(x,y-13);ctx.quadraticCurveTo(x+9,y,x,y+13);ctx.stroke();
+  } else if(t==="mat"){
+    ctx.fillStyle="#2563eb";ctx.fillRect(x-w/2,y-h/2,w,h);ctx.strokeStyle="#1d4ed8";for(let i=-35;i<=35;i+=18){ctx.beginPath();ctx.moveTo(x+i,y-h/2);ctx.lineTo(x+i,y+h/2);ctx.stroke();}
+  } else if(t==="bench"){
+    ctx.fillStyle="#8b5e35";ctx.fillRect(x-w/2,y-10,w,12);ctx.fillRect(x-w/2,y+7,w,9);ctx.fillStyle="#5f4027";ctx.fillRect(x-w/2+12,y+16,7,16);ctx.fillRect(x+w/2-19,y+16,7,16);
+  } else if(t==="sofa"){
+    ctx.fillStyle="#6f8a5f";ctx.fillRect(x-w/2,y-12,w,h*.55);ctx.fillStyle="#58744b";ctx.fillRect(x-w/2,y-26,w,h*.35);ctx.fillRect(x-w/2-8,y-18,12,h*.55);ctx.fillRect(x+w/2-4,y-18,12,h*.55);
+  } else if(t==="gardenBed"){
+    ctx.fillStyle="#7c5d3a";ctx.fillRect(x-w/2,y-h/2,w,h);ctx.fillStyle="#426f3e";ctx.fillRect(x-w/2+10,y-h/2+10,w-20,h-20);ctx.strokeStyle="#9b7a54";ctx.lineWidth=8;ctx.strokeRect(x-w/2,y-h/2,w,h);
+  } else if(t==="flower"){
+    ctx.strokeStyle="#38713e";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(x,y+12);ctx.lineTo(x,y-2);ctx.stroke();
+    ctx.fillStyle=p.flowerColor||"#f472b6";for(let a=0;a<5;a++){let an=a*Math.PI*2/5;ctx.beginPath();ctx.ellipse(x+Math.cos(an)*6,y-7+Math.sin(an)*6,5,3,an,0,Math.PI*2);ctx.fill();}
+    ctx.fillStyle="#facc15";ctx.beginPath();ctx.arc(x,y-7,3.5,0,Math.PI*2);ctx.fill();
+    ctx.fillStyle="#4c8b4f";ctx.beginPath();ctx.ellipse(x-5,y+5,6,3,-.4,0,Math.PI*2);ctx.fill();
+  } else if(t==="bush"){
+    ctx.fillStyle="#447a43";for(let a=0;a<7;a++){let an=a*Math.PI*2/7;ctx.beginPath();ctx.arc(x+Math.cos(an)*18,y+Math.sin(an)*13,18,0,Math.PI*2);ctx.fill();}ctx.fillStyle="#5d9857";ctx.beginPath();ctx.arc(x,y-7,20,0,Math.PI*2);ctx.fill();
+  } else if(t==="tree"){
+    ctx.fillStyle="#7a4d2b";ctx.fillRect(x-9,y+5,18,44);ctx.fillStyle="#3c7540";for(let a=0;a<7;a++){let an=a*Math.PI*2/7;ctx.beginPath();ctx.arc(x+Math.cos(an)*25,y-17+Math.sin(an)*18,28,0,Math.PI*2);ctx.fill();}ctx.fillStyle="#4f8b4d";ctx.beginPath();ctx.arc(x,y-35,34,0,Math.PI*2);ctx.fill();
+  }
+  ctx.restore();
+}
+function drawCharacter(ent,isSeeker){
+  ctx.save();drawShadow(ent.x,ent.y,34,42,.18);
+  ctx.fillStyle=isSeeker?"#dc2626":"#2563eb";ctx.beginPath();ctx.arc(ent.x,ent.y-4,14,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#f2c7a5";ctx.beginPath();ctx.arc(ent.x,ent.y-14,9,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle="#222";ctx.beginPath();ctx.arc(ent.x,ent.y-18,9,Math.PI,Math.PI*2);ctx.fill();
+  ctx.fillStyle=isSeeker?"#7f1d1d":"#1e3a8a";ctx.fillRect(ent.x-9,ent.y+8,18,13);
+  ctx.restore();
+}
+function worldToScreen(x,y){return{x:x-camera.x,y:y-camera.y};}
+function inView(pad,x,y,w,h){return x+w>camera.x-pad&&x<camera.x+viewW+pad&&y+h>camera.y-pad&&y<camera.y+viewH+pad;}
+function drawRoom(r){
+  if(!inView(0,r.x,r.y,r.w,r.h))return;let s=worldToScreen(r.x,r.y);
+  ctx.fillStyle=r.floor;ctx.fillRect(s.x,s.y,r.w,r.h);
+  ctx.strokeStyle=r.wall;ctx.lineWidth=18;ctx.strokeRect(s.x+9,s.y+9,r.w-18,r.h-18);
+  // 출입문을 시각적으로도 열어 둡니다.
+  ctx.fillStyle=r.floor;
+  if(r.doorSide==="bottom")ctx.fillRect(s.x+r.w/2-59,s.y+r.h-20,118,24);
+  if(r.doorSide==="top")ctx.fillRect(s.x+r.w/2-59,s.y-4,118,24);
+  ctx.fillStyle="#6b7280";
+  if(r.doorSide==="bottom"){
+    ctx.fillRect(s.x+r.w/2-42,s.y+r.h-10,84,5);
+    ctx.fillStyle="rgba(37,99,235,.16)";ctx.fillRect(s.x+r.w/2-58,s.y+r.h-34,116,42);
+  }
+  if(r.doorSide==="top"){
+    ctx.fillRect(s.x+r.w/2-42,s.y+5,84,5);
+    ctx.fillStyle="rgba(37,99,235,.16)";ctx.fillRect(s.x+r.w/2-58,s.y-8,116,42);
+  }
+  ctx.fillStyle="rgba(15,23,42,.78)";ctx.fillRect(s.x+22,s.y+22,Math.max(90,r.name.length*16),30);
+  ctx.fillStyle="#fff";ctx.font="bold 16px system-ui";ctx.fillText(r.name,s.x+34,s.y+43);
+}
+function drawNameLabel(p,name,role){
+  if(!name)return;
+  ctx.save();
+  ctx.font="800 13px system-ui";
+  ctx.textAlign="center";
+  ctx.textBaseline="middle";
+  const text=(role==="seeker"?"🔎 ":role==="observer"?"👀 ":"🙈 ")+name;
+  const w=Math.ceil(ctx.measureText(text).width)+14;
+  const y=p.y-48;
+  ctx.fillStyle="rgba(15,23,42,.82)";
+  ctx.beginPath();ctx.roundRect(p.x-w/2,y-12,w,24,8);ctx.fill();
+  ctx.fillStyle="#fff";ctx.fillText(text,p.x,y);
+  ctx.restore();
+}
+function drawWorld(){
+  ctx.clearRect(0,0,viewW,viewH);
+  ctx.fillStyle="#c8d0c5";ctx.fillRect(0,0,viewW,viewH);
+  // outdoor paving
+  ctx.strokeStyle="#b5bdb3";ctx.lineWidth=1;
+  for(let gx=Math.floor(camera.x/64)*64;gx<camera.x+viewW;gx+=64){let sx=gx-camera.x;ctx.beginPath();ctx.moveTo(sx,0);ctx.lineTo(sx,viewH);ctx.stroke();}
+  for(let gy=Math.floor(camera.y/64)*64;gy<camera.y+viewH;gy+=64){let sy=gy-camera.y;ctx.beginPath();ctx.moveTo(0,sy);ctx.lineTo(viewW,sy);ctx.stroke();}
+  rooms.forEach(drawRoom);
+  const occupied=new Set();
+  if(online){
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(id===uid||caughtNet[id]||roles[id]!=="hider"||!p.disguiseOriginId)continue;
+      const origin=props.find(o=>o.id===p.disguiseOriginId);
+      if(origin&&Math.hypot(origin.x-p.x,origin.y-p.y)<9)occupied.add(p.disguiseOriginId);
+    }
+    if(player&&mode==="hider"&&player.disguiseOriginId){
+      const origin=props.find(o=>o.id===player.disguiseOriginId);
+      if(origin&&Math.hypot(origin.x-player.x,origin.y-player.y)<9)occupied.add(player.disguiseOriginId);
+    }
+  }
+  props.forEach(p=>{if(occupied.has(p.id))return;let b=propBounds(p);if(inView(40,b.x,b.y,b.w,b.h)){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp(p);ctx.restore();}});
+  if(online){
+    const canSeeNames=(mode==="hider"||mode==="observer");
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(id===uid)continue;
+      const r=roles[id];
+      const isObserver=(r==="hider"&&caughtNet[id]===true);
+      // Observers are invisible to all active players so seekers/hiders cannot confuse them with live players.
+      if(isObserver)continue;
+      ctx.save();ctx.translate(-camera.x,-camera.y);
+      if(r==="hider"&&p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor});
+      else if(r==="hider"||r==="seeker")drawCharacter(p,r==="seeker");
+      if(canSeeNames&&(r==="hider"||r==="seeker"))drawNameLabel(p,p.name||"학생",r);
+      ctx.restore();
+    }
+  }else{
+    aiHiders.forEach(h=>{if(h.found)return;if(h.disguise){ctx.save();ctx.translate(-camera.x,-camera.y);drawProp({type:h.disguise,x:h.x,y:h.y,flowerColor:h.flowerColor});ctx.restore();}else{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(h,false);ctx.restore();}});
+    aiSeekers.forEach(s=>{ctx.save();ctx.translate(-camera.x,-camera.y);drawCharacter(s,true);ctx.restore();});
+  }
+  if(player){
+    ctx.save();ctx.translate(-camera.x,-camera.y);
+    if(mode==="observer"){
+      // Observer character is drawn only on this observer's own screen.
+      // It is never synced/rendered to seekers or living hiders.
+      drawCharacter(player,false);
+      ctx.strokeStyle="rgba(124,58,237,.9)";ctx.lineWidth=3;ctx.setLineDash([5,4]);
+      ctx.beginPath();ctx.arc(player.x,player.y,25,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
+      drawNameLabel(player,"나 (옵저버)","observer");
+    }else if(player.disguise){
+      drawProp({type:player.disguise,x:player.x,y:player.y,flowerColor:player.flowerColor});
+      // this ring is ONLY for the local hidden player, never shown to seekers
+      if(mode==="hider"){ctx.strokeStyle="rgba(37,99,235,.6)";ctx.lineWidth=2;ctx.setLineDash([4,4]);ctx.beginPath();ctx.arc(player.x,player.y,24,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);}
+    }else drawCharacter(player,mode==="seeker");
+    if(online&&mode==="hider")drawNameLabel(player,(netPlayers[uid]&&netPlayers[uid].name)||"나","hider");
+    ctx.restore();
+  }
+}
+function drawMini(){
+  if(mode==="seeker"&&gameNow()<hideUntil){
+    mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#111827";mctx.fillRect(0,0,mini.width,mini.height);
+    mctx.fillStyle="#e5e7eb";mctx.font="bold 13px system-ui";mctx.textAlign="center";mctx.fillText("숨는 시간",mini.width/2,mini.height/2-5);mctx.fillText("지도 잠김",mini.width/2,mini.height/2+15);mctx.textAlign="left";return;
+  }
+  const sx=mini.width/WORLD.w,sy=mini.height/WORLD.h;mctx.clearRect(0,0,mini.width,mini.height);mctx.fillStyle="#cbd5c7";mctx.fillRect(0,0,mini.width,mini.height);
+  rooms.forEach(r=>{mctx.fillStyle=r.floor;mctx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);mctx.strokeStyle="#64748b";mctx.strokeRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);});
+  mctx.fillStyle="#5c8f4d";mctx.fillRect(1375*sx,110*sy,360*sx,540*sy);
+  if(player){mctx.fillStyle=mode==="seeker"?"#ef4444":mode==="observer"?"#7c3aed":"#2563eb";mctx.beginPath();mctx.arc(player.x*sx,player.y*sy,4,0,Math.PI*2);mctx.fill();}
+  if(!online&&mode==="hider"){mctx.fillStyle="#ef4444";aiSeekers.forEach(s=>{mctx.beginPath();mctx.arc(s.x*sx,s.y*sx,3,0,Math.PI*2);mctx.fill();});}
+}
+function draw(){
+  drawWorld();drawMini();
+  if(mode==="seeker"&&gameNow()<hideUntil){
+    const sec=Math.max(0,Math.ceil((hideUntil-gameNow())/1000));
+    ctx.fillStyle="rgba(5,10,18,.94)";ctx.fillRect(0,0,viewW,viewH);
+    ctx.textAlign="center";ctx.fillStyle="#fff";ctx.font="800 30px system-ui";ctx.fillText("🙈 숨는 사람 준비 중",viewW/2,viewH/2-28);
+    ctx.font="900 62px system-ui";ctx.fillStyle="#86efac";ctx.fillText(String(sec),viewW/2,viewH/2+45);
+    ctx.font="600 17px system-ui";ctx.fillStyle="#cbd5e1";ctx.fillText("카운트다운이 끝나면 화면이 열리고 찾기를 시작합니다.",viewW/2,viewH/2+82);
+    ctx.textAlign="left";
+  }
+}
+
+function freePoint(){
+  const pts=[[1100,650],[1500,730],[300,650],[1100,740],[1900,650],[2000,760],[1550,500],[1300,720]];
+  const p=pts[Math.floor(Math.random()*pts.length)];return{x:p[0]+Math.random()*70-35,y:p[1]+Math.random()*50-25};
+}
+function nearestProp(ent,range){
+  let best=null,bd=range||100;for(const p of props){if(p.type==="gardenBed"||p.type==="board")continue;let d=Math.hypot(ent.x-p.x,ent.y-p.y);if(d<bd){bd=d;best=p;}}return best;
+}
+function inDoorGap(x,y){
+  for(const r of rooms){
+    const cx=r.x+r.w/2;
+    if(Math.abs(x-cx)>78)continue;
+    if(r.doorSide==="top" && y>r.y-30 && y<r.y+45)return true;
+    if(r.doorSide==="bottom" && y>r.y+r.h-45 && y<r.y+r.h+30)return true;
+  }
+  return false;
+}
+function solidAt(x,y){
+  if(x<25||y<25||x>WORLD.w-25||y>WORLD.h-25)return true;
+  // 문 구역은 충돌벽보다 우선해서 항상 통과 가능하게 처리합니다.
+  if(inDoorGap(x,y))return false;
+  for(const w of walls){
+    if(x>w.x-13&&x<w.x+w.w+13&&y>w.y-13&&y<w.y+w.h+13)return true;
+  }
+  return false;
+}
+function moveEntity(e,dx,dy,speed,dt){
+  let len=Math.hypot(dx,dy)||1,nx=e.x+dx/len*speed*dt,ny=e.y+dy/len*speed*dt;
+  if(!solidAt(nx,e.y))e.x=nx;if(!solidAt(e.x,ny))e.y=ny;
+}
+function say(t){toast.textContent=t;lastToast=performance.now();}
+
+function gameNow(){return online?Date.now()+serverOffset:performance.now();}
+function cleanName(v){return (v||"").trim().replace(/[<>]/g,"").slice(0,10)||"학생";}
+async function ensureFirebase(){
+  if(fb)return true;
+  const status=document.getElementById("serverStatus");
+  if(!window.FIREBASE_CONFIG){status.textContent="⚠️ Firebase 설정 전입니다. 아래 안내대로 1회 연결하면 30명이 동시에 플레이할 수 있어요.";status.className="note serverBad";return false;}
+  try{
+    const [appm,authm,dbm]=await Promise.all([
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js"),
+      import("https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js")
+    ]);
+    const app=appm.initializeApp(window.FIREBASE_CONFIG);
+    auth=authm.getAuth(app);await authm.signInAnonymously(auth);uid=auth.currentUser.uid;
+    db=dbm.getDatabase(app);fb=dbm;
+    dbm.onValue(dbm.ref(db,".info/serverTimeOffset"),snap=>serverOffset=snap.val()||0);
+    status.textContent="✅ 실시간 서버 연결됨 — 방을 만들거나 참가할 수 있습니다.";status.className="note serverOk";
+    return true;
+  }catch(err){status.textContent="❌ 서버 연결 실패: "+(err&&err.message?err.message:"Firebase 설정을 확인하세요.");status.className="note serverBad";return false;}
+}
+function showLobby(){
+  document.getElementById("menu").style.display="none";document.getElementById("lobby").style.display="flex";document.getElementById("result").style.display="none";
+  document.getElementById("roomCodeView").textContent=roomCode||"------";updateLobby();
+}
+function updateLobby(){
+  const ids=Object.keys(netPlayers);document.getElementById("lobbyCount").textContent=ids.length;
+  const wantIds=ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true);
+  document.getElementById("wantCount").textContent=wantIds.length;
+  const list=document.getElementById("playerList");list.innerHTML="";
+  ids.sort((a,b)=>(netPlayers[a].joinedAt||0)-(netPlayers[b].joinedAt||0)).forEach((id,i)=>{
+    const d=document.createElement("div");d.className="playerChip";
+    const want=netPlayers[id]&&netPlayers[id].wantSeeker===true;
+    d.textContent=(id===uid?"⭐ ":"")+(netPlayers[id].name||("학생"+(i+1)))+(want?"  🔎희망":"");
+    list.appendChild(d);
+  });
+  const wantBtn=document.getElementById("wantSeekerBtn");
+  const mine=!!(netPlayers[uid]&&netPlayers[uid].wantSeeker);
+  wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";
+  wantBtn.className=mine?"green":"alt";
+  const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=ids.length<2;
+  if(isHost){
+    const need=calcSeekerCount(ids.length);
+    const hiders=Math.max(0,ids.length-need),totalAttempts=hiders*2;
+    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"이번 게임 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 술래 팀 총 탐색 "+totalAttempts+"회. 희망자를 우선해서 랜덤 선정합니다.";
+  }else{
+    document.getElementById("lobbyNote").textContent=mine?"술래 희망을 눌렀습니다. 희망자가 많으면 그중 랜덤으로 선정됩니다.":"술래를 하고 싶으면 ‘술래 희망하기’를 눌러 주세요.";
+  }
+}
+async function toggleSeekerPreference(){
+  if(!online||!uid||!roomCode||!netPlayers[uid])return;
+  const next=!(netPlayers[uid].wantSeeker===true);
+  await fb.set(fb.ref(db,"rooms/"+roomCode+"/players/"+uid+"/wantSeeker"),next);
+}
+function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
+async function subscribeRoom(){
+  clearSubs();online=true;showLobby();
+  const base="rooms/"+roomCode;
+  unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{roomState=snap.val()||{};if(roomState.seed&&roomState.seed!==currentSeed){currentSeed=roomState.seed>>>0;buildWorld(currentSeed);}if(roomState.phase==="lobby")showLobby();maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{netPlayers=snap.val()||{};updateLobby();maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/roles"),snap=>{roles=snap.val()||{};maybeEnterRound();}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{caughtNet=snap.val()||{};}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
+}
+function maybeEnterRound(){
+  if(!online||roomState.phase!=="hide"||!roles[uid]||!netPlayers[uid])return;
+  const round=Number(roomState.round||1);
+  if(roundApplied===round)return;
+  roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=roles[uid];
+  helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
+  hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);searches=Number(searchesNet[uid]||0);
+  document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
+  if(mode==="seeker")say("숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 돌아다니며 찾으세요!");
+  else say("40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  const was=running;running=true;last=performance.now();if(!was)requestAnimationFrame(loop);
+}
+async function createRoom(){
+  if(!(await ensureFirebase()))return;
+  const name=cleanName(document.getElementById("nick").value);
+  let code="",triesCode=0;
+  while(triesCode++<12){code=String(Math.floor(100000+Math.random()*900000));const snap=await fb.get(fb.ref(db,"rooms/"+code+"/hostUid"));if(!snap.exists())break;}
+  roomCode=code;isHost=true;
+  const base="rooms/"+roomCode,now=Date.now()+serverOffset;
+  await fb.set(fb.ref(db,base+"/hostUid"),uid);
+  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),createdAt:now});
+  const pr=fb.ref(db,base+"/players/"+uid);await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
+  fb.onDisconnect(pr).remove();await subscribeRoom();
+}
+async function joinRoom(){
+  if(!(await ensureFirebase()))return;
+  const code=(document.getElementById("joinCode").value||"").replace(/\D/g,"").slice(0,6);
+  if(code.length!==6){say("6자리 방 코드를 입력하세요.");return;}
+  const base="rooms/"+code;
+  const [hostSnap,stateSnap,playersSnap]=await Promise.all([fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),fb.get(fb.ref(db,base+"/players"))]);
+  if(!hostSnap.exists()){say("없는 방 코드입니다.");return;}
+  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 다음 라운드를 기다려 주세요.");return;}
+  const ps=playersSnap.val()||{};if(Object.keys(ps).length>=30){say("방이 가득 찼습니다.");return;}
+  roomCode=code;isHost=hostSnap.val()===uid;
+  const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid);
+  await fb.set(pr,{name:cleanName(document.getElementById("nick").value),x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,wantSeeker:false,joinedAt:now});
+  fb.onDisconnect(pr).remove();await subscribeRoom();
+}
+function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
+function calcSeekerCount(total){
+  if(total<2)return 1;
+  return Math.max(1,Math.min(total-1,Math.ceil(total/7)));
+}
+async function startOnlineRound(){
+  if(!online||!isHost)return;
+  const ids=Object.keys(netPlayers);if(ids.length<2){say("2명 이상 있어야 시작할 수 있습니다.");return;}
+  const seekerCount=calcSeekerCount(ids.length);
+  const volunteers=shuffle(ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true));
+  const selected=volunteers.slice(0,seekerCount);
+  if(selected.length<seekerCount){
+    const remaining=shuffle(ids.filter(id=>!selected.includes(id)&&!(netPlayers[id]&&netPlayers[id].wantSeeker===true)));
+    selected.push(...remaining.slice(0,seekerCount-selected.length));
+  }
+  const seekers=new Set(selected);
+  const hiderCount=ids.length-seekerCount;
+  const totalSearches=hiderCount*2;
+  const baseSearches=Math.floor(totalSearches/seekerCount);
+  const extraSearches=totalSearches%seekerCount;
+  const seekerQuota={};
+  selected.forEach((id,idx)=>{seekerQuota[id]=baseSearches+(idx<extraSearches?1:0);});
+  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+40000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
+  const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260]];
+  const updates={};
+  ids.forEach((id,i)=>{
+    const r=seekers.has(id)?"seeker":"hider";updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
+    let x,y;if(r==="seeker"){x=1120+(i%2)*90;y=655;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
+    updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;
+  });
+  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,hideEndsAt:hideEnd,seekEndsAt:seekEnd};
+  await fb.update(fb.ref(db),updates);
+}
+async function syncPlayerNow(){
+  if(!online||!uid||!player||!roomCode)return;
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),{x:Math.round(player.x*10)/10,y:Math.round(player.y*10)/10,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null});
+}
+function setupHider(){
+  huntSignalShownRound=0;huntStartSignal.style.display="none";
+  const p=freePoint();player={x:p.x,y:p.y,disguise:null,flowerColor:null,caught:false};
+  aiHiders=[];aiSeekers=[Object.assign(freePoint(),{vx:0,vy:0,nextThink:0}),Object.assign(freePoint(),{vx:0,vy:0,nextThink:0})];
+  searches=18;hideUntil=performance.now()+40000;roundEnd=hideUntil+180000;startTime=performance.now();mode="hider";running=true;
+  roleEl.textContent="🙈 숨는 사람";roleEl.className="pill good";say("40초 동안 숨어라! 사물 가까이에서 E를 누르면 똑같은 모습으로 변신합니다.");
+}
+function randomDisguiseHider(i){
+  const choices=props.filter(p=>p.type!=="gardenBed"&&p.type!=="board"&&p.type!=="teacherDesk");
+  const base=choices[(i*17+Math.floor(Math.random()*choices.length))%choices.length];
+  return{x:base.x+(Math.random()*36-18),y:base.y+(Math.random()*36-18),disguise:base.type,flowerColor:base.flowerColor||null,found:false,name:"학생"+(i+1)};
+}
+function setupSeeker(){
+  huntSignalShownRound=0;huntStartSignal.style.display="none";
+  const p=freePoint();player={x:p.x,y:p.y,disguise:null,caught:false};
+  aiSeekers=[];aiHiders=[];for(let i=0;i<12;i++)aiHiders.push(randomDisguiseHider(i));
+  const now=performance.now();
+  searches=24;hideUntil=now+40000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
+  roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("숨는 사람에게 40초를 줍니다. 그동안 술래는 움직이거나 조사할 수 없습니다.");
+}
+function setupTour(){
+  mode="tour";running=true;helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();player={x:1200,y:760,disguise:null};aiHiders=[];aiSeekers=[];searches=0;hideUntil=0;roundEnd=0;roleEl.textContent="🗺 맵 구경";roleEl.className="pill";say("학교를 자유롭게 돌아다녀보세요. E로 주변 사물 변신도 시험할 수 있어요.");
+}
+function startGame(which){
+  online=false;clearSubs();document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
+  buildWorld((Date.now()>>>0));setupTour();last=performance.now();requestAnimationFrame(loop);
+}
+function openGuide(){
+  document.getElementById("guide").style.display="flex";
+}
+function closeGuide(){
+  document.getElementById("guide").style.display="none";
+}
+document.getElementById("createBtn").onclick=createRoom;
+document.getElementById("joinBtn").onclick=joinRoom;
+document.getElementById("guideBtn").onclick=openGuide;
+document.getElementById("lobbyGuideBtn").onclick=openGuide;
+document.getElementById("closeGuideBtn").onclick=closeGuide;
+document.getElementById("tourBtn").onclick=()=>startGame("tour");
+document.getElementById("wantSeekerBtn").onclick=toggleSeekerPreference;
+document.getElementById("startOnlineBtn").onclick=startOnlineRound;
+document.getElementById("leaveBtn").onclick=()=>location.reload();
+document.getElementById("again").onclick=()=>{if(online&&isHost)startOnlineRound();else if(!online)startGame("tour");};
+document.getElementById("menuBtn").onclick=()=>{if(online){location.reload();return;}running=false;document.getElementById("result").style.display="none";document.getElementById("menu").style.display="flex";mode="menu";player=null;draw();};
+ensureFirebase();
+
+function updateGameHelp(){
+  let html="";
+  if(mode==="hider"){
+    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>달리기</b> 불가<br><b>목표</b> 사물로 변신해 술래에게 들키지 않기";
+  }else if(mode==="seeker"){
+    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시";
+  }else if(mode==="observer"){
+    html="<b>이동</b> WASD / 방향키<br><b>옵저버</b> 자유롭게 구경 가능<br><b>주의</b> 술래와 생존자에게 내 모습은 보이지 않음";
+  }else if(mode==="tour"){
+    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>용도</b> 맵과 사물 변신 연습";
+  }else{
+    html="게임이 시작되면 역할에 맞는 조작법이 표시됩니다.";
+  }
+  if(touchCapable){
+    html+="<br><b>📱 터치</b> 아래 방향키와 역할 버튼 사용";
+  }
+  gameHelpContent.innerHTML=html;
+}
+function applyGamePanels(){
+  gameHelpPanel.style.display=helpPanelOpen?"block":"none";
+  miniBox.style.display=mapVisible?"block":"none";
+  helpToggleBtn.classList.toggle("on",helpPanelOpen);
+  mapToggleBtn.classList.toggle("on",mapVisible);
+  helpToggleBtn.textContent=helpPanelOpen?"🎮 조작법 닫기":"🎮 조작법";
+  mapToggleBtn.textContent=mapVisible?"🗺 미니맵 끄기":"🗺 미니맵 켜기";
+}
+helpToggleBtn.addEventListener("click",()=>{
+  helpPanelOpen=!helpPanelOpen;updateGameHelp();applyGamePanels();
+});
+mapToggleBtn.addEventListener("click",()=>{
+  mapVisible=!mapVisible;applyGamePanels();
+});
+function toggleDisguise(){
+  if(!running||!player||!(mode==="hider"||mode==="tour"))return;
+  if(player.disguise){
+    player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;
+    say("변신을 해제했습니다.");if(online)syncPlayerNow();
+  }else{
+    const p=nearestProp(player,105);
+    if(p){
+      player.disguise=p.type;player.flowerColor=p.flowerColor||null;player.disguiseOriginId=p.id;player.x=p.x;player.y=p.y;
+      say(p.type==="flower"?"꽃으로 변신! 다른 꽃과 완전히 같은 모습입니다.":"주변 사물과 똑같이 변신했습니다.");
+      if(online)syncPlayerNow();
+    }else say("변신할 사물에 조금 더 가까이 가세요.");
+  }
+}
+function updateTouchControls(now){
+  if(!touchCapable||!running||!player){
+    touchControls.style.display="none";return;
+  }
+  touchControls.style.display="flex";
+  const waiting=(mode==="seeker"&&now<hideUntil);
+  if(mode==="hider"||mode==="tour"){
+    touchAction.style.display="block";touchAction.disabled=false;touchAction.innerHTML="🪄<br>변신";
+    touchSprint.style.display="none";keys.shift=false;
+  }else if(mode==="seeker"){
+    touchAction.style.display="block";touchAction.disabled=waiting;touchAction.innerHTML="🔍<br>조사";
+    touchSprint.style.display="block";touchSprint.disabled=waiting;
+    if(waiting)keys.shift=false;
+  }else{
+    touchAction.style.display="none";touchSprint.style.display="none";keys.shift=false;
+  }
+}
+document.querySelectorAll("#touchControls [data-key]").forEach(btn=>{
+  const key=btn.dataset.key;
+  const dir=key.replace("arrow","");
+  const setPressed=(on)=>{
+    if(!running||!player){touchMove[dir]=false;return;}
+    touchMove[dir]=on;
+    keys[key]=on;
+    btn.classList.toggle("pressed",on);
+  };
+  btn.addEventListener("pointerdown",e=>{
+    e.preventDefault();setPressed(true);
+    try{btn.setPointerCapture(e.pointerId);}catch{}
+  });
+  btn.addEventListener("pointerup",e=>{e.preventDefault();setPressed(false);});
+  btn.addEventListener("pointercancel",e=>{e.preventDefault();setPressed(false);});
+  btn.addEventListener("lostpointercapture",()=>setPressed(false));
+  // iPhone/iPad Safari fallback.
+  btn.addEventListener("touchstart",e=>{e.preventDefault();setPressed(true);},{passive:false});
+  btn.addEventListener("touchend",e=>{e.preventDefault();setPressed(false);},{passive:false});
+  btn.addEventListener("touchcancel",e=>{e.preventDefault();setPressed(false);},{passive:false});
+  btn.addEventListener("contextmenu",e=>e.preventDefault());
+});
+let lastTouchActionAt=0;
+function runTouchAction(){
+  if(touchAction.disabled||!running||!player)return;
+  if(mode==="seeker")inspect();else toggleDisguise();
+}
+touchAction.addEventListener("touchstart",e=>{
+  e.preventDefault();lastTouchActionAt=Date.now();runTouchAction();
+},{passive:false});
+touchAction.addEventListener("click",e=>{
+  e.preventDefault();
+  if(Date.now()-lastTouchActionAt<500)return;
+  runTouchAction();
+});
+const setSprintPressed=(on)=>{
+  if(touchSprint.disabled||mode!=="seeker")on=false;
+  keys.shift=on;touchSprint.classList.toggle("pressed",on);
+};
+touchSprint.addEventListener("pointerdown",e=>{
+  e.preventDefault();setSprintPressed(true);
+  try{touchSprint.setPointerCapture(e.pointerId);}catch{}
+});
+touchSprint.addEventListener("pointerup",e=>{e.preventDefault();setSprintPressed(false);});
+touchSprint.addEventListener("pointercancel",e=>{e.preventDefault();setSprintPressed(false);});
+touchSprint.addEventListener("lostpointercapture",()=>setSprintPressed(false));
+touchSprint.addEventListener("touchstart",e=>{e.preventDefault();setSprintPressed(true);},{passive:false});
+touchSprint.addEventListener("touchend",e=>{e.preventDefault();setSprintPressed(false);},{passive:false});
+touchSprint.addEventListener("touchcancel",e=>{e.preventDefault();setSprintPressed(false);},{passive:false});
+touchSprint.addEventListener("contextmenu",e=>e.preventDefault());
+
+addEventListener("keydown",e=>{
+  if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
+  const k=e.key.toLowerCase();keys[k]=true;
+  if(!running||!player)return;
+  if(k==="e"&&(mode==="hider"||mode==="tour"))toggleDisguise();
+  if(e.code==="Space"&&mode==="seeker"){e.preventDefault();inspect();}
+});
+addEventListener("keyup",e=>{keys[e.key.toLowerCase()]=false;});
+addEventListener("blur",()=>{
+  touchMove={up:false,down:false,left:false,right:false};
+  keys.arrowup=keys.arrowdown=keys.arrowleft=keys.arrowright=keys.shift=false;
+  document.querySelectorAll("#touchControls .pressed").forEach(b=>b.classList.remove("pressed"));
+});
+
+async function inspect(){
+  if(mode==="seeker"&&gameNow()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
+  if(online)searches=Number(searchesNet[uid]||0);
+  if(searches<=0){say("탐색 기회를 모두 사용했습니다!");return;}
+  let candidates=[];
+  props.forEach(p=>{if(p.type!=="gardenBed"&&p.type!=="board")candidates.push({kind:"prop",obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});});
+  if(online){
+    for(const [id,p] of Object.entries(netPlayers)){
+      if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
+      candidates.push({kind:"hider",id,obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});
+    }
+  }else{
+    aiHiders.forEach(h=>{if(!h.found)candidates.push({kind:"hider",obj:h,d:Math.hypot(player.x-h.x,player.y-h.y)});});
+  }
+  candidates.sort((a,b)=>a.d-b.d);let c=candidates[0];
+  if(!c||c.d>82){say("조사할 사물에 더 가까이 가세요.");return;}
+  const hidden=candidates.find(v=>v.kind==="hider"&&v.d<=c.d+4);if(hidden)c=hidden;
+  searches--;
+  if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/searches/"+uid),searches);
+  if(c.kind==="hider"){
+    if(online){
+      const info={caughtAt:Date.now()+serverOffset,caughtBy:uid};
+      caughtNet[c.id]=info;
+      await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),info);
+    }else c.obj.found=true;
+    playSfx("catch");
+    say("🎉 찾았다! 숨어 있던 친구를 발견했습니다.");
+  }else{
+    playSfx("miss");
+    say("❌ 그냥 평범한 사물이었습니다.");
+  }
+  updateHud(gameNow());
+}
+function aiSeek(dt,t){
+  if(t<hideUntil)return;
+  aiSeekers.forEach((s,idx)=>{
+    if(t>s.nextThink){const ang=Math.random()*Math.PI*2;s.vx=Math.cos(ang);s.vy=Math.sin(ang);s.nextThink=t+900+Math.random()*1600;}
+    // chase obvious human player if close
+    if(player&&!player.disguise&&Math.hypot(player.x-s.x,player.y-s.y)<260){let a=Math.atan2(player.y-s.y,player.x-s.x);s.vx=Math.cos(a);s.vy=Math.sin(a);}
+    moveEntity(s,s.vx,s.vy,135,dt);
+    if(player){
+      const d=Math.hypot(player.x-s.x,player.y-s.y);
+      if(!player.disguise&&d<35){player.caught=true;finish(false,"술래에게 그대로 발견되었습니다.");}
+      if(player.disguise&&d<72&&searches>0){
+        const moving=Math.abs((keys.d||keys.arrowright?1:0)-(keys.a||keys.arrowleft?1:0))+Math.abs((keys.s||keys.arrowdown?1:0)-(keys.w||keys.arrowup?1:0))>0;
+        const chance=moving?0.026:0.004;
+        if(Math.random()<chance){searches--;if(Math.random()<(moving?.72:.17)){player.caught=true;finish(false,"움직임을 들켜 술래가 사물을 조사했습니다!");}else if(performance.now()-lastToast>1400)say("술래가 근처 사물을 확인했지만 당신을 놓쳤습니다.");}
+      }
+    }
+  });
+}
+function escHtml(v){
+  return String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+}
+function buildOnlineResultHtml(msg){
+  const hiderIds=Object.keys(netPlayers).filter(id=>roles[id]==="hider");
+  const seekerIds=Object.keys(netPlayers).filter(id=>roles[id]==="seeker");
+  const caughtIds=hiderIds.filter(id=>!!caughtNet[id]);
+  const survivedIds=hiderIds.filter(id=>!caughtNet[id]);
+
+  const catcherCounts={};
+  seekerIds.forEach(id=>catcherCounts[id]=0);
+  caughtIds.forEach(id=>{
+    const info=caughtNet[id];
+    if(info&&typeof info==="object"&&info.caughtBy&&catcherCounts[info.caughtBy]!=null)catcherCounts[info.caughtBy]++;
+  });
+
+  const caughtSorted=caughtIds.slice().sort((a,b)=>{
+    const ia=caughtNet[a],ib=caughtNet[b];
+    const ta=ia&&typeof ia==="object"?Number(ia.caughtAt||0):0;
+    const tb=ib&&typeof ib==="object"?Number(ib.caughtAt||0):0;
+    return ta-tb;
+  });
+
+  const survivedHtml=survivedIds.length
+    ? "<ul class=\"resultList\">"+survivedIds.map(id=>"<li>✅ "+escHtml(netPlayers[id]?.name||"학생")+"</li>").join("")+"</ul>"
+    : "<div style=\"font-size:13px\">생존자가 없습니다.</div>";
+
+  const caughtHtml=caughtSorted.length
+    ? "<ul class=\"resultList\">"+caughtSorted.map(id=>{
+        const info=caughtNet[id];
+        const name=escHtml(netPlayers[id]?.name||"학생");
+        let timeText="시간 기록 없음",catcherText="술래 기록 없음";
+        if(info&&typeof info==="object"){
+          const sec=Math.max(0,Math.round((Number(info.caughtAt||hideUntil)-hideUntil)/1000));
+          timeText="술래 출발 후 <b>"+sec+"초</b>";
+          if(info.caughtBy)catcherText="🔎 "+escHtml(netPlayers[info.caughtBy]?.name||"술래");
+        }
+        return "<li>❌ <b>"+name+"</b> — "+timeText+" · "+catcherText+"</li>";
+      }).join("")+"</ul>"
+    : "<div style=\"font-size:13px\">잡힌 사람이 없습니다.</div>";
+
+  const seekerHtml=seekerIds.length
+    ? seekerIds.map(id=>"🔎 <b>"+escHtml(netPlayers[id]?.name||"술래")+"</b> "+Number(catcherCounts[id]||0)+"명").join(" &nbsp; · &nbsp; ")
+    : "술래 기록 없음";
+
+  return "<p style=\"margin:6px 0 10px\">"+escHtml(msg)+"</p>"+
+    "<div class=\"resultSummary\">"+
+      "<div class=\"resultStat\">🙈 숨는 사람<b>"+hiderIds.length+"명</b></div>"+
+      "<div class=\"resultStat\">✅ 생존<b>"+survivedIds.length+"명</b></div>"+
+      "<div class=\"resultStat\">❌ 잡힘<b>"+caughtIds.length+"명</b></div>"+
+    "</div>"+
+    "<div class=\"resultCols\">"+
+      "<div class=\"resultBox\"><h3>🏆 살아남은 사람</h3>"+survivedHtml+"</div>"+
+      "<div class=\"resultBox\"><h3>⏱ 잡힌 사람 / 시간</h3>"+caughtHtml+"</div>"+
+    "</div>"+
+    "<div class=\"resultSeeker\"><b>🔎 술래별 잡은 인원</b><br>"+seekerHtml+"</div>";
+}
+function enterObserver(){
+  if(mode==="observer")return;
+  playSfx("catch");
+  mode="observer";
+  if(player){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;}
+  roleEl.textContent="👀 옵저버";
+  roleEl.className="pill";
+  proximityEl.style.display="none";
+  say("👀 잡혔습니다! 내 화면에서는 캐릭터로 움직이며 구경할 수 있어요. 술래에게는 보이지 않습니다.");
+  updateTouchControls(gameNow());
+}
+function finish(win,msg){
+  if(!running)return;
+  playSfx("finish");
+  running=false;touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
+  const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
+  if(online){
+    title.textContent="📊 라운드 결과";
+    body.innerHTML=buildOnlineResultHtml(msg);
+  }else{
+    title.textContent=win?"🏆 승리!":"😵 라운드 종료";
+    body.textContent=msg;
+  }
+  const a=document.getElementById("again"),m=document.getElementById("menuBtn");
+  if(online){a.style.display=isHost?"inline-block":"none";a.textContent="다음 라운드 시작";m.textContent="방 나가기";}else{a.style.display="inline-block";a.textContent="다시 하기";m.textContent="역할 선택";}
+  document.getElementById("result").style.display="flex";
+}
+function updateHud(t){
+  if(mode==="tour"){phaseEl.textContent="자유 탐험";timerEl.textContent="⏱ --:--";triesEl.textContent="🔍 --";aliveEl.textContent="🙈 --";return;}
+  const onlineHiders=online?Object.keys(netPlayers).filter(id=>roles[id]==="hider"):[],aliveHiders=online?onlineHiders.filter(id=>!caughtNet[id]).length:0;
+  const teamSearch=online?Object.keys(netPlayers).filter(id=>roles[id]==="seeker").reduce((sum,id)=>sum+Number(searchesNet[id]||0),0):searches;
+  if(mode==="hider"){
+    if(t<hideUntil){phaseEl.textContent="숨기 "+Math.ceil((hideUntil-t)/1000)+"초";phaseEl.className="pill good";}
+    else{phaseEl.textContent="술래 탐색 중";phaseEl.className="pill danger";}
+    const remain=Math.max(0,roundEnd-t);timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
+    triesEl.textContent=online?"🔍 술래 팀 "+teamSearch:"🔍 술래 탐색 "+searches;aliveEl.textContent=online?"🙈 생존 "+aliveHiders:(player&&player.caught?"🙈 0":"🙈 1");
+    if(online&&caughtNet[uid])enterObserver();
+    else if(t>=roundEnd)finish(true,"제한시간 끝까지 사물로 숨어 살아남았습니다!");
+    else if(teamSearch<=0&&t>=hideUntil)finish(true,"술래들이 탐색 기회를 모두 사용했습니다. 숨는 사람 승리!");
+  }else if(mode==="observer"){
+    const left=aliveHiders;
+    const remain=Math.max(0,roundEnd-t);
+    phaseEl.textContent="👀 옵저버 모드";phaseEl.className="pill";
+    timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
+    triesEl.textContent="🔍 술래 팀 "+teamSearch;
+    aliveEl.textContent="🙈 생존 "+left;
+    if(left===0)finish(false,"모든 숨는 사람이 잡혔습니다. 라운드가 끝났습니다.");
+    else if(teamSearch<=0&&t>=hideUntil)finish(false,"술래 팀의 탐색 기회가 모두 끝났습니다. 라운드가 끝났습니다.");
+    else if(t>=roundEnd)finish(false,"시간이 종료되었습니다. 라운드가 끝났습니다.");
+  }else if(mode==="seeker"){
+    const left=online?aliveHiders:aiHiders.filter(h=>!h.found).length;aliveEl.textContent="🙈 생존 "+left;
+    if(t<hideUntil){
+      const wait=Math.max(0,hideUntil-t);phaseEl.textContent="🙈 숨는 중 "+Math.ceil(wait/1000)+"초";phaseEl.className="pill good";
+      timerEl.textContent="⏳ "+String(Math.floor(wait/60000)).padStart(2,"0")+":"+String(Math.floor(wait/1000)%60).padStart(2,"0");triesEl.textContent="🔒 탐색 잠김";
+    }else{
+      phaseEl.textContent="🔎 친구 찾는 중";phaseEl.className="pill danger";const remain=Math.max(0,roundEnd-t);
+      timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
+      triesEl.textContent=online?"🔍 내 "+Number(searchesNet[uid]||0)+" / 팀 "+teamSearch:"🔍 탐색 "+searches;
+      if(left===0)finish(true,"숨은 친구를 모두 찾아냈습니다!");
+      else if(teamSearch<=0)finish(false,"술래 팀의 탐색 기회를 모두 사용했습니다. "+left+"명이 살아남았습니다.");
+      else if(t>=roundEnd)finish(false,"시간 종료! "+left+"명이 살아남았습니다.");
+    }
+  }
+}
+function updateHuntStartSignal(now){
+  if(!running||mode==="tour"||now<hideUntil)return;
+  const round=online?Number(roomState.round||0):1;
+  if(huntSignalShownRound===round)return;
+  huntSignalShownRound=round;
+  playSfx("start");
+  if(huntSignalTimer)clearTimeout(huntSignalTimer);
+  huntStartSignal.style.display="block";
+  huntSignalTimer=setTimeout(()=>{huntStartSignal.style.display="none";},2800);
+}
+function updateSeekerProximity(now){
+  if(!proximityEl)return;
+  if(!online||mode!=="seeker"||!player||now<hideUntil||!running){
+    proximityEl.style.display="none";proximityEl.className="";return;
+  }
+  let nearest=Infinity;
+  for(const [id,p] of Object.entries(netPlayers)){
+    if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
+    const d=Math.hypot(player.x-p.x,player.y-p.y);
+    if(d<nearest)nearest=d;
+  }
+  if(nearest<=230){
+    proximityEl.textContent="📡 근처에 숨은 사람이 있어요!";
+    proximityEl.className="";
+    proximityEl.style.display="block";
+  }else{
+    proximityEl.style.display="none";proximityEl.className="";
+  }
+}
+function loop(t){
+  if(!running)return;const dt=Math.min(.033,(t-last)/1000||0);last=t;const now=gameNow();
+  let dx=((keys.d||keys.arrowright||touchMove.right)?1:0)-((keys.a||keys.arrowleft||touchMove.left)?1:0),dy=((keys.s||keys.arrowdown||touchMove.down)?1:0)-((keys.w||keys.arrowup||touchMove.up)?1:0);
+  const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
+  const seekerWaiting=(mode==="seeker"&&now<hideUntil);
+  if(player&&mode==="observer"){
+    const len=Math.hypot(dx,dy)||1;
+    const observerSpeed=330*sprint;
+    player.x=Math.max(0,Math.min(WORLD.w,player.x+dx/len*observerSpeed*dt));
+    player.y=Math.max(0,Math.min(WORLD.h,player.y+dy/len*observerSpeed*dt));
+  }else if(player&&!seekerWaiting){
+    if(player.disguiseOriginId&&(dx||dy))player.disguiseOriginId=null;
+    moveEntity(player,dx,dy,speed,dt);
+  }
+  if(!online&&mode==="hider")aiSeek(dt,t);
+  if(online&&player&&mode!=="observer"&&t-lastNetSync>130){lastNetSync=t;syncPlayerNow();}
+  if(player){camera.x=Math.max(0,Math.min(WORLD.w-viewW,player.x-viewW/2));camera.y=Math.max(0,Math.min(WORLD.h-viewH,player.y-viewH/2));}
+  updateHud(now);updateGameHelp();updateTouchControls(now);updateHuntStartSignal(now);updateSeekerProximity(now);draw();requestAnimationFrame(loop);
+}
+updateGameHelp();applyGamePanels();fit();camera.x=1000;camera.y=450;draw();
+})();
+</script>
+</body></html>
