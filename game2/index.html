@@ -959,10 +959,15 @@ async function subscribeRoom(){
   unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
 }
 function maybeEnterRound(){
-  if(!online||roomState.phase!=="hide"||!roles[uid]||!netPlayers[uid])return;
+  if(!online||roomState.phase!=="hide"||!netPlayers[uid])return;
   const round=Number(roomState.round||1);
-  if(roundApplied===round)return;
-  roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=roles[uid];
+  const stateSeekers=getRoundSeekerIds();
+  const assignedRole=stateSeekers.length?(stateSeekers.includes(uid)?"seeker":"hider"):roles[uid];
+  if(!assignedRole)return;
+  // 역할 경로가 늦게 도착하더라도 state의 술래 목록으로 즉시 올바른 역할을 적용합니다.
+  if(roundApplied===round&&mode===assignedRole)return;
+  roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=assignedRole;
+  roles[uid]=assignedRole;
   helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
   player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null},netPlayers[uid]);
   hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);roleRevealUntil=Number(roomState.revealEndsAt||0);searches=Number(searchesNet[uid]||0);
@@ -1018,6 +1023,12 @@ function calcSeekerCount(total){
   if(total<2)return 1;
   return Math.max(1,Math.min(total-1,Math.ceil(total/7)));
 }
+function getRoundSeekerIds(){
+  const v=roomState&&roomState.seekerIds;
+  if(Array.isArray(v))return v.filter(Boolean);
+  if(v&&typeof v==="object")return Object.values(v).filter(Boolean);
+  return [];
+}
 async function startOnlineRound(force=false){
   if(!online||!isHost)return;
   const ids=activePlayerIds();
@@ -1027,10 +1038,20 @@ async function startOnlineRound(force=false){
   }
   const seekerCount=calcSeekerCount(ids.length);
   const volunteers=shuffle(ids.filter(id=>netPlayers[id]&&netPlayers[id].wantSeeker===true));
-  const selected=volunteers.slice(0,seekerCount);
-  if(selected.length<seekerCount){
-    const remaining=shuffle(ids.filter(id=>!selected.includes(id)&&!(netPlayers[id]&&netPlayers[id].wantSeeker===true)));
-    selected.push(...remaining.slice(0,seekerCount-selected.length));
+  const selected=[];
+  // 술래 희망자를 먼저 넣고, 부족한 인원은 전체 참가자 중 무작위로 반드시 채웁니다.
+  for(const id of volunteers){
+    if(selected.length>=seekerCount)break;
+    if(!selected.includes(id))selected.push(id);
+  }
+  const fallback=shuffle(ids.slice());
+  for(const id of fallback){
+    if(selected.length>=seekerCount)break;
+    if(!selected.includes(id))selected.push(id);
+  }
+  if(selected.length!==seekerCount){
+    say("역할 배정 중 오류가 발생했습니다. 다시 시작해 주세요.");
+    return;
   }
   const seekers=new Set(selected);
   const hiderCount=ids.length-seekerCount,totalSearches=hiderCount*2;
@@ -1051,7 +1072,7 @@ async function startOnlineRound(force=false){
     updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;
     updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;updates["rooms/"+roomCode+"/players/"+id+"/tauntAt"]=0;
   });
-  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,mapKey,revealEndsAt:revealEnd,hideEndsAt:hideEnd,seekEndsAt:seekEnd,paused:false,pausedAt:null};
+  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,mapKey,seekerIds:selected,seekerCount,revealEndsAt:revealEnd,hideEndsAt:hideEnd,seekEndsAt:seekEnd,paused:false,pausedAt:null};
   await fb.update(fb.ref(db),updates);
 }
 async function syncPlayerNow(force=true){
