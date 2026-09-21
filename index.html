@@ -13,7 +13,6 @@ header b{font-size:19px}.pill{background:#202c3d;border:1px solid #34455e;border
 canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #toast{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 14px;border-radius:12px;font-weight:800;pointer-events:none;max-width:80%;text-align:center}
 #proximity{display:none;position:absolute;top:58px;left:50%;transform:translateX(-50%);z-index:6;background:#7c2d12f2;border:2px solid #fb923c;color:#fff;padding:10px 16px;border-radius:14px;font-weight:900;pointer-events:none;text-align:center;box-shadow:0 0 0 0 rgba(251,146,60,.55);animation:proxPulse 1s infinite}
-#proximity.very{background:#7f1d1df2;border-color:#f87171}
 @keyframes proxPulse{0%{box-shadow:0 0 0 0 rgba(251,146,60,.5)}70%{box-shadow:0 0 0 12px rgba(251,146,60,0)}100%{box-shadow:0 0 0 0 rgba(251,146,60,0)}}
 #help{position:absolute;left:12px;bottom:12px;z-index:5;background:#0b1220e8;border:1px solid #34455e;padding:10px 12px;border-radius:12px;font-size:13px;line-height:1.5}
 #mini{position:absolute;right:12px;top:12px;width:190px;background:#0b1220e8;border:1px solid #34455e;border-radius:14px;padding:8px;z-index:4}
@@ -39,7 +38,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
   <div id="hud">
     <span id="phase" class="pill">라운드 준비</span>
     <span id="timer" class="pill">⏱ 03:00</span>
-    <span id="tries" class="pill">🔍 탐색 15</span>
+    <span id="tries" class="pill">🔍 탐색 --</span>
     <span id="alive" class="pill good">🙈 생존 0</span>
   </div>
 </header>
@@ -112,9 +111,9 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>그동안 술래 화면과 이동은 잠겨 있습니다.</li>
             <li>25초 후 직접 학교 안을 돌아다니며 찾습니다.</li>
             <li>의심스러운 사물 가까이에서 <b>Space</b>를 눌러 조사합니다.</li>
-            <li>숨은 사람이 약 <b>230 거리</b> 안에 들어오면 화면에 <b>근처 알림</b>이 뜹니다. 방향은 알려주지 않습니다.</li>
+            <li>숨은 사람이 약 <b>230 거리</b> 안에 들어오면 <b>“근처에 숨은 사람이 있어요!”</b> 알림이 뜹니다. 정확한 방향이나 거리는 알려주지 않습니다.</li>
             <li>틀린 사물을 조사해도 탐색 기회가 1회 줄어듭니다.</li>
-            <li>술래는 각자 <b>탐색 15회</b>를 가집니다.</li>
+            <li>술래 팀의 <b>총 탐색 횟수는 숨는 사람 수 + 5회</b>입니다. 술래가 여러 명이면 이 횟수를 최대한 비슷하게 나눠 가집니다.</li>
           </ul>
         </div>
         <div class="guideBox">
@@ -539,7 +538,8 @@ function updateLobby(){
   const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=ids.length<2;
   if(isHost){
     const need=ids.length>=12?2:1;
-    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"이번 게임 술래 "+need+"명 · 희망 "+wantIds.length+"명. 희망자를 우선해서 랜덤 선정합니다.";
+    const hiders=Math.max(0,ids.length-need),totalAttempts=hiders+5;
+    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"이번 게임 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 술래 팀 총 탐색 "+totalAttempts+"회. 희망자를 우선해서 랜덤 선정합니다.";
   }else{
     document.getElementById("lobbyNote").textContent=mine?"술래 희망을 눌렀습니다. 희망자가 많으면 그중 랜덤으로 선정됩니다.":"술래를 하고 싶으면 ‘술래 희망하기’를 눌러 주세요.";
   }
@@ -609,11 +609,17 @@ async function startOnlineRound(){
     selected.push(...remaining.slice(0,seekerCount-selected.length));
   }
   const seekers=new Set(selected);
+  const hiderCount=ids.length-seekerCount;
+  const totalSearches=hiderCount+5;
+  const baseSearches=Math.floor(totalSearches/seekerCount);
+  const extraSearches=totalSearches%seekerCount;
+  const seekerQuota={};
+  selected.forEach((id,idx)=>{seekerQuota[id]=baseSearches+(idx<extraSearches?1:0);});
   const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,hideEnd=now+25000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
   const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260]];
   const updates={};
   ids.forEach((id,i)=>{
-    const r=seekers.has(id)?"seeker":"hider";updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?15:0;
+    const r=seekers.has(id)?"seeker":"hider";updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
     let x,y;if(r==="seeker"){x=1120+(i%2)*90;y=655;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
     updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;
   });
@@ -639,7 +645,7 @@ function setupSeeker(){
   const p=freePoint();player={x:p.x,y:p.y,disguise:null,caught:false};
   aiSeekers=[];aiHiders=[];for(let i=0;i<12;i++)aiHiders.push(randomDisguiseHider(i));
   const now=performance.now();
-  searches=15;hideUntil=now+25000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
+  searches=17;hideUntil=now+25000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
   roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("숨는 사람에게 25초를 줍니다. 그동안 술래는 움직이거나 조사할 수 없습니다.");
 }
 function setupTour(){
@@ -769,11 +775,7 @@ function updateSeekerProximity(now){
     const d=Math.hypot(player.x-p.x,player.y-p.y);
     if(d<nearest)nearest=d;
   }
-  if(nearest<=120){
-    proximityEl.textContent="🔥 숨은 사람이 아주 가까워요!";
-    proximityEl.className="very";
-    proximityEl.style.display="block";
-  }else if(nearest<=230){
+  if(nearest<=230){
     proximityEl.textContent="📡 근처에 숨은 사람이 있어요!";
     proximityEl.className="";
     proximityEl.style.display="block";
