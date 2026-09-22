@@ -216,11 +216,11 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <ul>
             <li><b>WASD / 방향키</b>로 이동합니다.</li>
             <li>숨는 사람은 <b>달릴 수 없습니다.</b> Shift를 눌러도 이동 속도가 빨라지지 않습니다.</li>
-            <li>사물 가까이에서 <b>E</b>를 누르면 그 사물로 변신합니다.</li>
+            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대를 골라 직접 사물 모습을 만듭니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
             <li>술래 출발 후 <b>30초에 한 번 도발</b>할 수 있습니다. 가까운 술래에게 짧은 소리가 들립니다.</li>
-            <li>술래 화면에서는 플레이어가 변신한 사물이 <b>원래 사물과 똑같이</b> 보입니다.</li>
+            <li>술래 화면에는 숨는 사람이 직접 만든 도형 조합이 그대로 보입니다. 맵 사물과 비슷하게 만들수록 들키기 어렵습니다.</li>
             <li>숨는 사람 화면에서는 <b>술래와 다른 숨는 사람의 닉네임</b>을 볼 수 있습니다.</li>
             <li>술래에게 잡히면 탈락하지만, <b>옵저버 모드</b>로 바뀌어 자신의 캐릭터를 움직이며 남은 게임을 구경할 수 있습니다.</li>
             <li>옵저버 캐릭터는 <b>본인 화면에만 보이고</b>, 술래와 살아 있는 숨는 사람 화면에는 표시되지 않습니다.</li>
@@ -265,7 +265,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           </ul>
         </div>
       </div>
-      <div class="guideWarn"><b>🧩 도형 조합 테스트:</b> 모든 사물은 네모·동그라미·타원·삼각형 같은 기본 도형의 조합으로 만들어집니다. 숨는 사람이 변신하면 선택한 실제 사물과 같은 조합을 바탕으로 만들되, 다리·버튼·등받이 같은 부품 하나가 아주 조금 어긋나도록 생성됩니다. 술래는 그 미세한 어색함을 관찰해 찾아내면 됩니다.</div>
+      <div class="guideWarn"><b>🧩 직접 조립 테스트:</b> 맵 사물은 단순 도형 조합으로 만들어집니다. 숨는 사람은 <b>E</b>를 눌러 같은 종류의 기본 도형을 직접 골라 위치·크기·회전·색을 조절해 자기 사물을 만듭니다. 술래는 맵 사물 사이에서 어색한 조합을 찾아 조사하면 됩니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>✨ 추가 기능:</b> 준비 완료, 역할 공개 연출, 새로고침 후 재접속 복구, 선생님 일시정지·강제종료·내보내기, 라운드 누적 기록, 숨는 사람 30초 도발 기능이 적용됩니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>🔊 효과음:</b> 술래 출발, 친구를 찾았을 때, 잘못 조사했을 때, 라운드 종료 때 서로 다른 효과음이 재생됩니다. 게임 중 <b>소리 버튼</b>으로 끄고 켤 수 있습니다.</div>
       <div class="guideWarn" style="margin-top:8px"><b>🎮 게임 화면 설정:</b> 게임 중 오른쪽 위의 <b>조작법</b>과 <b>미니맵</b> 버튼을 눌러 각각 켜거나 끌 수 있습니다. 필요할 때만 열어서 맵을 가리지 않게 사용할 수 있습니다.</div>
@@ -1307,7 +1307,7 @@ async function restoreSession(){
 async function leaveRoom(){
   if(leavingRoom)return;
   leavingRoom=true;
-  running=false;online=false;hadPlayerRecord=false;sessionRestoreAttempted=true;
+  running=false;online=false;hadPlayerRecord=false;sessionRestoreAttempted=true;builderOpen=false;propBuilder.style.display="none";
   touchControls.style.display="none";roleReveal.style.display="none";pauseBanner.style.display="none";
   teacherPanel.style.display="none";
   clearSubs();
@@ -1672,13 +1672,13 @@ ensureFirebase();
 function updateGameHelp(){
   let html="";
   if(mode==="hider"){
-    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 사물로 변신해 술래에게 들키지 않기";
+    html="<b>이동</b> WASD / 방향키<br><b>사물 만들기</b> E → 도형 직접 조립<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 맵 사물처럼 자연스러운 모양 만들기";
   }else if(mode==="seeker"){
     html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시<br><b>도발 소리</b> 가까운 숨는 사람이 도발하면 짧은 소리가 들림";
   }else if(mode==="observer"){
     html="<b>이동</b> WASD / 방향키<br><b>옵저버</b> 자유롭게 구경 가능<br><b>주의</b> 술래와 생존자에게 내 모습은 보이지 않음";
   }else if(mode==="tour"){
-    html="<b>이동</b> WASD / 방향키<br><b>변신·해제</b> E<br><b>용도</b> 맵과 사물 변신 연습";
+    html="<b>이동</b> WASD / 방향키<br><b>사물 만들기</b> E → 도형 직접 조립<br><b>용도</b> 맵과 직접 조립 기능 연습";
   }else{
     html="게임이 시작되면 역할에 맞는 조작법이 표시됩니다.";
   }
@@ -1701,30 +1701,140 @@ helpToggleBtn.addEventListener("click",()=>{
 mapToggleBtn.addEventListener("click",()=>{
   mapVisible=!mapVisible;applyGamePanels();
 });
-function toggleDisguise(){
-  if(!running||!player||!(mode==="hider"||mode==="tour"))return;
-  if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 움직일 수 있어요.");return;}
-  if(player.disguise){
-    player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;
-    say("변신을 해제했습니다.");if(online)syncPlayerNow();
-  }else{
-    const p=nearestProp(player,105);
-    if(p){
-      player.disguise=p.type;player.flowerColor=p.flowerColor||null;player.disguiseOriginId=p.id;player.x=p.x;player.y=p.y;
-      say(p.type==="flower"?"꽃으로 변신! 다른 꽃과 완전히 같은 모습입니다.":"주변 사물과 똑같이 변신했습니다.");
-      if(online)syncPlayerNow();
-    }else say("변신할 사물에 조금 더 가까이 가세요.");
+
+function builderPalette(){
+  if(currentMapKey==="school2")return["#475569","#60a5fa","#e879a0","#22c55e","#f59e0b","#f8fafc","#1f2937","#a78bfa"];
+  if(currentMapKey==="museum")return["#7c6f60","#b89a62","#9ca3af","#c9a76a","#64748b","#d6d3d1","#7f6843","#3b82f6"];
+  if(currentMapKey==="amusement")return["#ef4444","#3b82f6","#22c55e","#f59e0b","#a855f7","#f472b6","#fde047","#f8fafc"];
+  return["#8b5e35","#a66f42","#64748b","#4f8b4d","#d97706","#2563eb","#f8fafc","#111827"];
+}
+function renderBuilderColors(){
+  builderColors.innerHTML="";
+  for(const c of builderPalette()){
+    const b=document.createElement("button");b.type="button";b.className="builderColor"+(c===builderColor?" on":"");b.style.background=c;b.title=c;
+    b.onclick=()=>{builderColor=c;if(builderSelected>=0&&builderParts[builderSelected])builderParts[builderSelected].c=c;renderBuilderColors();drawBuilder();};
+    builderColors.appendChild(b);
   }
 }
+function drawBuilderPart(g,part,W,H,selected=false){
+  const x=Number(part.x||.5)*W,y=Number(part.y||.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
+  g.save();g.translate(x,y);g.rotate(Number(part.r||0));g.fillStyle=part.c||builderColor;g.strokeStyle=selected?"#2563eb":"rgba(15,23,42,.65)";g.lineWidth=selected?4:2;
+  g.beginPath();
+  if(part.t==="circle")g.arc(0,0,Math.min(w,h)/2,0,Math.PI*2);
+  else if(part.t==="ellipse")g.ellipse(0,0,w/2,h/2,0,0,Math.PI*2);
+  else if(part.t==="triangle"){g.moveTo(0,-h/2);g.lineTo(w/2,h/2);g.lineTo(-w/2,h/2);g.closePath();}
+  else if(part.t==="round"&&g.roundRect)g.roundRect(-w/2,-h/2,w,h,Math.min(18,Math.min(w,h)*.28));
+  else g.rect(-w/2,-h/2,w,h);
+  g.fill();g.stroke();
+  if(selected){
+    g.fillStyle="#fff";g.strokeStyle="#2563eb";g.lineWidth=2;
+    for(const [hx,hy] of [[-w/2,-h/2],[w/2,-h/2],[-w/2,h/2],[w/2,h/2]]){g.beginPath();g.arc(hx,hy,5,0,Math.PI*2);g.fill();g.stroke();}
+  }
+  g.restore();
+}
+function drawBuilder(){
+  const W=builderCanvas.width,H=builderCanvas.height,theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
+  bctx.clearRect(0,0,W,H);bctx.fillStyle=theme.bg;bctx.fillRect(0,0,W,H);
+  bctx.strokeStyle="rgba(100,116,139,.23)";bctx.lineWidth=1;
+  for(let x=0;x<=W;x+=40){bctx.beginPath();bctx.moveTo(x,0);bctx.lineTo(x,H);bctx.stroke();}
+  for(let y=0;y<=H;y+=40){bctx.beginPath();bctx.moveTo(0,y);bctx.lineTo(W,y);bctx.stroke();}
+  bctx.fillStyle="rgba(255,255,255,.75)";bctx.font="700 12px system-ui";bctx.fillText("도형을 드래그해서 사물 모양을 만드세요",12,20);
+  builderParts.forEach((p,i)=>drawBuilderPart(bctx,p,W,H,i===builderSelected));
+  builderCount.textContent="도형 "+builderParts.length+" / 14";
+}
+function addBuilderPart(type){
+  if(builderParts.length>=14){say("도형은 최대 14개까지 사용할 수 있어요.");return;}
+  const presets={
+    rect:[.28,.18],round:[.28,.18],circle:[.16,.16],ellipse:[.28,.16],triangle:[.24,.22],bar:[.38,.075]
+  };
+  const sz=presets[type]||[.24,.18];
+  builderParts.push({t:type,x:.5+(Math.random()-.5)*.08,y:.5+(Math.random()-.5)*.08,w:sz[0],h:sz[1],r:0,c:builderColor});
+  builderSelected=builderParts.length-1;drawBuilder();
+}
+function builderPoint(e){
+  const r=builderCanvas.getBoundingClientRect();
+  return{x:(e.clientX-r.left)*builderCanvas.width/r.width,y:(e.clientY-r.top)*builderCanvas.height/r.height};
+}
+function findBuilderPart(pt){
+  for(let i=builderParts.length-1;i>=0;i--){
+    const p=builderParts[i],x=Number(p.x||.5)*builderCanvas.width,y=Number(p.y||.5)*builderCanvas.height;
+    const w=Math.max(14,Number(p.w||.2)*builderCanvas.width),h=Math.max(14,Number(p.h||.2)*builderCanvas.height);
+    if(Math.abs(pt.x-x)<=w*.58&&Math.abs(pt.y-y)<=h*.58)return i;
+  }
+  return -1;
+}
+builderCanvas.addEventListener("pointerdown",e=>{
+  if(!builderOpen)return;e.preventDefault();
+  const pt=builderPoint(e),i=findBuilderPart(pt);builderSelected=i;
+  if(i>=0){
+    const p=builderParts[i];builderDrag={id:e.pointerId,dx:pt.x-p.x*builderCanvas.width,dy:pt.y-p.y*builderCanvas.height};
+    try{builderCanvas.setPointerCapture(e.pointerId);}catch{}
+    builderCanvas.classList.add("dragging");builderColor=p.c||builderColor;renderBuilderColors();
+  }
+  drawBuilder();
+});
+builderCanvas.addEventListener("pointermove",e=>{
+  if(!builderDrag||builderSelected<0||builderDrag.id!==e.pointerId)return;e.preventDefault();
+  const pt=builderPoint(e),p=builderParts[builderSelected];
+  p.x=Math.max(.03,Math.min(.97,(pt.x-builderDrag.dx)/builderCanvas.width));
+  p.y=Math.max(.03,Math.min(.97,(pt.y-builderDrag.dy)/builderCanvas.height));
+  drawBuilder();
+});
+function endBuilderDrag(e){if(builderDrag&&(!e||builderDrag.id===e.pointerId)){builderDrag=null;builderCanvas.classList.remove("dragging");}}
+builderCanvas.addEventListener("pointerup",endBuilderDrag);builderCanvas.addEventListener("pointercancel",endBuilderDrag);builderCanvas.addEventListener("lostpointercapture",()=>endBuilderDrag());
+document.querySelectorAll("[data-builder-shape]").forEach(b=>b.onclick=()=>addBuilderPart(b.dataset.builderShape));
+function editSelected(fn){if(builderSelected<0||!builderParts[builderSelected])return;fn(builderParts[builderSelected]);drawBuilder();}
+document.getElementById("builderWMinus").onclick=()=>editSelected(p=>p.w=Math.max(.05,p.w-.04));
+document.getElementById("builderWPlus").onclick=()=>editSelected(p=>p.w=Math.min(.75,p.w+.04));
+document.getElementById("builderHMinus").onclick=()=>editSelected(p=>p.h=Math.max(.05,p.h-.04));
+document.getElementById("builderHPlus").onclick=()=>editSelected(p=>p.h=Math.min(.75,p.h+.04));
+document.getElementById("builderRotL").onclick=()=>editSelected(p=>p.r=(p.r||0)-Math.PI/12);
+document.getElementById("builderRotR").onclick=()=>editSelected(p=>p.r=(p.r||0)+Math.PI/12);
+document.getElementById("builderBack").onclick=()=>{
+  if(builderSelected<=0)return;const p=builderParts.splice(builderSelected,1)[0];builderSelected--;builderParts.splice(builderSelected,0,p);drawBuilder();
+};
+document.getElementById("builderFront").onclick=()=>{
+  if(builderSelected<0||builderSelected>=builderParts.length-1)return;const p=builderParts.splice(builderSelected,1)[0];builderSelected++;builderParts.splice(builderSelected,0,p);drawBuilder();
+};
+document.getElementById("builderDelete").onclick=()=>{
+  if(builderSelected<0)return;builderParts.splice(builderSelected,1);builderSelected=Math.min(builderSelected,builderParts.length-1);drawBuilder();
+};
+document.getElementById("builderClear").onclick=()=>{builderParts=[];builderSelected=-1;drawBuilder();};
+function openPropBuilder(){
+  if(!running||!player||!(mode==="hider"||mode==="tour"))return;
+  if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 만들 수 있어요.");return;}
+  builderParts=player.disguise==="custom"&&Array.isArray(player.customParts)?JSON.parse(JSON.stringify(player.customParts)):[];
+  builderSelected=builderParts.length?builderParts.length-1:-1;
+  builderColor=builderParts[builderSelected]?.c||builderPalette()[0];
+  builderOpen=true;propBuilder.style.display="flex";touchControls.style.display="none";keys={};
+  renderBuilderColors();drawBuilder();
+}
+function closePropBuilder(){builderOpen=false;builderDrag=null;propBuilder.style.display="none";builderCanvas.classList.remove("dragging");}
+async function applyBuiltDisguise(){
+  if(builderParts.length<2){say("도형을 2개 이상 조합해 주세요.");return;}
+  player.disguise="custom";player.customParts=JSON.parse(JSON.stringify(builderParts));player.flowerColor=null;player.disguiseOriginId=null;
+  closePropBuilder();say("🧩 직접 만든 사물로 변신했습니다!");if(online)await syncPlayerNow(true);
+}
+async function removeBuiltDisguise(){
+  player.disguise=null;player.customParts=null;player.flowerColor=null;player.disguiseOriginId=null;
+  closePropBuilder();say("변신을 해제했습니다.");if(online)await syncPlayerNow(true);
+}
+document.getElementById("builderDone").onclick=applyBuiltDisguise;
+document.getElementById("builderCancel").onclick=closePropBuilder;
+document.getElementById("builderUndisguise").onclick=removeBuiltDisguise;
+
+function toggleDisguise(){
+  openPropBuilder();
+}
 function updateTouchControls(now){
-  if(!touchCapable||!running||!player){
+  if(builderOpen||!touchCapable||!running||!player){
     touchControls.style.display="none";return;
   }
   touchControls.style.display="flex";
   const blocked=online&&(roomState.paused||now<roleRevealUntil);
   const waiting=(mode==="seeker"&&now<hideUntil)||blocked;
   if(mode==="hider"||mode==="tour"){
-    touchAction.style.display="block";touchAction.disabled=blocked;touchAction.innerHTML="🪄<br>변신";
+    touchAction.style.display="block";touchAction.disabled=blocked;touchAction.innerHTML="🧩<br>만들기";
     touchSprint.style.display="none";keys.shift=false;
   }else if(mode==="seeker"){
     touchAction.style.display="block";touchAction.disabled=waiting;touchAction.innerHTML="🔍<br>조사";
@@ -1787,6 +1897,7 @@ touchSprint.addEventListener("contextmenu",e=>e.preventDefault());
 
 addEventListener("keydown",e=>{
   if(["INPUT","TEXTAREA"].includes(document.activeElement.tagName))return;
+  if(builderOpen){if(e.key==="Escape")closePropBuilder();e.preventDefault();return;}
   const k=e.key.toLowerCase();keys[k]=true;
   if(!running||!player)return;
   if(k==="e"&&(mode==="hider"||mode==="tour"))toggleDisguise();
@@ -2020,7 +2131,7 @@ function finish(win,msg){
   if(!running)return;
   playSfx("finish");
   if(online&&isHost)commitRoundStats(gameNow());
-  running=false;roleReveal.style.display="none";pauseBanner.style.display="none";touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
+  running=false;builderOpen=false;propBuilder.style.display="none";roleReveal.style.display="none";pauseBanner.style.display="none";touchControls.style.display="none";keys.shift=false;touchMove={up:false,down:false,left:false,right:false};
   const title=document.getElementById("resultTitle"),body=document.getElementById("resultText");
   if(online){
     title.textContent="📊 라운드 결과";
@@ -2105,7 +2216,7 @@ function loop(t){
   const rawNow=gameNow(),now=(online&&roomState.paused)?Number(roomState.pausedAt||rawNow):rawNow;
   let dx=((keys.d||keys.arrowright||touchMove.right)?1:0)-((keys.a||keys.arrowleft||touchMove.left)?1:0),dy=((keys.s||keys.arrowdown||touchMove.down)?1:0)-((keys.w||keys.arrowup||touchMove.up)?1:0);
   const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
-  const locked=online&&(roomState.paused||now<roleRevealUntil);
+  const locked=builderOpen||(online&&(roomState.paused||now<roleRevealUntil));
   const seekerWaiting=(mode==="seeker"&&now<hideUntil);
   if(!locked&&player&&mode==="observer"){
     const len=Math.hypot(dx,dy)||1,observerSpeed=330;
