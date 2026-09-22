@@ -2220,8 +2220,9 @@ function escHtml(v){
   return String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
 }
 function buildOnlineResultHtml(msg){
-  const hiderIds=Object.keys(netPlayers).filter(id=>roles[id]==="hider");
-  const seekerIds=Object.keys(netPlayers).filter(id=>roles[id]==="seeker");
+  const stateSeekers=new Set(getRoundSeekerIds());
+  const seekerIds=stateSeekers.size?[...stateSeekers].filter(id=>netPlayers[id]):Object.keys(netPlayers).filter(id=>roles[id]==="seeker");
+  const hiderIds=stateSeekers.size?Object.keys(netPlayers).filter(id=>!stateSeekers.has(id)):Object.keys(netPlayers).filter(id=>roles[id]==="hider");
   const caughtIds=hiderIds.filter(id=>!!caughtNet[id]);
   const survivedIds=hiderIds.filter(id=>!caughtNet[id]);
 
@@ -2307,8 +2308,15 @@ function stopSurvivorReveal(hide=true){
   if(hide){survivorRevealBox.style.display="none";survivorRevealList.innerHTML="";}
 }
 function snapshotSurvivors(){
+  const roundSeekers=new Set(getRoundSeekerIds());
   return Object.keys(netPlayers)
-    .filter(id=>roles[id]==="hider"&&!caughtNet[id]&&netPlayers[id])
+    .filter(id=>{
+      if(!netPlayers[id]||!!caughtNet[id])return false;
+      // Prefer the authoritative seekerIds stored in room state so seekers and hiders
+      // always calculate exactly the same survivor list even if /roles arrives late.
+      if(roundSeekers.size)return !roundSeekers.has(id);
+      return roles[id]==="hider";
+    })
     .map(id=>{
       const p=netPlayers[id]||{};
       return{
@@ -2402,11 +2410,22 @@ function drawAllSurvivorsReveal(survivors){
   srctx.textAlign="left";srctx.textBaseline="alphabetic";
   [...survivorRevealList.children].forEach(el=>el.classList.remove("on"));
 }
-function startSurvivorReveal(){
+function startSurvivorReveal(retry=0){
   stopSurvivorReveal(false);
   if(!online){survivorRevealBox.style.display="none";return;}
   const survivors=snapshotSurvivors();
-  if(!survivors.length){survivorRevealBox.style.display="none";return;}
+  if(!survivors.length){
+    survivorRevealBox.style.display="none";
+    // At round end the seeker client can receive result timing a fraction earlier than
+    // player/caught listeners. Retry briefly before deciding there were no survivors.
+    if(retry<3){
+      const run=survivorRevealRun;
+      survivorRevealTimer=setTimeout(()=>{
+        if(run===survivorRevealRun)startSurvivorReveal(retry+1);
+      },350);
+    }
+    return;
+  }
 
   survivorRevealBox.style.display="block";
   survivorRevealList.innerHTML="";
