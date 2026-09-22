@@ -611,7 +611,6 @@ function propSize(p){
 }
 function propBounds(p){let s=propSize(p);return{x:p.x-s[0]/2,y:p.y-s[1]/2,w:s[0],h:s[1]};}
 
-function drawShadow(x,y,w,h,a){ctx.fillStyle="rgba(0,0,0,"+(a||.16)+")";ctx.beginPath();ctx.ellipse(x+4,y+h*.35,w*.45,h*.22,0,0,Math.PI*2);ctx.fill();}
 
 function shapeHash(str){
   let h=2166136261>>>0;
@@ -988,7 +987,7 @@ function drawProp(p){
   ctx.restore();
 }
 function drawCharacter(ent,isSeeker){
-  ctx.save();drawShadow(ent.x,ent.y,34,42,.18);
+  ctx.save();
   ctx.fillStyle=isSeeker?"#dc2626":"#2563eb";ctx.beginPath();ctx.arc(ent.x,ent.y-4,14,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#f2c7a5";ctx.beginPath();ctx.arc(ent.x,ent.y-14,9,0,Math.PI*2);ctx.fill();
   ctx.fillStyle="#222";ctx.beginPath();ctx.arc(ent.x,ent.y-18,9,Math.PI,Math.PI*2);ctx.fill();
