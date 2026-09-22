@@ -169,12 +169,24 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <p>아이들에게 아래 방 코드만 알려주세요.</p>
       <div id="roomCodeView" class="codeBox">------</div>
       <div><b>접속 인원 <span id="lobbyCount">0</span>/30</b> · ✅ 준비 <b><span id="readyCount">0</span>명</b> · 🔎 술래 희망 <b><span id="wantCount">0</span>명</b></div>
-      <div class="field"><label for="mapSelect">🗺 이번 라운드 맵 · 🧩 도형 조합 테스트</label><select id="mapSelect">
+      <div class="field"><label for="mapSelect">🗺 이번 라운드 맵 · 🧩 직접 조립 테스트</label><select id="mapSelect">
         <option value="school1">학교 1층</option>
         <option value="school2">학교 2층</option>
         <option value="museum">박물관</option>
         <option value="amusement">놀이공원</option>
       </select></div>
+      <div class="row" style="align-items:end">
+        <div class="field" style="flex:1;min-width:190px;margin:6px 0"><label for="hideTimeSelect">🙈 숨고 만드는 시간</label><select id="hideTimeSelect">
+          <option value="30">30초</option><option value="60">1분</option><option value="90">1분 30초</option><option value="120">2분</option>
+          <option value="150">2분 30초</option><option value="180">3분</option><option value="210">3분 30초</option><option value="240">4분</option>
+          <option value="270">4분 30초</option><option value="300">5분</option>
+        </select></div>
+        <div class="field" style="flex:1;min-width:190px;margin:6px 0"><label for="seekTimeSelect">🔎 술래가 찾는 시간</label><select id="seekTimeSelect">
+          <option value="180">3분</option><option value="240">4분</option><option value="300">5분</option><option value="360">6분</option>
+          <option value="420">7분</option><option value="480">8분</option><option value="540">9분</option><option value="600">10분</option>
+          <option value="660">11분</option><option value="720">12분</option><option value="780">13분</option><option value="840">14분</option><option value="900">15분</option>
+        </select></div>
+      </div>
       <div id="playerList"></div>
       <div class="row">
         <button id="readyBtn" class="green">✅ 준비 완료</button>
@@ -208,7 +220,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <h2>📖 꼭꼭숨어라 머리카락보인다 설명서</h2>
       <p><b>목표:</b> 숨는 사람은 학교의 사물로 변신해 끝까지 살아남고, 술래는 제한된 탐색 횟수 안에 숨은 친구들을 찾아야 합니다. 한 방에 <b>최대 30명</b>까지 참가할 수 있습니다.</p>
       <div class="guideFlow">
-        <span class="guideStep">① 방 코드 참가</span><span class="guideStep">② 준비 완료</span><span class="guideStep">③ 역할 공개</span><span class="guideStep">④ 40초 숨기</span><span class="guideStep">⑤ 3분 찾기</span>
+        <span class="guideStep">① 방 코드 참가</span><span class="guideStep">② 준비 완료</span><span class="guideStep">③ 역할 공개</span><span class="guideStep">④ 방장이 정한 시간 숨기</span><span class="guideStep">⑤ 방장이 정한 시간 찾기</span>
       </div>
       <div class="guideGrid">
         <div class="guideBox">
@@ -229,9 +241,9 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
         <div class="guideBox">
           <h3>🔎 술래</h3>
           <ul>
-            <li>숨는 사람에게 먼저 <b>40초</b>가 주어집니다.</li>
+            <li>방장이 정한 <b>숨는 시간</b>이 먼저 주어집니다. 숨는 시간은 <b>30초~5분</b>에서 선택할 수 있습니다.</li>
             <li>그동안 술래 화면과 이동은 잠겨 있습니다.</li>
-            <li>40초 후 직접 학교 안을 돌아다니며 찾습니다.</li>
+            <li>숨는 시간이 끝나면 술래가 움직이기 시작합니다. 찾는 시간은 숨는 시간과 별도로 <b>3분~15분</b>에서 방장이 정합니다.</li>
             <li>숨는 시간이 끝나면 모든 화면에 <b>“🚨 술래 출발! 지금부터 찾기 시작!”</b> 신호가 크게 표시됩니다.</li>
             <li>술래만 <b>Shift</b>를 눌러 빠르게 달릴 수 있습니다.</li>
             <li>의심스러운 사물 가까이에서 <b>Space</b>를 눌러 조사합니다.</li>
@@ -259,7 +271,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>교실·도서관·과학실·급식실·체육관·휴게실·화단을 자유롭게 이동할 수 있습니다.</li>
             <li>선생님이 <b>학교 1층·학교 2층·박물관·놀이공원</b> 테마를 고를 수 있습니다.</li>
             <li>게임 시작 때마다 가구·소품·꽃 배치가 랜덤으로 달라집니다.</li>
-            <li>숨는 사람은 3분 동안 살아남거나 술래의 탐색 기회가 모두 소진되면 승리합니다.</li>
+            <li>숨는 사람은 방장이 정한 찾는 시간 끝까지 살아남거나 술래의 탐색 기회가 모두 소진되면 승리합니다.</li>
             <li>술래는 제한시간 안에 숨는 사람을 모두 찾으면 승리합니다.</li>
             <li>라운드가 끝나면 <b>생존자·잡힌 사람·잡힌 시간·잡은 술래·술래별 잡은 인원</b>이 결과 화면에 표시됩니다.</li>
           </ul>
@@ -310,7 +322,7 @@ const touchControls=document.getElementById("touchControls"),touchAction=documen
 const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),builderColors=document.getElementById("builderColors"),builderCount=document.getElementById("builderCount");
 const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
 const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner");
-const mapSelect=document.getElementById("mapSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
+const mapSelect=document.getElementById("mapSelect"),hideTimeSelect=document.getElementById("hideTimeSelect"),seekTimeSelect=document.getElementById("seekTimeSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
 const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
@@ -675,7 +687,6 @@ function drawShapeBuiltProp(p,x,y,t,w,h){
   }
 
   ctx.save();
-  drawShadow(x,y,w,h,.13);
   ctx.translate(x,y);ctx.scale(sx,sy);ctx.translate(-x,-y);
 
   if(family==="chair"){
@@ -778,7 +789,6 @@ function drawShapeBuiltProp(p,x,y,t,w,h){
 function drawCustomProp(p,x,y,w,h){
   const parts=Array.isArray(p.customParts)?p.customParts:[];
   if(!parts.length){drawShapeBuiltProp({type:"box",id:"fallback"},x,y,"box",w,h);return;}
-  drawShadow(x,y,w,h,.14);
   ctx.save();
   for(const part of parts){
     const px=x+(Number(part.x||.5)-.5)*w,py=y+(Number(part.y||.5)-.5)*h;
@@ -800,7 +810,6 @@ function drawProp(p){
   if(t==="custom"){drawCustomProp(p,x,y,w,h);return;}
   if(SHAPE_TEST_MODE){drawShapeBuiltProp(p,x,y,t,w,h);return;}
   ctx.save();
-  if(t!=="board"&&t!=="gardenBed")drawShadow(x,y,w,h,.14);
   if(t==="desk"||t==="teacherDesk"){
     ctx.fillStyle=t==="teacherDesk"?"#9a6638":"#b77b45";ctx.fillRect(x-w/2,y-h/2,w,h*.58);
     ctx.fillStyle="#6b4428";ctx.fillRect(x-w/2+7,y+h*.08,7,h*.45);ctx.fillRect(x+w/2-14,y+h*.08,7,h*.45);
@@ -1239,6 +1248,18 @@ function displayGameNow(){
   return online&&roomState.paused?Number(roomState.pausedAt||now):now;
 }
 function cleanName(v){return (v||"").trim().replace(/[<>]/g,"").slice(0,10)||"학생";}
+function clampRoundTimes(hideSec,seekSec){
+  hideSec=Math.max(30,Math.min(300,Number(hideSec)||40));
+  seekSec=Math.max(180,Math.min(900,Number(seekSec)||180));
+  return{hideSec,seekSec};
+}
+function durationText(sec){
+  sec=Math.round(Number(sec)||0);
+  const m=Math.floor(sec/60),r=sec%60;
+  if(m&&r)return m+"분 "+r+"초";
+  if(m)return m+"분";
+  return sec+"초";
+}
 async function ensureFirebase(){
   if(fb)return true;
   const status=document.getElementById("serverStatus");
@@ -1354,15 +1375,17 @@ function updateLobby(){
   wantBtn.textContent=mine?"✅ 술래 희망 취소":"🔎 술래 희망하기";wantBtn.className=mine?"green":"alt";
   readyBtn.textContent=myReady?"↩ 준비 취소":"✅ 준비 완료";readyBtn.className=myReady?"alt":"green";
   mapSelect.value=(roomState.mapKey&&MAP_THEMES[roomState.mapKey])?roomState.mapKey:currentMapKey;
-  mapSelect.disabled=!isHost;
+  const times=clampRoundTimes(roomState.hideSec,roomState.seekSec);
+  hideTimeSelect.value=String(times.hideSec);seekTimeSelect.value=String(times.seekSec);
+  mapSelect.disabled=!isHost;hideTimeSelect.disabled=!isHost;seekTimeSelect.disabled=!isHost;
   lobbyAdminBtn.style.display=isHost?"inline-block":"none";
   const allReady=ids.length>=2&&readyIds.length===ids.length;
   const btn=document.getElementById("startOnlineBtn");btn.style.display=isHost?"inline-block":"none";btn.disabled=!allReady;
   if(isHost){
     const need=calcSeekerCount(ids.length),hiders=Math.max(0,ids.length-need),totalAttempts=hiders*2;
-    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"준비 "+readyIds.length+"/"+ids.length+" · 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 팀 탐색 "+totalAttempts+"회. 모두 준비되면 시작 버튼이 열립니다.";
+    document.getElementById("lobbyNote").textContent=ids.length<2?"한 명 이상 더 들어오면 시작할 수 있습니다.":"준비 "+readyIds.length+"/"+ids.length+" · 술래 "+need+"명 · 숨는 사람 "+hiders+"명 · 숨는 시간 "+durationText(times.hideSec)+" · 찾는 시간 "+durationText(times.seekSec)+" · 팀 탐색 "+totalAttempts+"회. 모두 준비되면 시작 버튼이 열립니다.";
   }else{
-    document.getElementById("lobbyNote").textContent=myReady?"준비 완료! 선생님이 시작할 때까지 기다려 주세요.":"‘준비 완료’를 누른 뒤 기다려 주세요. 술래 희망은 따로 선택할 수 있습니다.";
+    document.getElementById("lobbyNote").textContent=(myReady?"준비 완료! ":"‘준비 완료’를 누른 뒤 기다려 주세요. ")+"이번 설정: 숨기 "+durationText(times.hideSec)+" · 찾기 "+durationText(times.seekSec)+(myReady?" 선생님이 시작할 때까지 기다려 주세요.":"");
   }
   updateAdminPanel();
 }
@@ -1378,6 +1401,12 @@ async function toggleSeekerPreference(){
 async function setLobbyMap(){
   if(!online||!isHost||!MAP_THEMES[mapSelect.value])return;
   await fb.set(fb.ref(db,"rooms/"+roomCode+"/state/mapKey"),mapSelect.value);
+}
+async function setRoundTimes(){
+  if(!online||!isHost||!roomCode)return;
+  const times=clampRoundTimes(hideTimeSelect.value,seekTimeSelect.value);
+  hideTimeSelect.value=String(times.hideSec);seekTimeSelect.value=String(times.seekSec);
+  await fb.update(fb.ref(db,"rooms/"+roomCode+"/state"),{hideSec:times.hideSec,seekSec:times.seekSec});
 }
 function clearSubs(){for(const u of unsubs){try{u();}catch{}}unsubs=[];}
 function handleKicked(){
@@ -1488,11 +1517,13 @@ function maybeEnterRound(){
   roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
   if(gameNow()<roleRevealUntil){
     roleRevealBig.textContent=mode==="seeker"?"🔎 당신은 술래!":"🙈 당신은 숨는 사람!";
-    roleRevealSub.textContent=mode==="seeker"?"역할 공개 후 40초 동안 기다립니다.":"역할 공개가 끝나면 40초 동안 숨으세요!";
+    const rt=clampRoundTimes(roomState.hideSec,roomState.seekSec);
+    roleRevealSub.textContent=mode==="seeker"?"역할 공개 후 "+durationText(rt.hideSec)+" 동안 기다립니다.":"역할 공개가 끝나면 "+durationText(rt.hideSec)+" 동안 숨고 만들어 보세요!";
     roleReveal.style.display="flex";playSfx("role");
   }else roleReveal.style.display="none";
-  if(mode==="seeker")say("역할 공개 후 숨는 사람에게 40초를 줍니다. 화면이 열리면 직접 찾으세요!");
-  else say("역할 공개 후 40초 동안 숨어라! E를 누르면 주변 사물과 똑같이 변신합니다.");
+  const rt2=clampRoundTimes(roomState.hideSec,roomState.seekSec);
+  if(mode==="seeker")say("숨는 사람에게 "+durationText(rt2.hideSec)+"를 줍니다. 그 뒤 "+durationText(rt2.seekSec)+" 동안 직접 찾으세요!");
+  else say(durationText(rt2.hideSec)+" 동안 숨고 사물을 만드세요! E를 누르면 도형 조립 화면이 열립니다.");
   seenTaunts={};lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,customKey:"",at:0};
   saveSession();
   const was=running;running=true;last=performance.now();updateAdminPanel();if(!was)requestAnimationFrame(loop);
@@ -1505,7 +1536,7 @@ async function createRoom(){
   roomCode=code;isHost=true;
   const base="rooms/"+roomCode,now=Date.now()+serverOffset;
   await fb.set(fb.ref(db,base+"/hostUid"),uid);
-  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",createdAt:now,paused:false});
+  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",hideSec:60,seekSec:300,createdAt:now,paused:false});
   const pr=fb.ref(db,base+"/players/"+uid);
   await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
   try{await fb.onDisconnect(pr).update({connected:false});}catch{}
@@ -1571,7 +1602,8 @@ async function startOnlineRound(force=false){
   const baseSearches=Math.floor(totalSearches/seekerCount),extraSearches=totalSearches%seekerCount,seekerQuota={};
   selected.forEach((id,idx)=>{seekerQuota[id]=baseSearches+(idx<extraSearches?1:0);});
   const mapKey=MAP_THEMES[mapSelect.value]?mapSelect.value:(MAP_THEMES[roomState.mapKey]?roomState.mapKey:"school1");
-  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,revealEnd=now+3000,hideEnd=revealEnd+40000,seekEnd=hideEnd+180000,round=Number(roomState.round||0)+1;
+  const times=clampRoundTimes(hideTimeSelect.value||roomState.hideSec,seekTimeSelect.value||roomState.seekSec);
+  const seed=Math.floor(Math.random()*4294967295)>>>0,now=Date.now()+serverOffset,revealEnd=now+3000,hideEnd=revealEnd+times.hideSec*1000,seekEnd=hideEnd+times.seekSec*1000,round=Number(roomState.round||0)+1;
   const spawnH=[[330,300],[980,280],[350,1110],[1010,1110],[1580,350],[2050,300],[1760,1110],[2130,1260],[520,650],[850,650],[1450,650],[2220,650]];
   const updates={};
   Object.keys(roles).filter(id=>!ids.includes(id)).forEach(id=>{
@@ -1585,7 +1617,7 @@ async function startOnlineRound(force=false){
     updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customParts"]=null;
     updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;updates["rooms/"+roomCode+"/players/"+id+"/tauntAt"]=0;
   });
-  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,mapKey,seekerIds:selected,seekerCount,revealEndsAt:revealEnd,hideEndsAt:hideEnd,seekEndsAt:seekEnd,paused:false,pausedAt:null};
+  updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,mapKey,hideSec:times.hideSec,seekSec:times.seekSec,seekerIds:selected,seekerCount,revealEndsAt:revealEnd,hideEndsAt:hideEnd,seekEndsAt:seekEnd,paused:false,pausedAt:null};
   await fb.update(fb.ref(db),updates);
 }
 async function syncPlayerNow(force=true){
@@ -1644,6 +1676,8 @@ document.getElementById("tourBtn").onclick=()=>startGame("tour");
 document.getElementById("wantSeekerBtn").onclick=toggleSeekerPreference;
 readyBtn.onclick=toggleReady;
 mapSelect.onchange=setLobbyMap;
+hideTimeSelect.onchange=setRoundTimes;
+seekTimeSelect.onchange=setRoundTimes;
 document.getElementById("startOnlineBtn").onclick=()=>startOnlineRound(false);
 document.getElementById("leaveBtn").onclick=leaveRoom;
 lobbyAdminBtn.onclick=openAdminPanel;teacherBtn.onclick=openAdminPanel;adminCloseBtn.onclick=closeAdminPanel;
