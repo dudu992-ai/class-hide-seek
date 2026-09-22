@@ -46,7 +46,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 .resultSummary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}.resultStat{background:#eef2f7;border-radius:12px;padding:10px;text-align:center}.resultStat b{display:block;font-size:22px;margin-top:3px}.resultCols{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:10px 0}.resultBox{background:#eef2f7;border-radius:12px;padding:11px}.resultBox h3{margin:0 0 7px;font-size:15px}.resultList{margin:0;padding-left:19px;font-size:13px;line-height:1.65}.resultSeeker{background:#fff7ed;border:1px solid #fed7aa;border-radius:12px;padding:10px 12px;margin-top:10px;font-size:13px;line-height:1.6}
 .survivorRevealBox{background:#eef6ff;border:1px solid #bfdbfe;border-radius:14px;padding:12px;margin:12px 0}.survivorRevealBox h3{margin:0 0 5px;font-size:16px}.survivorRevealBox p{margin:0 0 8px;font-size:13px;line-height:1.5;color:#475569}
 #survivorRevealCanvas{display:block;width:100%;height:auto;aspect-ratio:3/2;border:2px solid #94a3b8;border-radius:10px;background:#cbd5e1}
-#survivorRevealList{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.survivorRevealChip{background:#fff;border:1px solid #cbd5e1;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850}
+#survivorRevealStatus{background:#fff;border:2px solid #ef4444;border-radius:10px;padding:9px 11px;margin:0 0 8px;font-size:14px;font-weight:900;color:#991b1b;text-align:center}
+#survivorRevealList{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}.survivorRevealChip{background:#fff;border:1px solid #cbd5e1;border-radius:999px;padding:6px 9px;font-size:12px;font-weight:850}.survivorRevealChip.on{border-color:#ef4444;background:#fff1f2;color:#991b1b}
 @media(max-width:640px){.resultSummary{grid-template-columns:1fr 1fr 1fr}.resultCols{grid-template-columns:1fr}}
 @media(max-width:640px){.guideGrid{grid-template-columns:1fr}}.card button{font:inherit;border:0;border-radius:11px;padding:12px 16px;background:#2563eb;color:#fff;font-weight:850;cursor:pointer}.card button.alt{background:#334155}.card button.green{background:#15803d}.card button:focus{outline:3px solid #93c5fd}.note{font-size:13px;color:#5f6b7a;background:#eef2f7;padding:10px;border-radius:10px;margin-top:14px}
 #result{display:none}.kbd{display:inline-block;background:#fff;color:#111827;border:1px solid #cbd5e1;border-bottom-width:3px;border-radius:6px;padding:1px 6px;font-weight:800}
@@ -299,7 +300,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <li>숨는 사람은 방장이 정한 찾는 시간 끝까지 살아남거나 술래의 탐색 기회가 모두 소진되면 승리합니다.</li>
             <li>술래는 제한시간 안에 숨는 사람을 모두 찾으면 승리합니다.</li>
             <li>라운드가 끝나면 <b>생존자·잡힌 사람·잡힌 시간·잡은 술래·술래별 잡은 인원</b>이 결과 화면에 표시됩니다.</li>
-            <li>끝까지 잡히지 않은 생존자가 있으면 결과 화면에 <b>전체 맵과 마지막 숨은 위치</b>가 공개되어 술래도 어디에 숨어 있었는지 확인할 수 있습니다.</li>
+            <li>끝까지 잡히지 않은 생존자가 있으면 결과 화면에서 <b>한 명씩 자동으로 위치가 확대</b>되고, <b>빨간 선과 화살표</b>가 마지막 숨은 지점을 정확하게 가리킵니다. 모두 본 뒤에는 전체 위치도 함께 표시됩니다.</li>
           </ul>
         </div>
       </div>
@@ -319,7 +320,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       <div id="resultText"></div>
       <div id="survivorRevealBox" class="survivorRevealBox" style="display:none">
         <h3>🗺 끝까지 살아남은 친구들의 숨은 장소</h3>
-        <p>라운드가 끝나면 술래도 함께 확인할 수 있어요. 번호가 찍힌 곳이 생존자가 마지막까지 숨어 있던 위치입니다.</p>
+        <p>라운드가 끝나면 생존자의 위치를 <b>한 명씩 자동으로 확대</b>해서 보여줍니다. <b>빨간 선</b>이 실제로 숨어 있던 정확한 위치를 가리킵니다.</p>
+        <div id="survivorRevealStatus">생존자 위치를 준비하는 중...</div>
         <canvas id="survivorRevealCanvas" width="900" height="600"></canvas>
         <div id="survivorRevealList"></div>
       </div>
@@ -354,7 +356,7 @@ const touchControls=document.getElementById("touchControls"),touchAction=documen
 const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),nearbyCanvas=document.getElementById("nearbyCanvas"),nctx=nearbyCanvas.getContext("2d"),builderReference=document.querySelector(".builderReference"),nearbyZoom=document.getElementById("nearbyZoom"),nearbyZoomLabel=document.getElementById("nearbyZoomLabel"),nearbyZoomIn=document.getElementById("nearbyZoomIn"),nearbyZoomOut=document.getElementById("nearbyZoomOut"),nearbyExpandBtn=document.getElementById("nearbyExpandBtn"),builderColors=document.getElementById("builderColors"),builderColorPicker=document.getElementById("builderColorPicker"),builderCount=document.getElementById("builderCount"),refreshNearbyBtn=document.getElementById("refreshNearbyBtn");
 const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
 const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner");
-const survivorRevealBox=document.getElementById("survivorRevealBox"),survivorRevealCanvas=document.getElementById("survivorRevealCanvas"),srctx=survivorRevealCanvas.getContext("2d"),survivorRevealList=document.getElementById("survivorRevealList");
+const survivorRevealBox=document.getElementById("survivorRevealBox"),survivorRevealCanvas=document.getElementById("survivorRevealCanvas"),srctx=survivorRevealCanvas.getContext("2d"),survivorRevealStatus=document.getElementById("survivorRevealStatus"),survivorRevealList=document.getElementById("survivorRevealList");
 const mapSelect=document.getElementById("mapSelect"),hideTimeSelect=document.getElementById("hideTimeSelect"),seekTimeSelect=document.getElementById("seekTimeSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
 const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
@@ -363,7 +365,7 @@ let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,h
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
 let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35",nearbyZoomValue=1,nearbyBaseImage=null,nearbySampleColors=[];
 let touchMove={up:false,down:false,left:false,right:false};
-let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,customKey:"",at:0},statsCommitPromise=null;
+let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,customKey:"",at:0},statsCommitPromise=null,survivorRevealTimer=null,survivorRevealRun=0;
 try{soundEnabled=localStorage.getItem("kkok_sound")!=="off";}catch{}
 try{localStorage.removeItem("kkok_session");}catch{}
 
@@ -1325,6 +1327,7 @@ async function restoreSession(){
 }
 async function leaveRoom(){
   if(leavingRoom)return;
+  stopSurvivorReveal();
   leavingRoom=true;
   running=false;online=false;hadPlayerRecord=false;sessionRestoreAttempted=true;builderOpen=false;propBuilder.style.display="none";
   touchControls.style.display="none";roleReveal.style.display="none";pauseBanner.style.display="none";
@@ -1347,6 +1350,7 @@ async function leaveRoom(){
   location.replace(location.pathname);
 }
 function showLobby(){
+  stopSurvivorReveal();
   running=false;mode="lobby";touchControls.style.display="none";tauntBtn.style.display="none";teacherBtn.style.display="none";
   roleEl.textContent="대기";roleEl.className="pill";
   document.getElementById("menu").style.display="none";document.getElementById("lobby").style.display="flex";document.getElementById("result").style.display="none";
@@ -2156,6 +2160,7 @@ async function commitRoundStats(finishAt=gameNow()){
 }
 async function returnToLobby(){
   if(!online||!isHost)return;
+  stopSurvivorReveal();
   await commitRoundStats();
   const updates={};
   activePlayerIds().forEach(id=>{updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;});
@@ -2296,51 +2301,133 @@ function revealPropColor(type){
     container:"#b77f42",exhibit:"#9a8768",sport:"#d97706",seat:"#7c6f60",special:"#7c3aed"
   })[fam]||"#64748b";
 }
-function drawSurvivorReveal(){
-  if(!online){survivorRevealBox.style.display="none";return;}
-  const survivors=Object.keys(netPlayers).filter(id=>roles[id]==="hider"&&!caughtNet[id]&&netPlayers[id]);
-  if(!survivors.length){survivorRevealBox.style.display="none";survivorRevealList.innerHTML="";return;}
-
-  survivorRevealBox.style.display="block";
-  survivorRevealList.innerHTML="";
-  const W=survivorRevealCanvas.width,H=survivorRevealCanvas.height,sx=W/WORLD.w,sy=H/WORLD.h;
+function stopSurvivorReveal(hide=true){
+  survivorRevealRun++;
+  if(survivorRevealTimer){clearTimeout(survivorRevealTimer);survivorRevealTimer=null;}
+  if(hide){survivorRevealBox.style.display="none";survivorRevealList.innerHTML="";}
+}
+function snapshotSurvivors(){
+  return Object.keys(netPlayers)
+    .filter(id=>roles[id]==="hider"&&!caughtNet[id]&&netPlayers[id])
+    .map(id=>{
+      const p=netPlayers[id]||{};
+      return{
+        id,name:p.name||"학생",x:Number(p.x||0),y:Number(p.y||0),
+        disguise:p.disguise||null,customParts:p.customParts||null,
+        room:survivorRoomName(Number(p.x||0),Number(p.y||0))
+      };
+    });
+}
+function revealScene(view){
+  const W=survivorRevealCanvas.width,H=survivorRevealCanvas.height;
+  const sx=W/view.w,sy=H/view.h,tx=x=>(x-view.x)*sx,ty=y=>(y-view.y)*sy;
   const theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
   srctx.clearRect(0,0,W,H);srctx.fillStyle=theme.bg;srctx.fillRect(0,0,W,H);
 
-  // 전체 맵/방 구조.
   srctx.strokeStyle=theme.grid;srctx.lineWidth=1;
-  for(let x=0;x<=WORLD.w;x+=120){srctx.beginPath();srctx.moveTo(x*sx,0);srctx.lineTo(x*sx,H);srctx.stroke();}
-  for(let y=0;y<=WORLD.h;y+=120){srctx.beginPath();srctx.moveTo(0,y*sy);srctx.lineTo(W,y*sy);srctx.stroke();}
+  const gx0=Math.floor(view.x/120)*120,gy0=Math.floor(view.y/120)*120;
+  for(let x=gx0;x<=view.x+view.w;x+=120){srctx.beginPath();srctx.moveTo(tx(x),0);srctx.lineTo(tx(x),H);srctx.stroke();}
+  for(let y=gy0;y<=view.y+view.h;y+=120){srctx.beginPath();srctx.moveTo(0,ty(y));srctx.lineTo(W,ty(y));srctx.stroke();}
+
   rooms.forEach(r=>{
-    srctx.fillStyle=r.floor;srctx.fillRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);
-    srctx.strokeStyle=r.wall||"#64748b";srctx.lineWidth=4;srctx.strokeRect(r.x*sx,r.y*sy,r.w*sx,r.h*sy);
-    srctx.fillStyle="rgba(15,23,42,.82)";srctx.font="800 12px system-ui";
-    srctx.fillText(r.name,r.x*sx+7,r.y*sy+16);
+    if(r.x+r.w<view.x||r.x>view.x+view.w||r.y+r.h<view.y||r.y>view.y+view.h)return;
+    srctx.fillStyle=r.floor;srctx.fillRect(tx(r.x),ty(r.y),r.w*sx,r.h*sy);
+    srctx.strokeStyle=r.wall||"#64748b";srctx.lineWidth=Math.max(2,8*Math.min(sx,sy));srctx.strokeRect(tx(r.x),ty(r.y),r.w*sx,r.h*sy);
+    srctx.fillStyle="rgba(15,23,42,.84)";srctx.font="800 14px system-ui";
+    srctx.fillText(r.name,tx(r.x)+8,ty(r.y)+18);
   });
 
-  // 실제 배치된 사물을 작게 표시해 숨어 있던 위치를 주변 가구와 함께 알아볼 수 있게 합니다.
   for(const p of props){
     if(p.type==="gardenBed"||p.type==="board")continue;
-    const b=propBounds(p),rw=Math.max(3,b.w*sx),rh=Math.max(3,b.h*sy);
-    srctx.fillStyle=revealPropColor(p.type);
-    srctx.globalAlpha=.72;
+    const b=propBounds(p);
+    if(b.x+b.w<view.x||b.x>view.x+view.w||b.y+b.h<view.y||b.y>view.y+view.h)continue;
+    const rw=Math.max(4,b.w*sx),rh=Math.max(4,b.h*sy),px=tx(p.x),py=ty(p.y);
+    srctx.fillStyle=revealPropColor(p.type);srctx.globalAlpha=.78;
     if(["ball","balloon","plantPot","flower","bush","tree","plush","planetModel","globe"].includes(p.type)){
-      srctx.beginPath();srctx.ellipse(p.x*sx,p.y*sy,Math.max(2,rw/2),Math.max(2,rh/2),0,0,Math.PI*2);srctx.fill();
-    }else{
-      srctx.fillRect((p.x-b.w/2)*sx,(p.y-b.h/2)*sy,rw,rh);
-    }
+      srctx.beginPath();srctx.ellipse(px,py,Math.max(2,rw/2),Math.max(2,rh/2),0,0,Math.PI*2);srctx.fill();
+    }else srctx.fillRect(px-rw/2,py-rh/2,rw,rh);
   }
   srctx.globalAlpha=1;
+  return{W,H,sx,sy,tx,ty};
+}
+function redArrow(x1,y1,x2,y2){
+  srctx.save();srctx.strokeStyle="#dc2626";srctx.fillStyle="#dc2626";srctx.lineWidth=7;srctx.lineCap="round";srctx.lineJoin="round";
+  srctx.beginPath();srctx.moveTo(x1,y1);srctx.lineTo(x2,y2);srctx.stroke();
+  const a=Math.atan2(y2-y1,x2-x1),len=20;
+  srctx.beginPath();srctx.moveTo(x2,y2);
+  srctx.lineTo(x2-Math.cos(a-.55)*len,y2-Math.sin(a-.55)*len);
+  srctx.lineTo(x2-Math.cos(a+.55)*len,y2-Math.sin(a+.55)*len);
+  srctx.closePath();srctx.fill();
+  srctx.restore();
+}
+function drawSingleSurvivorReveal(sv,index,total){
+  // 약 1000×667 크기의 주변을 확대해서 가구까지 함께 보이게 합니다.
+  const cropW=1000,cropH=cropW*2/3;
+  const vx=Math.max(0,Math.min(WORLD.w-cropW,sv.x-cropW/2));
+  const vy=Math.max(0,Math.min(WORLD.h-cropH,sv.y-cropH/2));
+  const sc=revealScene({x:vx,y:vy,w:cropW,h:cropH});
+  const px=sc.tx(sv.x),py=sc.ty(sv.y);
 
-  // 생존자는 번호와 닉네임으로 정확한 마지막 위치를 표시합니다.
-  survivors.forEach((id,idx)=>{
-    const p=netPlayers[id],x=Number(p.x||0)*sx,y=Number(p.y||0)*sy,num=idx+1;
-    srctx.fillStyle="#ffffff";srctx.strokeStyle="#dc2626";srctx.lineWidth=4;
-    srctx.beginPath();srctx.arc(x,y,13,0,Math.PI*2);srctx.fill();srctx.stroke();
-    srctx.fillStyle="#991b1b";srctx.font="900 13px system-ui";srctx.textAlign="center";srctx.textBaseline="middle";srctx.fillText(String(num),x,y);srctx.textAlign="left";srctx.textBaseline="alphabetic";
-    const name=(p.name||"학생"),room=survivorRoomName(Number(p.x||0),Number(p.y||0));
-    const chip=document.createElement("span");chip.className="survivorRevealChip";chip.textContent=num+". "+name+" — "+room;survivorRevealList.appendChild(chip);
+  // 위치 반대편에 이름 상자를 두고 굵은 빨간 화살표로 정확한 숨은 지점을 가리킵니다.
+  const boxW=270,boxH=72;
+  const boxX=px>sc.W*.55?24:sc.W-boxW-24;
+  const boxY=24;
+  srctx.fillStyle="rgba(255,255,255,.96)";srctx.strokeStyle="#dc2626";srctx.lineWidth=4;
+  srctx.beginPath();if(srctx.roundRect)srctx.roundRect(boxX,boxY,boxW,boxH,14);else srctx.rect(boxX,boxY,boxW,boxH);srctx.fill();srctx.stroke();
+  srctx.fillStyle="#991b1b";srctx.font="900 22px system-ui";srctx.fillText((index+1)+". "+sv.name,boxX+14,boxY+29);
+  srctx.fillStyle="#475569";srctx.font="800 15px system-ui";srctx.fillText("📍 "+sv.room,boxX+14,boxY+54);
+
+  const anchorX=px>sc.W*.55?boxX+boxW:boxX,anchorY=boxY+boxH*.62;
+  redArrow(anchorX,anchorY,px,py);
+
+  srctx.fillStyle="rgba(255,255,255,.98)";srctx.strokeStyle="#dc2626";srctx.lineWidth=6;
+  srctx.beginPath();srctx.arc(px,py,22,0,Math.PI*2);srctx.fill();srctx.stroke();
+  srctx.fillStyle="#991b1b";srctx.font="1000 19px system-ui";srctx.textAlign="center";srctx.textBaseline="middle";srctx.fillText(String(index+1),px,py);srctx.textAlign="left";srctx.textBaseline="alphabetic";
+
+  survivorRevealStatus.textContent="🔎 "+(index+1)+" / "+total+"  "+sv.name+" — "+sv.room+"에 숨어 있었습니다!";
+  [...survivorRevealList.children].forEach((el,i)=>el.classList.toggle("on",i===index));
+}
+function drawAllSurvivorsReveal(survivors){
+  const sc=revealScene({x:0,y:0,w:WORLD.w,h:WORLD.h});
+  survivorRevealStatus.textContent="✅ 생존자 "+survivors.length+"명의 전체 위치입니다.";
+  survivors.forEach((sv,index)=>{
+    const px=sc.tx(sv.x),py=sc.ty(sv.y);
+    // 전체 보기에서도 짧은 빨간 선 + 번호로 다시 표시합니다.
+    const dx=(index%2===0?-48:48),dy=-38;
+    redArrow(px+dx,py+dy,px,py);
+    srctx.fillStyle="#fff";srctx.strokeStyle="#dc2626";srctx.lineWidth=4;
+    srctx.beginPath();srctx.arc(px,py,14,0,Math.PI*2);srctx.fill();srctx.stroke();
+    srctx.fillStyle="#991b1b";srctx.font="900 13px system-ui";srctx.textAlign="center";srctx.textBaseline="middle";srctx.fillText(String(index+1),px,py);
   });
+  srctx.textAlign="left";srctx.textBaseline="alphabetic";
+  [...survivorRevealList.children].forEach(el=>el.classList.remove("on"));
+}
+function startSurvivorReveal(){
+  stopSurvivorReveal(false);
+  if(!online){survivorRevealBox.style.display="none";return;}
+  const survivors=snapshotSurvivors();
+  if(!survivors.length){survivorRevealBox.style.display="none";return;}
+
+  survivorRevealBox.style.display="block";
+  survivorRevealList.innerHTML="";
+  survivors.forEach((sv,idx)=>{
+    const chip=document.createElement("span");chip.className="survivorRevealChip";chip.textContent=(idx+1)+". "+sv.name+" — "+sv.room;survivorRevealList.appendChild(chip);
+  });
+
+  const run=++survivorRevealRun;
+  let index=0;
+  const step=()=>{
+    if(run!==survivorRevealRun)return;
+    if(index<survivors.length){
+      drawSingleSurvivorReveal(survivors[index],index,survivors.length);
+      index++;
+      survivorRevealTimer=setTimeout(step,3400);
+    }else{
+      drawAllSurvivorsReveal(survivors);
+      survivorRevealTimer=null;
+    }
+  };
+  step();
 }
 
 function finish(win,msg){
@@ -2359,6 +2446,7 @@ function finish(win,msg){
   const a=document.getElementById("again"),m=document.getElementById("menuBtn");
   if(online){a.style.display=isHost?"inline-block":"none";a.textContent="대기실로 돌아가기";m.textContent="방 나가기";}else{a.style.display="inline-block";a.textContent="다시 하기";m.textContent="역할 선택";}
   document.getElementById("result").style.display="flex";
+  if(online)requestAnimationFrame(startSurvivorReveal);else stopSurvivorReveal();
 }
 function updateHud(t){
   if(mode==="tour"){phaseEl.textContent="자유 탐험";timerEl.textContent="⏱ --:--";triesEl.textContent="🔍 --";aliveEl.textContent="🙈 --";return;}
