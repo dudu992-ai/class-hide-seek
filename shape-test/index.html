@@ -1518,7 +1518,10 @@ async function subscribeRoom(){
     updateLobby();maybeEnterRound();updateAdminPanel();
   }));
   unsubs.push(fb.onValue(fb.ref(db,base+"/roles"),snap=>{roles=snap.val()||{};maybeEnterRound();}));
-  unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{caughtNet=snap.val()||{};}));
+  unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{
+    caughtNet=snap.val()||{};
+    if(running&&mode==="hider"&&uid&&!!caughtNet[uid])enterObserver();
+  }));
   unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
 }
 function maybeEnterRound(){
@@ -1528,7 +1531,7 @@ function maybeEnterRound(){
   const assignedRole=stateSeekers.length?(stateSeekers.includes(uid)?"seeker":"hider"):roles[uid];
   if(!assignedRole)return;
   // 역할 경로가 늦게 도착하더라도 state의 술래 목록으로 즉시 올바른 역할을 적용합니다.
-  if(roundApplied===round&&mode===assignedRole)return;
+  if(roundApplied===round)return;
   roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=assignedRole;
   roles[uid]=assignedRole;
   helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
@@ -1956,6 +1959,7 @@ nearbyCanvas.addEventListener("pointerdown",e=>{
 function openPropBuilder(){
   if(!running||!player||!(mode==="hider"||mode==="tour"))return;
   if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 만들 수 있어요.");return;}
+  if(online&&mode==="hider"&&displayGameNow()>=hideUntil){say("숨는 시간이 끝나서 이제 사물을 수정할 수 없어요.");return;}
   builderParts=player.disguise==="custom"&&Array.isArray(player.customParts)?JSON.parse(JSON.stringify(player.customParts)):[];
   builderSelected=builderParts.length?builderParts.length-1:-1;
   builderColor=builderParts[builderSelected]?.c||builderPalette()[0];builderColorPicker.value=hexNorm(builderColor)||"#8b5e35";
@@ -1966,6 +1970,20 @@ function openPropBuilder(){
   requestAnimationFrame(updateNearbyReference);
 }
 function closePropBuilder(){builderOpen=false;builderDrag=null;propBuilder.style.display="none";builderCanvas.classList.remove("dragging");builderReference.classList.remove("expanded");nearbyExpandBtn.textContent="🔍 크게 보기";}
+function finalizeBuilderAtHideEnd(now){
+  if(!builderOpen||!online||mode!=="hider"||now<hideUntil)return;
+  if(builderParts.length>=2){
+    player.disguise="custom";
+    player.customParts=JSON.parse(JSON.stringify(builderParts));
+    player.flowerColor=null;player.disguiseOriginId=null;
+    closePropBuilder();
+    say("⏰ 숨는 시간이 끝났습니다. 지금 만든 모습으로 자동 확정됐어요!");
+    syncPlayerNow(true).catch(()=>{});
+  }else{
+    closePropBuilder();
+    say("⏰ 숨는 시간이 끝났습니다. 도형이 부족해 만들기 화면을 닫았어요.");
+  }
+}
 async function applyBuiltDisguise(){
   if(builderParts.length<2){say("도형을 2개 이상 조합해 주세요.");return;}
   player.disguise="custom";player.customParts=JSON.parse(JSON.stringify(builderParts));player.flowerColor=null;player.disguiseOriginId=null;
@@ -2274,6 +2292,10 @@ function buildOnlineResultHtml(msg){
 }
 function enterObserver(){
   if(mode==="observer")return;
+  if(builderOpen)closePropBuilder();
+  if(huntSignalTimer){clearTimeout(huntSignalTimer);huntSignalTimer=null;}
+  huntStartSignal.style.display="none";
+  if(online)huntSignalShownRound=Number(roomState.round||huntSignalShownRound||0);
   playSfx("catch");
   mode="observer";
   if(player){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;player.customParts=null;}
@@ -2338,7 +2360,7 @@ function updateHud(t){
   }
 }
 function updateHuntStartSignal(now){
-  if(!running||mode==="tour"||(online&&roomState.paused)||now<hideUntil)return;
+  if(!running||mode==="tour"||mode==="observer"||(online&&roomState.paused)||now<hideUntil)return;
   const round=online?Number(roomState.round||0):1;
   if(huntSignalShownRound===round)return;
   huntSignalShownRound=round;
@@ -2370,6 +2392,7 @@ function loop(t){
   if(!running)return;
   const dt=Math.min(.033,(t-last)/1000||0);last=t;
   const rawNow=gameNow(),now=(online&&roomState.paused)?Number(roomState.pausedAt||rawNow):rawNow;
+  finalizeBuilderAtHideEnd(now);
   let dx=((keys.d||keys.arrowright||touchMove.right)?1:0)-((keys.a||keys.arrowleft||touchMove.left)?1:0),dy=((keys.s||keys.arrowdown||touchMove.down)?1:0)-((keys.w||keys.arrowup||touchMove.up)?1:0);
   const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
   const locked=builderOpen||(online&&(roomState.paused||now<roleRevealUntil));
