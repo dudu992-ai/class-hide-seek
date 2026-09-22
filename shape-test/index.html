@@ -52,17 +52,21 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #roleReveal .roleBig{font-size:clamp(34px,7vw,64px);font-weight:1000;margin:8px 0}.roleSub{font-size:16px;color:#64748b;font-weight:800}
 #pauseBanner{display:none;position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);z-index:9;background:rgba(30,41,59,.96);border:2px solid #94a3b8;border-radius:18px;padding:18px 24px;font-size:clamp(22px,4vw,38px);font-weight:1000;text-align:center}
 #propBuilder{display:none;z-index:30;background:rgba(2,6,23,.92)}
-#propBuilder .builderCard{width:min(820px,96vw);max-height:94vh;overflow:auto;background:#f8fafc;color:#172033;border-radius:20px;padding:18px;box-shadow:0 20px 70px #0009}
+#propBuilder .builderCard{width:min(1120px,97vw);max-height:94vh;overflow:auto;background:#f8fafc;color:#172033;border-radius:20px;padding:18px;box-shadow:0 20px 70px #0009}
 .builderTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.builderTop h2{margin:0}
 .builderHint{font-size:13px;color:#475569;background:#eef2f7;border-radius:10px;padding:8px 10px;margin:9px 0}
-.builderLayout{display:grid;grid-template-columns:minmax(300px,1fr) 250px;gap:14px;align-items:start}
+.builderLayout{display:grid;grid-template-columns:minmax(330px,1fr) 260px 250px;gap:14px;align-items:start}
 #builderCanvas{display:block;width:100%;height:auto;aspect-ratio:3/2;background:#e2e8f0;border:2px solid #94a3b8;border-radius:12px;touch-action:none;cursor:grab}
 #builderCanvas.dragging{cursor:grabbing}.builderPanel{background:#eef2f7;border-radius:12px;padding:10px}.builderPanel h3{margin:3px 0 8px;font-size:14px}
 .builderPalette{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.builderPalette button,.builderControls button{padding:9px 7px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;cursor:pointer}
 .builderPalette button:hover,.builderControls button:hover{filter:brightness(1.08)}
 .builderColors{display:flex;flex-wrap:wrap;gap:7px}.builderColor{width:29px;height:29px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #94a3b8;cursor:pointer}.builderColor.on{box-shadow:0 0 0 3px #2563eb}
 .builderControls{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px}.builderCount{font-size:12px;font-weight:800;color:#64748b;margin-top:8px}
-@media(max-width:720px){.builderLayout{grid-template-columns:1fr}.builderPanel{order:2}#builderCanvas{max-height:43vh}.builderPalette{grid-template-columns:repeat(3,1fr)}}
+.builderReference{background:#eef2f7;border-radius:12px;padding:10px}.builderReference h3{margin:3px 0 6px;font-size:14px}.builderReference p{font-size:12px;line-height:1.4;color:#64748b;margin:0 0 8px}
+#nearbyCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#cbd5e1;border:2px solid #94a3b8;border-radius:10px}
+#refreshNearbyBtn{width:100%;margin-top:8px;padding:8px 9px;border:0;border-radius:9px;background:#475569;color:#fff;font-weight:800;cursor:pointer}
+@media(max-width:960px){.builderLayout{grid-template-columns:minmax(300px,1fr) 250px}.builderReference{grid-column:1/2;grid-row:2}.builderPanel{grid-column:2;grid-row:1/3}}
+@media(max-width:720px){.builderLayout{grid-template-columns:1fr}.builderReference,.builderPanel{grid-column:auto;grid-row:auto}.builderReference{order:2}.builderPanel{order:3}#builderCanvas{max-height:43vh}.builderPalette{grid-template-columns:repeat(3,1fr)}}
 #teacherPanel{display:none}.adminKickList{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;max-height:240px;overflow:auto;margin-top:10px}.adminKickRow{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#eef2f7;border-radius:9px;padding:7px 9px;font-size:13px;font-weight:800}.adminKickRow button{padding:7px 9px;font-size:12px;background:#b91c1c}.adminStatus{font-size:13px;color:#475569;background:#eef2f7;border-radius:10px;padding:9px 10px;margin:10px 0}
 @media(max-width:760px){header b{font-size:15px}.pill{padding:5px 8px;font-size:12px}#mini{width:168px}#mini canvas{width:152px;height:98px}#gameToggles{right:8px;top:8px;max-width:96%}.gameToggleBtn{padding:7px 8px;font-size:12px}#gameHelpPanel{left:8px;top:88px;width:min(300px,calc(100% - 16px));font-size:12px}}
 </style>
@@ -122,9 +126,15 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <button id="builderDone" class="green" type="button">✅ 이 모습으로 숨기</button>
         </div>
       </div>
-      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 누르면 가운데에 추가됩니다. 도형을 드래그해서 원하는 위치에 놓고, 크기·회전·색을 바꿔 맵 사물처럼 만들어 보세요. 최대 14개까지 사용할 수 있습니다.</div>
+      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색을 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. 최대 14개까지 사용할 수 있습니다.</div>
       <div class="builderLayout">
         <canvas id="builderCanvas" width="480" height="320"></canvas>
+        <div class="builderReference">
+          <h3>👀 근처 사물 참고</h3>
+          <p>현재 내 위치 주변의 실제 맵 모습이에요. 옆의 사물들을 보면서 비슷하게 만들어 보세요.</p>
+          <canvas id="nearbyCanvas" width="360" height="270"></canvas>
+          <button id="refreshNearbyBtn" type="button">🔄 주변 모습 다시 보기</button>
+        </div>
         <div class="builderPanel">
           <h3>① 사용할 도형</h3>
           <div class="builderPalette">
@@ -228,7 +238,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <ul>
             <li><b>WASD / 방향키</b>로 이동합니다.</li>
             <li>숨는 사람은 <b>달릴 수 없습니다.</b> Shift를 눌러도 이동 속도가 빨라지지 않습니다.</li>
-            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대를 골라 직접 사물 모습을 만듭니다.</li>
+            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대를 골라 직접 사물 모습을 만듭니다. 만들기 화면 옆에는 <b>현재 위치 주변의 실제 맵 모습</b>이 함께 표시되어 근처 사물을 참고할 수 있습니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
             <li>술래 출발 후 <b>30초에 한 번 도발</b>할 수 있습니다. 가까운 술래에게 짧은 소리가 들립니다.</li>
@@ -319,7 +329,7 @@ const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
-const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),builderColors=document.getElementById("builderColors"),builderCount=document.getElementById("builderCount");
+const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),nearbyCanvas=document.getElementById("nearbyCanvas"),nctx=nearbyCanvas.getContext("2d"),builderColors=document.getElementById("builderColors"),builderCount=document.getElementById("builderCount"),refreshNearbyBtn=document.getElementById("refreshNearbyBtn");
 const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
 const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner");
 const mapSelect=document.getElementById("mapSelect"),hideTimeSelect=document.getElementById("hideTimeSelect"),seekTimeSelect=document.getElementById("seekTimeSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
@@ -1833,14 +1843,51 @@ document.getElementById("builderDelete").onclick=()=>{
   if(builderSelected<0)return;builderParts.splice(builderSelected,1);builderSelected=Math.min(builderSelected,builderParts.length-1);drawBuilder();
 };
 document.getElementById("builderClear").onclick=()=>{builderParts=[];builderSelected=-1;drawBuilder();};
+function updateNearbyReference(){
+  const W=nearbyCanvas.width,H=nearbyCanvas.height;
+  nctx.clearRect(0,0,W,H);
+  nctx.fillStyle="#cbd5e1";nctx.fillRect(0,0,W,H);
+  if(!player||!game.width||!game.height){
+    nctx.fillStyle="#475569";nctx.font="700 15px system-ui";nctx.textAlign="center";
+    nctx.fillText("주변 모습을 불러올 수 없습니다.",W/2,H/2);nctx.textAlign="left";return;
+  }
+
+  // 현재 플레이 화면에서 플레이어 주변만 잘라 보여 주므로 실제 맵 사물의 모양/색/배치를 그대로 참고할 수 있습니다.
+  const cropCssW=Math.min(viewW,700),cropCssH=Math.min(viewH,520);
+  const centerCssX=player.x-camera.x,centerCssY=player.y-camera.y;
+  let srcCssX=centerCssX-cropCssW/2,srcCssY=centerCssY-cropCssH/2;
+  srcCssX=Math.max(0,Math.min(Math.max(0,viewW-cropCssW),srcCssX));
+  srcCssY=Math.max(0,Math.min(Math.max(0,viewH-cropCssH),srcCssY));
+  try{
+    nctx.drawImage(
+      game,
+      srcCssX*dpr,srcCssY*dpr,cropCssW*dpr,cropCssH*dpr,
+      0,0,W,H
+    );
+  }catch{}
+
+  // 현재 위치가 어디인지 쉽게 알 수 있게 작은 십자 표시만 추가합니다.
+  const px=(centerCssX-srcCssX)/cropCssW*W,py=(centerCssY-srcCssY)/cropCssH*H;
+  nctx.save();nctx.strokeStyle="rgba(255,255,255,.95)";nctx.lineWidth=4;
+  nctx.beginPath();nctx.arc(px,py,11,0,Math.PI*2);nctx.stroke();
+  nctx.strokeStyle="#2563eb";nctx.lineWidth=2;
+  nctx.beginPath();nctx.arc(px,py,11,0,Math.PI*2);nctx.stroke();
+  nctx.fillStyle="rgba(15,23,42,.82)";nctx.fillRect(6,H-25,104,19);
+  nctx.fillStyle="#fff";nctx.font="800 11px system-ui";nctx.fillText("○ 현재 내 위치",11,H-11);nctx.restore();
+}
+refreshNearbyBtn.onclick=()=>{draw();updateNearbyReference();};
+
 function openPropBuilder(){
   if(!running||!player||!(mode==="hider"||mode==="tour"))return;
   if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 만들 수 있어요.");return;}
   builderParts=player.disguise==="custom"&&Array.isArray(player.customParts)?JSON.parse(JSON.stringify(player.customParts)):[];
   builderSelected=builderParts.length?builderParts.length-1:-1;
   builderColor=builderParts[builderSelected]?.c||builderPalette()[0];
+  // 오버레이를 열기 직전에 실제 게임 화면을 한 번 갱신해 주변 사물을 최신 상태로 캡처합니다.
+  draw();updateNearbyReference();
   builderOpen=true;propBuilder.style.display="flex";touchControls.style.display="none";keys={};
   renderBuilderColors();drawBuilder();
+  requestAnimationFrame(updateNearbyReference);
 }
 function closePropBuilder(){builderOpen=false;builderDrag=null;propBuilder.style.display="none";builderCanvas.classList.remove("dragging");}
 async function applyBuiltDisguise(){
