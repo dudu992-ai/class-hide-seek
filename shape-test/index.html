@@ -177,7 +177,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
       </select></div>
       <div class="row" style="align-items:end">
         <div class="field" style="flex:1;min-width:190px;margin:6px 0"><label for="hideTimeSelect">🙈 숨고 만드는 시간</label><select id="hideTimeSelect">
-          <option value="30">30초</option><option value="60">1분</option><option value="90">1분 30초</option><option value="120">2분</option>
+          <option value="30">30초</option><option value="40">40초</option><option value="60">1분</option><option value="90">1분 30초</option><option value="120">2분</option>
           <option value="150">2분 30초</option><option value="180">3분</option><option value="210">3분 30초</option><option value="240">4분</option>
           <option value="270">4분 30초</option><option value="300">5분</option>
         </select></div>
@@ -1536,7 +1536,7 @@ async function createRoom(){
   roomCode=code;isHost=true;
   const base="rooms/"+roomCode,now=Date.now()+serverOffset;
   await fb.set(fb.ref(db,base+"/hostUid"),uid);
-  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",hideSec:60,seekSec:300,createdAt:now,paused:false});
+  await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",hideSec:40,seekSec:180,createdAt:now,paused:false});
   const pr=fb.ref(db,base+"/players/"+uid);
   await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
   try{await fb.onDisconnect(pr).update({connected:false});}catch{}
