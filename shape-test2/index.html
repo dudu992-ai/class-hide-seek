@@ -1128,7 +1128,7 @@ function drawWorld(){
   if(online){
     for(const [id,raw] of Object.entries(netPlayers)){
       const p=renderPlayers[id]||raw;
-      if(id===uid||caughtNet[id]||roles[id]!=="hider"||!p.disguiseOriginId)continue;
+      if(id===uid||isCaughtThisRound(id)||roles[id]!=="hider"||!p.disguiseOriginId)continue;
       const origin=props.find(o=>o.id===p.disguiseOriginId);
       if(origin&&Math.hypot(origin.x-p.x,origin.y-p.y)<9)occupied.add(p.disguiseOriginId);
     }
@@ -1150,7 +1150,7 @@ function drawWorld(){
   // 2) 숨는 사람(변신 사물 포함)을 배경 사물 위, 술래 아래에 그립니다.
   if(online){
     for(const [id,raw] of Object.entries(netPlayers)){
-      if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
+      if(id===uid||roles[id]!=="hider"||isCaughtThisRound(id))continue;
       const p=renderPlayers[id]||raw;
       ctx.save();ctx.translate(-camera.x,-camera.y);
       if(p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor,customParts:p.customParts,shapeBaseId:p.disguiseOriginId||null,fakeKey:id});
@@ -1470,7 +1470,7 @@ async function kickPlayer(id){
   await fb.update(fb.ref(db),updates);
 }
 async function subscribeRoom(){
-  clearSubs();online=true;showLobby();
+  clearSubs();caughtNet={};searchesNet={};roles={};renderPlayers={};online=true;showLobby();
   const base="rooms/"+roomCode;
   unsubs.push(fb.onValue(fb.ref(db,base+"/state"),snap=>{
     roomState=snap.val()||{};
@@ -1502,7 +1502,7 @@ async function subscribeRoom(){
   unsubs.push(fb.onValue(fb.ref(db,base+"/roles"),snap=>{roles=snap.val()||{};maybeEnterRound();}));
   unsubs.push(fb.onValue(fb.ref(db,base+"/caught"),snap=>{
     caughtNet=snap.val()||{};
-    if(running&&mode==="hider"&&uid&&!!caughtNet[uid])enterObserver();
+    if(running&&mode==="hider"&&uid&&isCaughtThisRound(uid))enterObserver();
   }));
   unsubs.push(fb.onValue(fb.ref(db,base+"/searches"),snap=>{searchesNet=snap.val()||{};if(uid&&roles[uid]==="seeker")searches=Number(searchesNet[uid]||0);}));
 }
@@ -1514,7 +1514,7 @@ function maybeEnterRound(){
   if(!assignedRole)return;
   // 역할 경로가 늦게 도착하더라도 state의 술래 목록으로 즉시 올바른 역할을 적용합니다.
   if(roundApplied===round)return;
-  roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";mode=assignedRole;
+  roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";caughtNet={};mode=assignedRole;
   roles[uid]=assignedRole;
   helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
   player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null},netPlayers[uid]);
@@ -1555,7 +1555,7 @@ async function joinRoom(){
   const base="rooms/"+code;
   const [hostSnap,stateSnap,playersSnap]=await Promise.all([fb.get(fb.ref(db,base+"/hostUid")),fb.get(fb.ref(db,base+"/state")),fb.get(fb.ref(db,base+"/players"))]);
   if(!hostSnap.exists()){say("없는 방 코드입니다.");return;}
-  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 이전 참가자는 새로고침 후 자동 복구됩니다.");return;}
+  if((stateSnap.val()||{}).phase!=="lobby"){say("이미 게임이 시작된 방입니다. 다음 라운드 대기실에서 다시 참가해 주세요.");return;}
   const ps=playersSnap.val()||{},activeCount=Object.values(ps).filter(p=>p&&p.connected!==false).length;
   if(activeCount>=30){say("방이 가득 찼습니다.");return;}
   roomCode=code;isHost=hostSnap.val()===uid;
@@ -1579,6 +1579,22 @@ function getRoundSeekerIds(){
   if(v&&typeof v==="object")return Object.values(v).filter(Boolean);
   return [];
 }
+function caughtInfoThisRound(id){
+  const info=caughtNet[id];
+  if(!info)return null;
+  const round=Number(roomState&&roomState.round||0);
+  if(info&&typeof info==="object"){
+    const taggedRound=Number(info.round||0);
+    if(taggedRound>0)return taggedRound===round?info:null;
+    // Backward compatibility for catches created before round tagging:
+    // accept only if the timestamp belongs to the currently active round.
+    const at=Number(info.caughtAt||0),revealStart=Number(roomState.revealEndsAt||0)-3000;
+    if(at>0&&(!revealStart||at>=revealStart))return info;
+  }
+  return null;
+}
+function isCaughtThisRound(id){return !!caughtInfoThisRound(id);}
+
 async function startOnlineRound(force=false){
   if(!online||!isHost)return;
   const ids=activePlayerIds();
@@ -1617,7 +1633,7 @@ async function startOnlineRound(force=false){
   });
   ids.forEach((id,i)=>{
     const r=seekers.has(id)?"seeker":"hider";
-    updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=false;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
+    updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=null;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
     let x,y;if(r==="seeker"){x=1100+(i%5)*55;y=655+Math.floor(i/5)*45;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
     updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;
     updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customParts"]=null;
@@ -2076,7 +2092,7 @@ async function inspect(){
   props.forEach(p=>{if(p.type!=="gardenBed"&&p.type!=="board")candidates.push({kind:"prop",obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});});
   if(online){
     for(const [id,p] of Object.entries(netPlayers)){
-      if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
+      if(id===uid||roles[id]!=="hider"||isCaughtThisRound(id))continue;
       candidates.push({kind:"hider",id,obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});
     }
   }else{
@@ -2089,7 +2105,7 @@ async function inspect(){
   if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/searches/"+uid),searches);
   if(c.kind==="hider"){
     if(online){
-      const info={caughtAt:Date.now()+serverOffset,caughtBy:uid};
+      const info={caughtAt:Date.now()+serverOffset,caughtBy:uid,round:Number(roomState.round||0)};
       caughtNet[c.id]=info;
       await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),info);
     }else c.obj.found=true;
@@ -2134,8 +2150,8 @@ async function commitRoundStats(finishAt=gameNow()){
       }
       const participantIds=Object.keys(roles).filter(id=>netPlayers[id]);
       const catcherCounts={};participantIds.forEach(id=>{if(roles[id]==="seeker")catcherCounts[id]=0;});
-      participantIds.filter(id=>roles[id]==="hider"&&caughtNet[id]).forEach(id=>{
-        const info=caughtNet[id];
+      participantIds.filter(id=>roles[id]==="hider"&&isCaughtThisRound(id)).forEach(id=>{
+        const info=caughtInfoThisRound(id);
         if(info&&typeof info==="object"&&info.caughtBy&&catcherCounts[info.caughtBy]!=null)catcherCounts[info.caughtBy]++;
       });
       const updates={};
@@ -2143,7 +2159,7 @@ async function commitRoundStats(finishAt=gameNow()){
         const p=netPlayers[id]||{},old=p.stats||{};
         const next={rounds:Number(old.rounds||0)+1,survived:Number(old.survived||0),catches:Number(old.catches||0),bestSurvivalSec:Number(old.bestSurvivalSec||0)};
         if(roles[id]==="hider"){
-          const info=caughtNet[id];
+          const info=caughtInfoThisRound(id);
           let survivedSec=Math.max(0,Math.min(180,Math.round((Number(finishAt||roundEnd)-hideUntil)/1000)));
           if(info){
             survivedSec=(info&&typeof info==="object")?Math.max(0,Math.min(180,Math.round((Number(info.caughtAt||hideUntil)-hideUntil)/1000))):0;
@@ -2172,7 +2188,7 @@ async function returnToLobby(){
   await fb.update(fb.ref(db),updates);
 }
 async function sendTaunt(){
-  if(!online||mode!=="hider"||!player||caughtNet[uid]||roomState.paused)return;
+  if(!online||mode!=="hider"||!player||isCaughtThisRound(uid)||roomState.paused)return;
   const now=gameNow();
   if(now<hideUntil){say("술래가 출발한 뒤에 도발할 수 있어요!");return;}
   const prev=Number((netPlayers[uid]&&netPlayers[uid].tauntAt)||0);
@@ -2182,7 +2198,7 @@ async function sendTaunt(){
   playSfx("taunt");say("😜 도발! 가까운 술래에게 소리가 들립니다.");
 }
 function updateTauntButton(now){
-  const show=online&&running&&mode==="hider"&&!caughtNet[uid]&&now>=hideUntil;
+  const show=online&&running&&mode==="hider"&&!isCaughtThisRound(uid)&&now>=hideUntil;
   tauntBtn.style.display=show?"inline-block":"none";
   if(!show)return;
   const prev=Number((netPlayers[uid]&&netPlayers[uid].tauntAt)||0),left=Math.max(0,prev+30000-now);
@@ -2192,7 +2208,7 @@ function updateTauntButton(now){
 function checkIncomingTaunts(now){
   if(!online||!running||mode!=="seeker"||roomState.paused||now<hideUntil||!player)return;
   for(const [id,p] of Object.entries(netPlayers)){
-    if(roles[id]!=="hider"||caughtNet[id])continue;
+    if(roles[id]!=="hider"||isCaughtThisRound(id))continue;
     const ta=Number(p.tauntAt||0);if(!ta||ta<=Number(seenTaunts[id]||0))continue;
     seenTaunts[id]=ta;
     if(now-ta<=3000&&Math.hypot(player.x-Number(p.x||0),player.y-Number(p.y||0))<=520){
@@ -2223,18 +2239,18 @@ function buildOnlineResultHtml(msg){
   const stateSeekers=new Set(getRoundSeekerIds());
   const seekerIds=stateSeekers.size?[...stateSeekers].filter(id=>netPlayers[id]):Object.keys(netPlayers).filter(id=>roles[id]==="seeker");
   const hiderIds=stateSeekers.size?Object.keys(netPlayers).filter(id=>!stateSeekers.has(id)):Object.keys(netPlayers).filter(id=>roles[id]==="hider");
-  const caughtIds=hiderIds.filter(id=>!!caughtNet[id]);
-  const survivedIds=hiderIds.filter(id=>!caughtNet[id]);
+  const caughtIds=hiderIds.filter(id=>isCaughtThisRound(id));
+  const survivedIds=hiderIds.filter(id=>!isCaughtThisRound(id));
 
   const catcherCounts={};
   seekerIds.forEach(id=>catcherCounts[id]=0);
   caughtIds.forEach(id=>{
-    const info=caughtNet[id];
-    if(info&&typeof info==="object"&&info.caughtBy&&catcherCounts[info.caughtBy]!=null)catcherCounts[info.caughtBy]++;
+    const info=caughtInfoThisRound(id);
+    if(info&&info.caughtBy&&catcherCounts[info.caughtBy]!=null)catcherCounts[info.caughtBy]++;
   });
 
   const caughtSorted=caughtIds.slice().sort((a,b)=>{
-    const ia=caughtNet[a],ib=caughtNet[b];
+    const ia=caughtInfoThisRound(a),ib=caughtInfoThisRound(b);
     const ta=ia&&typeof ia==="object"?Number(ia.caughtAt||0):0;
     const tb=ib&&typeof ib==="object"?Number(ib.caughtAt||0):0;
     return ta-tb;
@@ -2246,7 +2262,7 @@ function buildOnlineResultHtml(msg){
 
   const caughtHtml=caughtSorted.length
     ? "<ul class=\"resultList\">"+caughtSorted.map(id=>{
-        const info=caughtNet[id];
+        const info=caughtInfoThisRound(id);
         const name=escHtml(netPlayers[id]?.name||"학생");
         let timeText="시간 기록 없음",catcherText="술래 기록 없음";
         if(info&&typeof info==="object"){
@@ -2311,7 +2327,7 @@ function snapshotSurvivors(){
   const roundSeekers=new Set(getRoundSeekerIds());
   return Object.keys(netPlayers)
     .filter(id=>{
-      if(!netPlayers[id]||!!caughtNet[id])return false;
+      if(!netPlayers[id]||isCaughtThisRound(id))return false;
       // Prefer the authoritative seekerIds stored in room state so seekers and hiders
       // always calculate exactly the same survivor list even if /roles arrives late.
       if(roundSeekers.size)return !roundSeekers.has(id);
@@ -2469,14 +2485,14 @@ function finish(win,msg){
 }
 function updateHud(t){
   if(mode==="tour"){phaseEl.textContent="자유 탐험";timerEl.textContent="⏱ --:--";triesEl.textContent="🔍 --";aliveEl.textContent="🙈 --";return;}
-  const onlineHiders=online?Object.keys(netPlayers).filter(id=>roles[id]==="hider"):[],aliveHiders=online?onlineHiders.filter(id=>!caughtNet[id]).length:0;
+  const onlineHiders=online?Object.keys(netPlayers).filter(id=>roles[id]==="hider"):[],aliveHiders=online?onlineHiders.filter(id=>!isCaughtThisRound(id)).length:0;
   const teamSearch=online?Object.keys(netPlayers).filter(id=>roles[id]==="seeker").reduce((sum,id)=>sum+Number(searchesNet[id]||0),0):searches;
   if(mode==="hider"){
     if(t<hideUntil){phaseEl.textContent="숨기 "+Math.ceil((hideUntil-t)/1000)+"초";phaseEl.className="pill good";}
     else{phaseEl.textContent="술래 탐색 중";phaseEl.className="pill danger";}
     const remain=Math.max(0,roundEnd-t);timerEl.textContent="⏱ "+String(Math.floor(remain/60000)).padStart(2,"0")+":"+String(Math.floor(remain/1000)%60).padStart(2,"0");
     triesEl.textContent=online?"🔍 술래 팀 "+teamSearch:"🔍 술래 탐색 "+searches;aliveEl.textContent=online?"🙈 생존 "+aliveHiders:(player&&player.caught?"🙈 0":"🙈 1");
-    if(online&&caughtNet[uid])enterObserver();
+    if(online&&isCaughtThisRound(uid))enterObserver();
     else if(t>=roundEnd)finish(true,"제한시간 끝까지 사물로 숨어 살아남았습니다!");
     else if(teamSearch<=0&&t>=hideUntil)finish(true,"술래들이 탐색 기회를 모두 사용했습니다. 숨는 사람 승리!");
   }else if(mode==="observer"){
@@ -2521,7 +2537,7 @@ function updateSeekerProximity(now){
   }
   let nearest=Infinity;
   for(const [id,p] of Object.entries(netPlayers)){
-    if(id===uid||roles[id]!=="hider"||caughtNet[id])continue;
+    if(id===uid||roles[id]!=="hider"||isCaughtThisRound(id))continue;
     const d=Math.hypot(player.x-p.x,player.y-p.y);
     if(d<nearest)nearest=d;
   }
