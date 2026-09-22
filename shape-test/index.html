@@ -60,11 +60,14 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 #builderCanvas.dragging{cursor:grabbing}.builderPanel{background:#eef2f7;border-radius:12px;padding:10px}.builderPanel h3{margin:3px 0 8px;font-size:14px}
 .builderPalette{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.builderPalette button,.builderControls button{padding:9px 7px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;cursor:pointer}
 .builderPalette button:hover,.builderControls button:hover{filter:brightness(1.08)}
-.builderColors{display:flex;flex-wrap:wrap;gap:7px}.builderColor{width:29px;height:29px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #94a3b8;cursor:pointer}.builderColor.on{box-shadow:0 0 0 3px #2563eb}
+.builderColors{display:flex;flex-wrap:wrap;gap:7px;max-height:128px;overflow:auto;padding:3px}.builderColor{width:29px;height:29px;min-width:29px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #94a3b8;cursor:pointer}.builderColor.on{box-shadow:0 0 0 3px #2563eb}
 .builderControls{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px}.builderCount{font-size:12px;font-weight:800;color:#64748b;margin-top:8px}
 .builderReference{background:#eef2f7;border-radius:12px;padding:10px}.builderReference h3{margin:3px 0 6px;font-size:14px}.builderReference p{font-size:12px;line-height:1.4;color:#64748b;margin:0 0 8px}
-#nearbyCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#cbd5e1;border:2px solid #94a3b8;border-radius:10px}
+.nearbyTools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0}.nearbyTools button{border:0;border-radius:8px;padding:7px 9px;background:#475569;color:#fff;font-weight:800;cursor:pointer}.nearbyTools input[type=range]{flex:1;min-width:90px}.nearbyZoomLabel{font-size:12px;font-weight:900;color:#475569;min-width:36px;text-align:center}
+#nearbyCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#cbd5e1;border:2px solid #94a3b8;border-radius:10px;cursor:crosshair}
 #refreshNearbyBtn{width:100%;margin-top:8px;padding:8px 9px;border:0;border-radius:9px;background:#475569;color:#fff;font-weight:800;cursor:pointer}
+.builderReference.expanded{position:fixed;z-index:60;left:50%;top:50%;transform:translate(-50%,-50%);width:min(920px,94vw);max-height:92vh;overflow:auto;box-shadow:0 24px 80px rgba(0,0,0,.65);padding:16px}.builderReference.expanded #nearbyCanvas{width:min(820px,100%);margin:auto}.builderReference.expanded p{font-size:14px}
+.builderColorExtras{display:flex;align-items:center;gap:8px;margin-top:8px;font-size:12px;font-weight:800;color:#475569}.builderColorExtras input[type=color]{width:42px;height:32px;padding:0;border:1px solid #94a3b8;border-radius:8px;background:#fff}
 @media(max-width:960px){.builderLayout{grid-template-columns:minmax(300px,1fr) 250px}.builderReference{grid-column:1/2;grid-row:2}.builderPanel{grid-column:2;grid-row:1/3}}
 @media(max-width:720px){.builderLayout{grid-template-columns:1fr}.builderReference,.builderPanel{grid-column:auto;grid-row:auto}.builderReference{order:2}.builderPanel{order:3}#builderCanvas{max-height:43vh}.builderPalette{grid-template-columns:repeat(3,1fr)}}
 #teacherPanel{display:none}.adminKickList{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:7px;max-height:240px;overflow:auto;margin-top:10px}.adminKickRow{display:flex;align-items:center;justify-content:space-between;gap:6px;background:#eef2f7;border-radius:9px;padding:7px 9px;font-size:13px;font-weight:800}.adminKickRow button{padding:7px 9px;font-size:12px;background:#b91c1c}.adminStatus{font-size:13px;color:#475569;background:#eef2f7;border-radius:10px;padding:9px 10px;margin:10px 0}
@@ -131,8 +134,15 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
         <canvas id="builderCanvas" width="480" height="320"></canvas>
         <div class="builderReference">
           <h3>👀 근처 사물 참고</h3>
-          <p>현재 내 위치 주변의 실제 맵 모습이에요. 옆의 사물들을 보면서 비슷하게 만들어 보세요.</p>
-          <canvas id="nearbyCanvas" width="360" height="270"></canvas>
+          <p>현재 내 위치 주변의 실제 맵 모습이에요. <b>화면을 클릭하면 그 색을 그대로 가져올 수 있어요.</b></p>
+          <div class="nearbyTools">
+            <button id="nearbyZoomOut" type="button">−</button>
+            <input id="nearbyZoom" type="range" min="1" max="4" step="0.5" value="1" aria-label="주변 화면 확대">
+            <button id="nearbyZoomIn" type="button">＋</button>
+            <span id="nearbyZoomLabel" class="nearbyZoomLabel">1×</span>
+            <button id="nearbyExpandBtn" type="button">🔍 크게 보기</button>
+          </div>
+          <canvas id="nearbyCanvas" width="480" height="360"></canvas>
           <button id="refreshNearbyBtn" type="button">🔄 주변 모습 다시 보기</button>
         </div>
         <div class="builderPanel">
@@ -147,6 +157,8 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           </div>
           <h3 style="margin-top:12px">② 색</h3>
           <div id="builderColors" class="builderColors"></div>
+          <div class="builderColorExtras"><span>🎨 직접 색 선택</span><input id="builderColorPicker" type="color" value="#8b5e35"></div>
+          <div class="builderCount" style="margin-top:5px">※ 근처 참고 화면을 클릭하면 그 위치의 색도 바로 사용할 수 있어요.</div>
           <h3 style="margin-top:12px">③ 선택한 도형 조절</h3>
           <div class="builderControls">
             <button id="builderWMinus" type="button">↔ 가로 −</button><button id="builderWPlus" type="button">↔ 가로 +</button>
@@ -238,7 +250,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <ul>
             <li><b>WASD / 방향키</b>로 이동합니다.</li>
             <li>숨는 사람은 <b>달릴 수 없습니다.</b> Shift를 눌러도 이동 속도가 빨라지지 않습니다.</li>
-            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대를 골라 직접 사물 모습을 만듭니다. 만들기 화면 옆에는 <b>현재 위치 주변의 실제 맵 모습</b>이 함께 표시되어 근처 사물을 참고할 수 있습니다.</li>
+            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대를 골라 직접 사물 모습을 만듭니다. 만들기 화면 옆에는 <b>현재 위치 주변의 실제 맵 모습</b>이 함께 표시됩니다. 참고 화면은 <b>1~4배 확대</b>할 수 있고, 화면을 클릭하면 그 지점의 <b>실제 색을 그대로 가져와</b> 사용할 수 있습니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
             <li>술래 출발 후 <b>30초에 한 번 도발</b>할 수 있습니다. 가까운 술래에게 짧은 소리가 들립니다.</li>
@@ -329,7 +341,7 @@ const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
-const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),nearbyCanvas=document.getElementById("nearbyCanvas"),nctx=nearbyCanvas.getContext("2d"),builderColors=document.getElementById("builderColors"),builderCount=document.getElementById("builderCount"),refreshNearbyBtn=document.getElementById("refreshNearbyBtn");
+const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),nearbyCanvas=document.getElementById("nearbyCanvas"),nctx=nearbyCanvas.getContext("2d"),builderReference=document.querySelector(".builderReference"),nearbyZoom=document.getElementById("nearbyZoom"),nearbyZoomLabel=document.getElementById("nearbyZoomLabel"),nearbyZoomIn=document.getElementById("nearbyZoomIn"),nearbyZoomOut=document.getElementById("nearbyZoomOut"),nearbyExpandBtn=document.getElementById("nearbyExpandBtn"),builderColors=document.getElementById("builderColors"),builderColorPicker=document.getElementById("builderColorPicker"),builderCount=document.getElementById("builderCount"),refreshNearbyBtn=document.getElementById("refreshNearbyBtn");
 const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
 const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner");
 const mapSelect=document.getElementById("mapSelect"),hideTimeSelect=document.getElementById("hideTimeSelect"),seekTimeSelect=document.getElementById("seekTimeSelect"),readyBtn=document.getElementById("readyBtn"),lobbyAdminBtn=document.getElementById("lobbyAdminBtn");
@@ -338,7 +350,7 @@ const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
-let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35";
+let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35",nearbyZoomValue=1,nearbyBaseImage=null,nearbySampleColors=[];
 let touchMove={up:false,down:false,left:false,right:false};
 let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,customKey:"",at:0},statsCommitPromise=null;
 try{soundEnabled=localStorage.getItem("kkok_sound")!=="off";}catch{}
@@ -1745,20 +1757,46 @@ mapToggleBtn.addEventListener("click",()=>{
   mapVisible=!mapVisible;applyGamePanels();
 });
 
+function hexNorm(c){
+  if(!c)return null;
+  c=String(c).trim();
+  if(/^#[0-9a-f]{6}$/i.test(c))return c.toLowerCase();
+  if(/^#[0-9a-f]{3}$/i.test(c))return("#"+c[1]+c[1]+c[2]+c[2]+c[3]+c[3]).toLowerCase();
+  return null;
+}
+function rgbToHex(r,g,b){
+  return"#"+[r,g,b].map(v=>Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0")).join("");
+}
 function builderPalette(){
-  if(currentMapKey==="school2")return["#475569","#60a5fa","#e879a0","#22c55e","#f59e0b","#f8fafc","#1f2937","#a78bfa"];
-  if(currentMapKey==="museum")return["#7c6f60","#b89a62","#9ca3af","#c9a76a","#64748b","#d6d3d1","#7f6843","#3b82f6"];
-  if(currentMapKey==="amusement")return["#ef4444","#3b82f6","#22c55e","#f59e0b","#a855f7","#f472b6","#fde047","#f8fafc"];
-  return["#8b5e35","#a66f42","#64748b","#4f8b4d","#d97706","#2563eb","#f8fafc","#111827"];
+  const theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
+  const common=[
+    "#111827","#1f2937","#334155","#475569","#64748b","#7b8794","#94a3b8","#9ca3af","#cbd5e1","#d6d3d1","#e5e7eb","#f8fafc",
+    "#5b4635","#6b4428","#76583f","#7a4d2b","#7c6f60","#8b5e35","#9a6638","#9a6a45","#a66f42","#b16b45","#b77b45","#b77f42","#c9a76a","#d6a86c",
+    "#17472e","#2f6b3f","#3c7540","#447a43","#4f8b4d","#5d9857","#22c55e","#34d399",
+    "#172554","#1e3a8a","#2563eb","#3b82f6","#477db3","#60a5fa","#67e8f9","#0ea5e9",
+    "#4f46e5","#7c3aed","#a855f7","#a78bfa","#c084fc",
+    "#7f1d1d","#a94442","#dc2626","#ef4444","#f97316","#d97706","#f59e0b","#eab308","#facc15","#fde047",
+    "#b96387","#e879a0","#ec4899","#f472b6","#f9a8d4","#fbcfe8","#fce7f3","#fef3c7","#fff7ed"
+  ];
+  const themeColors=[theme.bg,theme.grid,theme.accent,...(theme.floors||[]),...(theme.walls||[])];
+  return [...new Set([...themeColors,...common,...nearbySampleColors].map(hexNorm).filter(Boolean))];
+}
+function setBuilderColor(c){
+  const h=hexNorm(c);if(!h)return;
+  builderColor=h;builderColorPicker.value=h;
+  if(builderSelected>=0&&builderParts[builderSelected])builderParts[builderSelected].c=h;
+  renderBuilderColors();drawBuilder();
 }
 function renderBuilderColors(){
   builderColors.innerHTML="";
   for(const c of builderPalette()){
     const b=document.createElement("button");b.type="button";b.className="builderColor"+(c===builderColor?" on":"");b.style.background=c;b.title=c;
-    b.onclick=()=>{builderColor=c;if(builderSelected>=0&&builderParts[builderSelected])builderParts[builderSelected].c=c;renderBuilderColors();drawBuilder();};
+    b.onclick=()=>setBuilderColor(c);
     builderColors.appendChild(b);
   }
 }
+builderColorPicker.addEventListener("input",()=>setBuilderColor(builderColorPicker.value));
+
 function drawBuilderPart(g,part,W,H,selected=false){
   const x=Number(part.x||.5)*W,y=Number(part.y||.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
   g.save();g.translate(x,y);g.rotate(Number(part.r||0));g.fillStyle=part.c||builderColor;g.strokeStyle=selected?"#2563eb":"rgba(15,23,42,.65)";g.lineWidth=selected?4:2;
@@ -1843,53 +1881,91 @@ document.getElementById("builderDelete").onclick=()=>{
   if(builderSelected<0)return;builderParts.splice(builderSelected,1);builderSelected=Math.min(builderSelected,builderParts.length-1);drawBuilder();
 };
 document.getElementById("builderClear").onclick=()=>{builderParts=[];builderSelected=-1;drawBuilder();};
+function sampleNearbyColors(){
+  if(!nearbyBaseImage)return;
+  const d=nearbyBaseImage.data,W=nearbyBaseImage.width,H=nearbyBaseImage.height,out=[],seen=new Set();
+  // 안티앨리어싱으로 생기는 수천 색은 16단계로 묶고, 실제 주변 화면에서 쓰인 색을 팔레트에 추가합니다.
+  for(let y=0;y<H;y+=8){
+    for(let x=0;x<W;x+=8){
+      const i=(y*W+x)*4,a=d[i+3];if(a<220)continue;
+      const r=Math.round(d[i]/16)*16,g=Math.round(d[i+1]/16)*16,b=Math.round(d[i+2]/16)*16;
+      const hex=rgbToHex(Math.min(255,r),Math.min(255,g),Math.min(255,b));
+      if(!seen.has(hex)){seen.add(hex);out.push(hex);}
+      if(out.length>=72)break;
+    }
+    if(out.length>=72)break;
+  }
+  nearbySampleColors=out;
+  renderBuilderColors();
+}
 function updateNearbyReference(){
   const W=nearbyCanvas.width,H=nearbyCanvas.height;
   nctx.clearRect(0,0,W,H);
   nctx.fillStyle="#cbd5e1";nctx.fillRect(0,0,W,H);
+  nearbyZoomValue=Math.max(1,Math.min(4,Number(nearbyZoom.value)||1));
+  nearbyZoom.value=String(nearbyZoomValue);nearbyZoomLabel.textContent=nearbyZoomValue+"×";
   if(!player||!game.width||!game.height){
     nctx.fillStyle="#475569";nctx.font="700 15px system-ui";nctx.textAlign="center";
     nctx.fillText("주변 모습을 불러올 수 없습니다.",W/2,H/2);nctx.textAlign="left";return;
   }
 
-  // 현재 플레이 화면에서 플레이어 주변만 잘라 보여 주므로 실제 맵 사물의 모양/색/배치를 그대로 참고할 수 있습니다.
-  const cropCssW=Math.min(viewW,700),cropCssH=Math.min(viewH,520);
+  // 1x는 넓은 주변, 배율을 올릴수록 내 주변을 더 크게 확대해 보여줍니다.
+  const baseW=Math.min(viewW,760),baseH=Math.min(viewH,570);
+  const cropCssW=Math.max(150,baseW/nearbyZoomValue),cropCssH=Math.max(112,baseH/nearbyZoomValue);
   const centerCssX=player.x-camera.x,centerCssY=player.y-camera.y;
   let srcCssX=centerCssX-cropCssW/2,srcCssY=centerCssY-cropCssH/2;
   srcCssX=Math.max(0,Math.min(Math.max(0,viewW-cropCssW),srcCssX));
   srcCssY=Math.max(0,Math.min(Math.max(0,viewH-cropCssH),srcCssY));
   try{
-    nctx.drawImage(
-      game,
-      srcCssX*dpr,srcCssY*dpr,cropCssW*dpr,cropCssH*dpr,
-      0,0,W,H
-    );
-  }catch{}
+    nctx.drawImage(game,srcCssX*dpr,srcCssY*dpr,cropCssW*dpr,cropCssH*dpr,0,0,W,H);
+    nearbyBaseImage=nctx.getImageData(0,0,W,H);
+    sampleNearbyColors();
+  }catch{nearbyBaseImage=null;}
 
-  // 현재 위치가 어디인지 쉽게 알 수 있게 작은 십자 표시만 추가합니다.
   const px=(centerCssX-srcCssX)/cropCssW*W,py=(centerCssY-srcCssY)/cropCssH*H;
   nctx.save();nctx.strokeStyle="rgba(255,255,255,.95)";nctx.lineWidth=4;
   nctx.beginPath();nctx.arc(px,py,11,0,Math.PI*2);nctx.stroke();
-  nctx.strokeStyle="#2563eb";nctx.lineWidth=2;
-  nctx.beginPath();nctx.arc(px,py,11,0,Math.PI*2);nctx.stroke();
-  nctx.fillStyle="rgba(15,23,42,.82)";nctx.fillRect(6,H-25,104,19);
+  nctx.strokeStyle="#2563eb";nctx.lineWidth=2;nctx.beginPath();nctx.arc(px,py,11,0,Math.PI*2);nctx.stroke();
+  nctx.fillStyle="rgba(15,23,42,.82)";nctx.fillRect(6,H-25,126,19);
   nctx.fillStyle="#fff";nctx.font="800 11px system-ui";nctx.fillText("○ 현재 내 위치",11,H-11);nctx.restore();
 }
+function setNearbyZoom(v){
+  nearbyZoom.value=String(Math.max(1,Math.min(4,Number(v)||1)));
+  updateNearbyReference();
+}
+nearbyZoom.addEventListener("input",()=>setNearbyZoom(nearbyZoom.value));
+nearbyZoomIn.onclick=()=>setNearbyZoom(Number(nearbyZoom.value)+.5);
+nearbyZoomOut.onclick=()=>setNearbyZoom(Number(nearbyZoom.value)-.5);
+nearbyExpandBtn.onclick=()=>{
+  builderReference.classList.toggle("expanded");
+  nearbyExpandBtn.textContent=builderReference.classList.contains("expanded")?"↙ 원래 크기":"🔍 크게 보기";
+  requestAnimationFrame(updateNearbyReference);
+};
 refreshNearbyBtn.onclick=()=>{draw();updateNearbyReference();};
+
+// 참고 화면을 클릭하면 그 지점의 실제 색을 스포이드처럼 가져옵니다.
+nearbyCanvas.addEventListener("pointerdown",e=>{
+  if(!nearbyBaseImage)return;
+  const r=nearbyCanvas.getBoundingClientRect();
+  const x=Math.max(0,Math.min(nearbyBaseImage.width-1,Math.floor((e.clientX-r.left)*nearbyBaseImage.width/r.width)));
+  const y=Math.max(0,Math.min(nearbyBaseImage.height-1,Math.floor((e.clientY-r.top)*nearbyBaseImage.height/r.height)));
+  const i=(y*nearbyBaseImage.width+x)*4,d=nearbyBaseImage.data;
+  setBuilderColor(rgbToHex(d[i],d[i+1],d[i+2]));
+});
 
 function openPropBuilder(){
   if(!running||!player||!(mode==="hider"||mode==="tour"))return;
   if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 만들 수 있어요.");return;}
   builderParts=player.disguise==="custom"&&Array.isArray(player.customParts)?JSON.parse(JSON.stringify(player.customParts)):[];
   builderSelected=builderParts.length?builderParts.length-1:-1;
-  builderColor=builderParts[builderSelected]?.c||builderPalette()[0];
+  builderColor=builderParts[builderSelected]?.c||builderPalette()[0];builderColorPicker.value=hexNorm(builderColor)||"#8b5e35";
   // 오버레이를 열기 직전에 실제 게임 화면을 한 번 갱신해 주변 사물을 최신 상태로 캡처합니다.
   draw();updateNearbyReference();
   builderOpen=true;propBuilder.style.display="flex";touchControls.style.display="none";keys={};
   renderBuilderColors();drawBuilder();
   requestAnimationFrame(updateNearbyReference);
 }
-function closePropBuilder(){builderOpen=false;builderDrag=null;propBuilder.style.display="none";builderCanvas.classList.remove("dragging");}
+function closePropBuilder(){builderOpen=false;builderDrag=null;propBuilder.style.display="none";builderCanvas.classList.remove("dragging");builderReference.classList.remove("expanded");nearbyExpandBtn.textContent="🔍 크게 보기";}
 async function applyBuiltDisguise(){
   if(builderParts.length<2){say("도형을 2개 이상 조합해 주세요.");return;}
   player.disguise="custom";player.customParts=JSON.parse(JSON.stringify(builderParts));player.flowerColor=null;player.disguiseOriginId=null;
