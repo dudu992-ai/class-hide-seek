@@ -361,6 +361,7 @@ const mapSelect=document.getElementById("mapSelect"),hideTimeSelect=document.get
 const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
+const SEEK_CONE_RADIUS=118,SEEK_CONE_HALF=Math.PI/5; // 약 72도 부채꼴
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
 let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35",nearbyZoomValue=1,nearbyBaseImage=null,nearbySampleColors=[];
@@ -1022,6 +1023,99 @@ function drawProp(p){
   }
   ctx.restore();
 }
+function normAngle(a){
+  while(a>Math.PI)a-=Math.PI*2;
+  while(a<-Math.PI)a+=Math.PI*2;
+  return a;
+}
+function pointInSeekCone(px,py,ent=player){
+  if(!ent)return false;
+  const dx=px-Number(ent.x||0),dy=py-Number(ent.y||0),d=Math.hypot(dx,dy);
+  if(d>SEEK_CONE_RADIUS||d<2)return false;
+  const facing=Number.isFinite(ent.facing)?ent.facing:-Math.PI/2;
+  return Math.abs(normAngle(Math.atan2(dy,dx)-facing))<=SEEK_CONE_HALF;
+}
+function rotatePoint(cx,cy,x,y,a){
+  const c=Math.cos(a),sn=Math.sin(a),dx=x-cx,dy=y-cy;
+  return{x:cx+dx*c-dy*sn,y:cy+dx*sn+dy*c};
+}
+function pushEdgeSamples(out,a,b,steps=6){
+  for(let i=0;i<=steps;i++){const t=i/steps;out.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});}
+}
+function customShapeSamples(p){
+  const out=[],base=propSize({type:"custom"}),W=base[0],H=base[1],parts=Array.isArray(p.customParts)?p.customParts:[];
+  for(const part of parts){
+    const cx=Number(p.x||0)+(Number(part.x??.5)-.5)*W;
+    const cy=Number(p.y||0)+(Number(part.y??.5)-.5)*H;
+    const pw=Math.max(5,Number(part.w||.2)*W),ph=Math.max(5,Number(part.h||.2)*H),rot=Number(part.r||0);
+    out.push({x:cx,y:cy});
+    if(part.t==="circle"||part.t==="ellipse"){
+      const rx=part.t==="circle"?Math.min(pw,ph)/2:pw/2,ry=part.t==="circle"?Math.min(pw,ph)/2:ph/2;
+      for(let i=0;i<24;i++){
+        const a=i/24*Math.PI*2;
+        const q=rotatePoint(cx,cy,cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,rot);
+        out.push(q);
+      }
+    }else if(part.t==="triangle"){
+      const pts=[
+        rotatePoint(cx,cy,cx,cy-ph/2,rot),
+        rotatePoint(cx,cy,cx+pw/2,cy+ph/2,rot),
+        rotatePoint(cx,cy,cx-pw/2,cy+ph/2,rot)
+      ];
+      pushEdgeSamples(out,pts[0],pts[1],8);pushEdgeSamples(out,pts[1],pts[2],8);pushEdgeSamples(out,pts[2],pts[0],8);
+    }else{
+      const pts=[
+        rotatePoint(cx,cy,cx-pw/2,cy-ph/2,rot),
+        rotatePoint(cx,cy,cx+pw/2,cy-ph/2,rot),
+        rotatePoint(cx,cy,cx+pw/2,cy+ph/2,rot),
+        rotatePoint(cx,cy,cx-pw/2,cy+ph/2,rot)
+      ];
+      pushEdgeSamples(out,pts[0],pts[1],8);pushEdgeSamples(out,pts[1],pts[2],8);pushEdgeSamples(out,pts[2],pts[3],8);pushEdgeSamples(out,pts[3],pts[0],8);
+    }
+  }
+  return out;
+}
+function objectShapeSamples(p){
+  if(p&&p.disguise==="custom"&&Array.isArray(p.customParts)&&p.customParts.length)return customShapeSamples(p);
+  if(p&&p.type==="custom"&&Array.isArray(p.customParts)&&p.customParts.length)return customShapeSamples(p);
+  const x=Number(p&&p.x||0),y=Number(p&&p.y||0);
+  if(p&&p.disguise){
+    const sz=propSize({type:p.disguise}),w=sz[0],h=sz[1],out=[];
+    for(let ix=0;ix<=4;ix++)for(let iy=0;iy<=4;iy++)out.push({x:x-w/2+w*ix/4,y:y-h/2+h*iy/4});
+    return out;
+  }
+  if(p&&p.type){
+    const b=propBounds(p),out=[];
+    for(let ix=0;ix<=4;ix++)for(let iy=0;iy<=4;iy++)out.push({x:b.x+b.w*ix/4,y:b.y+b.h*iy/4});
+    return out;
+  }
+  const out=[{x,y}];
+  for(let i=0;i<16;i++){const a=i/16*Math.PI*2;out.push({x:x+Math.cos(a)*22,y:y+Math.sin(a)*28});}
+  return out;
+}
+function seekConeHitDistance(p){
+  let best=Infinity;
+  for(const q of objectShapeSamples(p)){
+    if(pointInSeekCone(q.x,q.y,player))best=Math.min(best,Math.hypot(q.x-player.x,q.y-player.y));
+  }
+  return best;
+}
+function drawSeekCone(){
+  if(!player||mode!=="seeker"||!running)return;
+  const now=displayGameNow();
+  if(now<hideUntil||(online&&roomState.paused))return;
+  const a=Number.isFinite(player.facing)?player.facing:-Math.PI/2;
+  ctx.save();
+  ctx.fillStyle="rgba(220,38,38,.12)";
+  ctx.strokeStyle="rgba(220,38,38,.72)";
+  ctx.lineWidth=2.5;
+  ctx.beginPath();
+  ctx.moveTo(player.x,player.y);
+  ctx.arc(player.x,player.y,SEEK_CONE_RADIUS,a-SEEK_CONE_HALF,a+SEEK_CONE_HALF);
+  ctx.closePath();ctx.fill();ctx.stroke();
+  ctx.restore();
+}
+
 function drawCharacter(ent,isSeeker){
   ctx.save();
   ctx.fillStyle=isSeeker?"#dc2626":"#2563eb";ctx.beginPath();ctx.arc(ent.x,ent.y-4,14,0,Math.PI*2);ctx.fill();
@@ -1198,9 +1292,10 @@ function drawWorld(){
     });
   }
 
-  // 내 술래 역시 모든 사물과 숨는 사람보다 가장 위에 표시합니다.
+  // 내 술래의 조사 부채꼴을 먼저 보여주고, 캐릭터는 그 위에 표시합니다.
   if(player&&mode==="seeker"){
     ctx.save();ctx.translate(-camera.x,-camera.y);
+    drawSeekCone();
     drawCharacter(player,true);
     ctx.restore();
   }
@@ -1517,7 +1612,8 @@ function maybeEnterRound(){
   roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";caughtNet={};mode=assignedRole;
   roles[uid]=assignedRole;
   helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
-  player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null},netPlayers[uid]);
+  player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,facing:-Math.PI/2},netPlayers[uid]);
+  if(!Number.isFinite(player.facing))player.facing=-Math.PI/2;
   hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);roleRevealUntil=Number(roomState.revealEndsAt||0);searches=Number(searchesNet[uid]||0);
   document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";teacherPanel.style.display="none";
   roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
@@ -1670,14 +1766,14 @@ function randomDisguiseHider(i){
 }
 function setupSeeker(){
   huntSignalShownRound=0;huntStartSignal.style.display="none";
-  const p=freePoint();player={x:p.x,y:p.y,disguise:null,customParts:null,caught:false};
+  const p=freePoint();player={x:p.x,y:p.y,disguise:null,customParts:null,caught:false,facing:-Math.PI/2};
   aiSeekers=[];aiHiders=[];for(let i=0;i<12;i++)aiHiders.push(randomDisguiseHider(i));
   const now=performance.now();
   searches=24;hideUntil=now+40000;roundEnd=hideUntil+180000;startTime=now;mode="seeker";running=true;
   roleEl.textContent="🔎 술래";roleEl.className="pill danger";say("숨는 사람에게 40초를 줍니다. 그동안 술래는 움직이거나 조사할 수 없습니다.");
 }
 function setupTour(){
-  mode="tour";running=true;helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();player={x:1200,y:760,disguise:null,customParts:null};aiHiders=[];aiSeekers=[];searches=0;hideUntil=0;roundEnd=0;roleEl.textContent="🗺 맵 구경";roleEl.className="pill";say("학교를 자유롭게 돌아다녀보세요. E로 주변 사물 변신도 시험할 수 있어요.");
+  mode="tour";running=true;helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();player={x:1200,y:760,disguise:null,customParts:null,facing:-Math.PI/2};aiHiders=[];aiSeekers=[];searches=0;hideUntil=0;roundEnd=0;roleEl.textContent="🗺 맵 구경";roleEl.className="pill";say("학교를 자유롭게 돌아다녀보세요. E로 주변 사물 변신도 시험할 수 있어요.");
 }
 function startGame(which){
   online=false;clearSubs();document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";
@@ -1730,7 +1826,7 @@ function updateGameHelp(){
   if(mode==="hider"){
     html="<b>이동</b> WASD / 방향키<br><b>사물 만들기</b> E → 도형 직접 조립<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 맵 사물처럼 자연스러운 모양 만들기";
   }else if(mode==="seeker"){
-    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시<br><b>도발 소리</b> 가까운 숨는 사람이 도발하면 짧은 소리가 들림";
+    html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space — 내 앞의 빨간 부채꼴 범위 조사<br><b>판정</b> 숨은 사람이 만든 도형이 조금이라도 범위에 닿으면 발견<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시<br><b>도발 소리</b> 가까운 숨는 사람이 도발하면 짧은 소리가 들림";
   }else if(mode==="observer"){
     html="<b>이동</b> WASD / 방향키<br><b>옵저버</b> 자유롭게 구경 가능<br><b>주의</b> 술래와 생존자에게 내 모습은 보이지 않음";
   }else if(mode==="tour"){
@@ -2088,19 +2184,37 @@ async function inspect(){
   if(mode==="seeker"&&displayGameNow()<hideUntil){say("아직 숨는 시간입니다. 카운트다운이 끝난 뒤 찾을 수 있어요!");return;}
   if(online)searches=Number(searchesNet[uid]||0);
   if(searches<=0){say("탐색 기회를 모두 사용했습니다!");return;}
-  let candidates=[];
-  props.forEach(p=>{if(p.type!=="gardenBed"&&p.type!=="board")candidates.push({kind:"prop",obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});});
+
+  let hiddenHits=[],propHits=[];
   if(online){
+    const stateSeekers=new Set(getRoundSeekerIds());
     for(const [id,p] of Object.entries(netPlayers)){
-      if(id===uid||roles[id]!=="hider"||isCaughtThisRound(id))continue;
-      candidates.push({kind:"hider",id,obj:p,d:Math.hypot(player.x-p.x,player.y-p.y)});
+      if(id===uid||isCaughtThisRound(id))continue;
+      const isHider=stateSeekers.size?!stateSeekers.has(id):roles[id]==="hider";
+      if(!isHider)continue;
+      const d=seekConeHitDistance(p);
+      if(Number.isFinite(d))hiddenHits.push({kind:"hider",id,obj:p,d});
     }
   }else{
-    aiHiders.forEach(h=>{if(!h.found)candidates.push({kind:"hider",obj:h,d:Math.hypot(player.x-h.x,player.y-h.y)});});
+    for(const h of aiHiders){
+      if(h.found)continue;
+      const d=seekConeHitDistance(h);
+      if(Number.isFinite(d))hiddenHits.push({kind:"hider",obj:h,d});
+    }
   }
-  candidates.sort((a,b)=>a.d-b.d);let c=candidates[0];
-  if(!c||c.d>82){say("조사할 사물에 더 가까이 가세요.");return;}
-  const hidden=candidates.find(v=>v.kind==="hider"&&v.d<=c.d+4);if(hidden)c=hidden;
+
+  // 일반 사물도 같은 부채꼴 안에 들어와야 '조사' 대상으로 인정합니다.
+  for(const p of props){
+    if(p.type==="gardenBed"||p.type==="board")continue;
+    const d=seekConeHitDistance(p);
+    if(Number.isFinite(d))propHits.push({kind:"prop",obj:p,d});
+  }
+
+  hiddenHits.sort((a,b)=>a.d-b.d);propHits.sort((a,b)=>a.d-b.d);
+  // 숨는 사람이 만든 도형의 어느 한 부분이라도 부채꼴에 걸리면 그 숨는 사람을 우선 잡습니다.
+  const c=hiddenHits[0]||propHits[0];
+  if(!c){say("🔻 빨간 조사 범위 안에 사물을 넣고 조사하세요.");return;}
+
   searches--;
   if(online)await fb.set(fb.ref(db,"rooms/"+roomCode+"/searches/"+uid),searches);
   if(c.kind==="hider"){
@@ -2110,10 +2224,10 @@ async function inspect(){
       await fb.set(fb.ref(db,"rooms/"+roomCode+"/caught/"+c.id),info);
     }else c.obj.found=true;
     playSfx("catch");
-    say("🎉 찾았다! 숨어 있던 친구를 발견했습니다.");
+    say("🎉 찾았다! 조사 범위 안의 숨은 친구를 발견했습니다.");
   }else{
     playSfx("miss");
-    say("❌ 그냥 평범한 사물이었습니다.");
+    say("❌ 조사 범위 안에는 평범한 사물만 있었습니다.");
   }
   updateHud(gameNow());
 }
@@ -2555,6 +2669,7 @@ function loop(t){
   const rawNow=gameNow(),now=(online&&roomState.paused)?Number(roomState.pausedAt||rawNow):rawNow;
   finalizeBuilderAtHideEnd(now);
   let dx=((keys.d||keys.arrowright||touchMove.right)?1:0)-((keys.a||keys.arrowleft||touchMove.left)?1:0),dy=((keys.s||keys.arrowdown||touchMove.down)?1:0)-((keys.w||keys.arrowup||touchMove.up)?1:0);
+  if(player&&mode==="seeker"&&(dx||dy))player.facing=Math.atan2(dy,dx);
   const sprint=(mode==="seeker"&&keys.shift)?1.45:1;let speed=190*sprint;if(player&&player.disguise)speed=105;
   const locked=builderOpen||(online&&(roomState.paused||now<roleRevealUntil));
   const seekerWaiting=(mode==="seeker"&&now<hideUntil);
