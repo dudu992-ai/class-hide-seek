@@ -60,7 +60,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 .builderTop{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.builderTop h2{margin:0}
 .builderHint{font-size:13px;color:#475569;background:#eef2f7;border-radius:10px;padding:8px 10px;margin:9px 0}
 .builderLayout{display:grid;grid-template-columns:minmax(330px,1fr) 260px 250px;gap:14px;align-items:start}
-#builderCanvas{display:block;width:100%;height:auto;aspect-ratio:3/2;background:#e2e8f0;border:2px solid #94a3b8;border-radius:12px;touch-action:none;cursor:grab}
+#builderCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#e2e8f0;border:2px solid #94a3b8;border-radius:12px;touch-action:none;cursor:grab}
 #builderCanvas.dragging{cursor:grabbing}.builderPanel{background:#eef2f7;border-radius:12px;padding:10px}.builderPanel h3{margin:3px 0 8px;font-size:14px}
 .builderPalette{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.builderPalette button,.builderControls button{padding:9px 7px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;cursor:pointer}
 .builderPalette button:hover,.builderControls button:hover{filter:brightness(1.08)}
@@ -133,9 +133,9 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <button id="builderDone" class="green" type="button">✅ 이 모습으로 숨기</button>
         </div>
       </div>
-      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색을 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. 최대 14개까지 사용할 수 있습니다.</div>
+      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색을 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. 최대 20개까지 사용할 수 있습니다.</div>
       <div class="builderLayout">
-        <canvas id="builderCanvas" width="480" height="320"></canvas>
+        <canvas id="builderCanvas" width="480" height="360"></canvas>
         <div class="builderReference">
           <h3>👀 근처 사물 참고</h3>
           <p>현재 내 위치 주변의 실제 맵 모습이에요. <b>화면을 클릭하면 그 색을 그대로 가져올 수 있어요.</b></p>
@@ -158,6 +158,12 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <button type="button" data-builder-shape="ellipse">⬭ 타원</button>
             <button type="button" data-builder-shape="triangle">▲ 삼각형</button>
             <button type="button" data-builder-shape="bar">▬ 막대</button>
+            <button type="button" data-builder-shape="diamond">◆ 마름모</button>
+            <button type="button" data-builder-shape="trapezoid">⏢ 사다리꼴</button>
+            <button type="button" data-builder-shape="pentagon">⬟ 오각형</button>
+            <button type="button" data-builder-shape="hexagon">⬢ 육각형</button>
+            <button type="button" data-builder-shape="star">★ 별</button>
+            <button type="button" data-builder-shape="semicircle">◠ 반원</button>
           </div>
           <h3 style="margin-top:12px">② 색</h3>
           <div id="builderColors" class="builderColors"></div>
@@ -171,7 +177,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
             <button id="builderBack" type="button">⬇ 뒤로</button><button id="builderFront" type="button">⬆ 앞으로</button>
             <button id="builderDelete" type="button">🗑 선택 삭제</button><button id="builderClear" type="button">🧹 전부 지우기</button>
           </div>
-          <div id="builderCount" class="builderCount">도형 0 / 14</div>
+          <div id="builderCount" class="builderCount">도형 0 / 20</div>
         </div>
       </div>
     </div>
@@ -254,7 +260,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <ul>
             <li><b>WASD / 방향키</b>로 이동합니다.</li>
             <li>숨는 사람은 <b>달릴 수 없습니다.</b> Shift를 눌러도 이동 속도가 빨라지지 않습니다.</li>
-            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대를 골라 직접 사물 모습을 만듭니다. 만들기 화면 옆에는 <b>현재 위치 주변의 실제 맵 모습</b>이 함께 표시됩니다. 참고 화면은 <b>1~4배 확대</b>할 수 있고, 화면을 클릭하면 그 지점의 <b>실제 색을 그대로 가져와</b> 사용할 수 있습니다.</li>
+            <li><b>E</b>를 누르면 도형 조립 화면이 열립니다. 네모·둥근네모·동그라미·타원·삼각형·막대·마름모·사다리꼴·오각형·육각형·별·반원을 골라 직접 사물 모습을 만듭니다. 만들기 화면 옆에는 <b>현재 위치 주변의 실제 맵 모습</b>이 함께 표시됩니다. 참고 화면은 <b>1~4배 확대</b>할 수 있고, 화면을 클릭하면 그 지점의 <b>실제 색을 그대로 가져와</b> 사용할 수 있습니다.</li>
             <li>꽃밭의 꽃, 교실의 의자·화분, 도서관의 책장 주변 사물 등으로 변신할 수 있습니다.</li>
             <li>변신한 뒤에도 움직일 수 있지만, 움직이면 술래에게 들킬 수 있으니 조심하세요.</li>
             <li>술래 출발 후 <b>30초에 한 번 도발</b>할 수 있습니다. 가까운 술래에게 짧은 소리가 들립니다.</li>
@@ -361,7 +367,7 @@ const mapSelect=document.getElementById("mapSelect"),hideTimeSelect=document.get
 const teacherPanel=document.getElementById("teacherPanel"),adminStatus=document.getElementById("adminStatus"),adminPauseBtn=document.getElementById("adminPauseBtn"),adminForceEndBtn=document.getElementById("adminForceEndBtn"),adminForceStartBtn=document.getElementById("adminForceStartBtn"),adminCloseBtn=document.getElementById("adminCloseBtn"),adminKickList=document.getElementById("adminKickList");
 const touchCapable=("ontouchstart" in window)||(navigator.maxTouchPoints||0)>0;
 const WORLD={w:2400,h:1600};
-const SEEK_CONE_RADIUS=118,SEEK_CONE_HALF=Math.PI/5; // 약 72도 부채꼴
+const SEEK_CONE_RADIUS=118,SEEK_CONE_HALF=Math.PI/6; // 약 60도 부채꼴
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
 let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35",nearbyZoomValue=1,nearbyBaseImage=null,nearbySampleColors=[];
@@ -675,6 +681,45 @@ function shapeFamily(t){
   if(["bench","museumBench","candyBench","sofa"].includes(t))return"seat";
   return"special";
 }
+
+function primitiveOutline(type,w,h,cornerRadius){
+  const pts=[],hw=w/2,hh=h/2,ellipse=(cx,cy,rx,ry,start,end,count)=>{
+    for(let i=0;i<=count;i++){
+      const a=start+(end-start)*i/count;
+      pts.push({x:cx+rx*Math.cos(a),y:cy+ry*Math.sin(a)});
+    }
+  };
+  if(type==="circle"){const r=Math.min(w,h)/2;ellipse(0,0,r,r,0,Math.PI*2,48);}
+  else if(type==="ellipse")ellipse(0,0,hw,hh,0,Math.PI*2,48);
+  else if(type==="semicircle"){ellipse(0,hh,hw,h,Math.PI,Math.PI*2,32);}
+  else if(type==="triangle")pts.push({x:0,y:-hh},{x:hw,y:hh},{x:-hw,y:hh});
+  else if(type==="diamond")pts.push({x:0,y:-hh},{x:hw,y:0},{x:0,y:hh},{x:-hw,y:0});
+  else if(type==="trapezoid")pts.push({x:-w*.28,y:-hh},{x:w*.28,y:-hh},{x:hw,y:hh},{x:-hw,y:hh});
+  else if(type==="pentagon"||type==="hexagon"){
+    const n=type==="pentagon"?5:6,offset=n===5?-Math.PI/2:0;
+    for(let i=0;i<n;i++){const a=offset+i*2*Math.PI/n;pts.push({x:hw*Math.cos(a),y:hh*Math.sin(a)});}
+  }else if(type==="star"){
+    for(let i=0;i<10;i++){
+      const a=-Math.PI/2+i*Math.PI/5,r=i%2?.44:1;
+      pts.push({x:hw*r*Math.cos(a),y:hh*r*Math.sin(a)});
+    }
+  }else if(type==="round"){
+    const r=Math.max(0,Math.min(hw,hh,cornerRadius??Math.min(18,Math.min(w,h)*.28)));
+    const corners=[
+      [hw-r,-hh+r,-Math.PI/2,0],[hw-r,hh-r,0,Math.PI/2],
+      [-hw+r,hh-r,Math.PI/2,Math.PI],[-hw+r,-hh+r,Math.PI,Math.PI*1.5]
+    ];
+    for(const [cx,cy,a,b] of corners)ellipse(cx,cy,r,r,a,b,6);
+  }else pts.push({x:-hw,y:-hh},{x:hw,y:-hh},{x:hw,y:hh},{x:-hw,y:hh});
+  return pts;
+}
+function tracePrimitivePath(g,type,w,h,cornerRadius){
+  const pts=primitiveOutline(type,w,h,cornerRadius);
+  g.beginPath();
+  pts.forEach((p,i)=>i===0?g.moveTo(p.x,p.y):g.lineTo(p.x,p.y));
+  g.closePath();
+}
+
 function drawShapeBuiltProp(p,x,y,t,w,h){
   const baseKey=p.shapeBaseId||p.id||(t+"@"+Math.round(x)+","+Math.round(y));
   const seed=shapeHash(currentSeed+"|"+t+"|"+baseKey);
@@ -722,6 +767,13 @@ function drawShapeBuiltProp(p,x,y,t,w,h){
     ctx.beginPath();ctx.moveTo(x+ax*w,y+ay*h);ctx.lineTo(x+bx*w,y+by*h);ctx.lineTo(x+cx_*w,y+cy*h);ctx.closePath();ctx.fill();ctx.stroke();
   }
 
+
+  function P(dx,dy,rw,rh,type,c=c2,angle=0){
+    const X=x+dx*w,Y=y+dy*h,W=rw*w,H=rh*h;
+    ctx.save();ctx.translate(X,Y);ctx.rotate(angle);
+    ctx.fillStyle=c;ctx.strokeStyle=edge;ctx.lineWidth=Math.max(1,Math.min(w,h)*.024);
+    tracePrimitivePath(ctx,type,W,H);ctx.fill();ctx.stroke();ctx.restore();
+  }
   ctx.save();
   ctx.translate(x,y);ctx.scale(sx,sy);ctx.translate(-x,-y);
 
@@ -731,16 +783,20 @@ function drawShapeBuiltProp(p,x,y,t,w,h){
     R(0,-.34,.7,.22,c2,.04);
     C(-.29,.28,.10,c1);C(.29,.28,.10,c1);C(-.29+odd,.05,.10,c1);C(.29,.05,.10,c1);
     if(fake)C(.29+odd,.28-odd*.45,.10+odd*.12,c1);
+    if(t==="stool"||t==="colorStool")P(0,-.03,.64,.23,"hexagon",c1);
+    else if(t==="officeChair")P(0,.35,.66,.18,"star",c2);
+    else P(0,-.34,.20,.13,"diamond",c1);
   }else if(family==="table"){
     R(0,-.13,.94,.34,c1,.04);
     C(-.37,.29,.075,c2);C(.37,.29,.075,c2);C(-.37,.05,.075,c2);C(.37+odd,.05,.075,c2);
-    if(t==="roundTable"||t==="museumTable")E(0,-.12,.94,.38,c1);
-    if(["labTable","controlDesk"].includes(t)){R(0,.08,.66,.20,c2,.02);C(-.18,.08,.035,"#22c55e");C(.02,.08,.035,"#f59e0b");C(.22+odd,.08,.035,"#60a5fa");}
+    if(t==="roundTable"||t==="museumTable"){E(0,-.12,.94,.38,c1);P(0,-.11,.25,.20,"hexagon",c2);}
+    else P(0,-.12,.24,.20,"trapezoid",c2);
+    if(["labTable","controlDesk"].includes(t)){R(0,.08,.66,.20,c2,.02);C(-.18,.08,.035,"#22c55e");C(.02,.08,.035,"#f59e0b");C(.22+odd,.08,.035,"#60a5fa");P(.1,.08,.10,.11,"diamond","#fef3c7");}
   }else if(family==="cabinet"){
     R(0,0,.88,.92,c1,.04);
     R(-.21,-.17,.34,.28,c2,.02);R(.21+odd,-.17,.34,.28,c2,.02);
     R(-.21,.19,.34,.28,c2,.02);R(.21,.19,.34,.28,c2,.02);
-    C(-.06,-.17,.035,"#e5e7eb");C(.08+odd,-.17,.035,"#e5e7eb");
+    P(-.06,-.17,.09,.10,"diamond","#e5e7eb");P(.08+odd,-.17,.09,.10,"diamond","#e5e7eb");
     if(t==="bookshelf"||t==="giftShelf"||t==="paintShelf"){R(0,-.16,.76,.08,"#3f2f24");R(0,.12,.76,.08,"#3f2f24");}
   }else if(family==="machine"){
     R(0,0,.86,.94,c1,.05);
@@ -748,6 +804,7 @@ function drawShapeBuiltProp(p,x,y,t,w,h){
     R(0,-.2+odd*.25,.56,.24,"#67e8f9",.02);
     C(-.2,.2,.055,"#ef4444");C(0,.2,.055,"#fde047");C(.2+odd,.2,.055,"#22c55e");
     R(0,.36,.46,.10,c2,.02);
+    P(.15,.20,.12,.14,"hexagon","#facc15");
     if(t==="camera"){C(.18,-.18,.13,"#111827");R(-.16,-.18,.25,.20,c1,.02);}
     if(t==="smallSpeaker"||t==="bigSpeaker"){C(0,-.19,.13,"#111827");C(0,.22+odd,.18,"#111827");}
   }else if(family==="organic"){
@@ -755,63 +812,64 @@ function drawShapeBuiltProp(p,x,y,t,w,h){
       R(0,.24,.08,.46,"#38713e");
       C(0,-.18,.12,p.flowerColor||"#f472b6");
       C(-.14,-.10,.10,p.flowerColor||"#f472b6");C(.14+odd,-.10,.10,p.flowerColor||"#f472b6");
-      C(0,-.03,.055,"#facc15");
+      C(0,-.03,.055,"#facc15");P(0,-.14,.29,.28,"star",p.flowerColor||"#f472b6");
     }else if(t==="balloon"){
-      E(0,-.13,.65,.70,c2);T(-.06,.18,.06,.18,0,.30,c1);R(.02,.39,.035,.35,"#64748b");
+      E(0,-.13,.65,.70,c2);P(-.08,-.25,.19,.17,"semicircle","#f8fafc");T(-.06,.18,.06,.18,0,.30,c1);R(.02,.39,.035,.35,"#64748b");
     }else if(t==="plantPot"){
-      T(-.34,.13,.34,.13,.24,.48,"#b16b45");T(-.34,.13,-.24,.48,.24,.48,"#b16b45");
+      P(0,.30,.68,.36,"trapezoid","#b16b45");
       E(-.13,-.18,.42,.34,"#4f8b4d");E(.17+odd,-.20,.42,.34,"#3c7540");E(.02,-.35,.46,.34,"#5d9857");
     }else if(t==="tree"||t==="bush"){
       if(t==="tree")R(0,.22,.18,.52,"#7a4d2b");
-      C(-.2,-.11,.22,"#3c7540");C(.18+odd,-.10,.24,"#4f8b4d");C(0,-.28,.27,"#5d9857");C(0,.02,.24,"#447a43");
+      C(-.2,-.11,.22,"#3c7540");C(.18+odd,-.10,.24,"#4f8b4d");C(0,-.28,.27,"#5d9857");C(0,.02,.24,"#447a43");P(0,-.16,.37,.18,"semicircle","#5d9857");
     }else{
       C(0,0,.32,c1);C(-.18,-.23,.14,c2);C(.18+odd,-.23,.14,c2);C(-.08,-.03,.035,"#111827");C(.08,-.03,.035,"#111827");
     }
   }else if(family==="container"){
     if(["ancientVase","museumPot","iceCream","drinkCup","popcorn"].includes(t)){
       E(0,.08,.66,.62,c1);R(0,-.24,.42,.16,c2,.03);C(.17+odd,.08,.045,"#f8fafc");
-      if(t==="iceCream")C(0,-.32,.25,"#f9a8d4");
+      if(t==="iceCream"){C(0,-.32,.25,"#f9a8d4");P(.08,-.43,.10,.12,"star","#fde047");}
       if(t==="popcorn"){C(-.18,-.3,.13,"#fff7ed");C(.04,-.34,.14,"#fff7ed");C(.21+odd,-.28,.12,"#fff7ed");}
     }else{
-      R(0,.06,.82,.70,c1,.04);R(0,-.33,.88,.16,c2,.03);R(odd,.06,.12,.70,c2,.01);R(0,.08,.82,.10,c2,.01);
+      R(0,.06,.82,.70,c1,.04);R(0,-.33,.88,.16,c2,.03);R(odd,.06,.12,.70,c2,.01);R(0,.08,.82,.10,c2,.01);P(-.28,-.32,.17,.13,"hexagon",c1);
     }
   }else if(family==="exhibit"){
-    R(0,.36,.72,.20,c1,.03);
+    P(0,.36,.72,.20,"trapezoid",c1);
     if(t==="column"){
-      R(0,0,.40,.78,"#d6d3d1",.02);R(0,-.39,.65,.13,c1,.02);R(odd,.39,.65,.13,c1,.02);
+      R(0,0,.40,.78,"#d6d3d1",.02);P(0,-.39,.65,.13,"hexagon",c1);R(odd,.39,.65,.13,c1,.02);
     }else if(t==="displayCase"){
-      R(0,-.05,.78,.66,"rgba(191,219,254,.48)",.03);C(odd,-.05,.12,"#d4af37");
+      R(0,-.05,.78,.66,"rgba(191,219,254,.48)",.03);P(odd,-.05,.25,.25,"diamond","#d4af37");
     }else if(t==="planetModel"||t==="globe"){
-      C(0,-.08,.29,"#3b82f6");E(odd,-.08,.80,.20,"rgba(234,179,8,.38)");R(0,.27,.08,.22,c1);
+      C(0,-.08,.29,"#3b82f6");E(odd,-.08,.80,.20,"rgba(234,179,8,.38)");P(0,-.08,.23,.23,"hexagon","#22c55e");R(0,.27,.08,.22,c1);
     }else if(t==="fossil"||t==="skeleton"||t==="dinosaur"){
       R(0,-.05,.82,.64,"#766b5d",.03);C(-.2,-.1,.09,"#e7e5e4");C(0,-.04,.09,"#e7e5e4");C(.2+odd,.02,.09,"#e7e5e4");R(0,.12,.56,.06,"#e7e5e4");
     }else{
       C(0,-.24,.16,c2);R(0,.03,.40,.48,c2,.07);C(-.14,.27,.09,c1);C(.14+odd,.27,.09,c1);
     }
   }else if(family==="sport"){
-    if(t==="ball"){C(0,0,.43,c1);E(odd,0,.80,.12,c2);}
-    else if(t==="cone"){T(0,-.48,-.42,.32,.42,.32,c1);R(0,.35,.92,.16,c2,.02);R(odd,.02,.42,.10,"#fff");}
+    if(t==="ball"){C(0,0,.43,c1);E(odd,0,.80,.12,c2);P(0,0,.31,.31,"pentagon",c2);}
+    else if(t==="cone"){T(0,-.48,-.42,.32,.42,.32,c1);P(0,.35,.92,.16,"trapezoid",c2);R(odd,.02,.42,.10,"#fff");}
     else if(t==="mat"){R(0,0,.94,.78,c1,.05);for(let i=-2;i<=2;i++)R(i*.16+odd*(i===2),0,.035,.72,c2);}
-    else{R(0,.18,.10,.58,c1);R(0,-.22,.72,.12,c2,.02);C(odd,-.04,.26,"rgba(239,68,68,.35)");}
+    else{R(0,.18,.10,.58,c1);R(0,-.22,.72,.12,c2,.02);P(odd,-.04,.52,.28,"semicircle","rgba(239,68,68,.35)");}
   }else if(family==="seat"){
     R(0,.05,.92,.34,c1,.06);R(0,-.20,.86,.28,c2,.06);
     C(-.35,.30,.08,c1);C(.35+odd,.30,.08,c1);C(-.35,.08,.08,c1);C(.35,.08,.08,c1);
+    P(0,-.20,.27,.19,"semicircle",c1);
   }else{
     // 나머지 특수 사물도 직사각형·원·삼각형만으로 조합.
     if(t==="piano"){
       R(0,.02,.94,.68,"#262626",.03);R(0,-.03,.72,.20,"#f8fafc",.01);
       for(let i=-3;i<=3;i++)R(i*.095+((i===3)?odd:0),-.03,.028,.18,"#111827");
     }else if(t==="musicStand"){
-      R(0,-.21,.72,.34,"#1f2937",.02);R(0,.16,.08,.48,"#374151");C(-.17,.39,.07,"#374151");C(.17+odd,.39,.07,"#374151");
+      P(0,-.21,.72,.34,"diamond","#1f2937");R(0,.16,.08,.48,"#374151");C(-.17,.39,.07,"#374151");C(.17+odd,.39,.07,"#374151");
     }else if(t==="easel"){
-      T(0,-.45,-.38,.45,.38,.45,"#8b5e3c");R(0,-.06,.55,.55,"#f8fafc",.02);C(.12+odd,-.08,.09,"#60a5fa");C(-.10,.06,.07,"#f472b6");
+      T(0,-.45,-.38,.45,.38,.45,"#8b5e3c");R(0,-.06,.55,.55,"#f8fafc",.02);P(.12+odd,-.08,.18,.18,"star","#60a5fa");C(-.10,.06,.07,"#f472b6");
     }else if(t==="rideHorse"||t==="carouselHorse"){
-      E(0,.02,.72,.42,c1);C(.30,-.20,.14,c2);C(-.22,.26,.08,c2);C(.18+odd,.26,.08,c2);
+      E(0,.02,.72,.42,c1);C(.30,-.20,.14,c2);C(-.22,.26,.08,c2);C(.18+odd,.26,.08,c2);P(0,-.05,.27,.17,"trapezoid",c2);
       if(t==="carouselHorse")R(0,0,.07,.96,"#eab308");
     }else if(t==="ballPit"){
-      R(0,.12,.94,.64,c1,.10);for(let i=0;i<10;i++)C(-.32+(i%5)*.16+((i===9)?odd:0),-.10+Math.floor(i/5)*.22,.08,["#ef4444","#fde047","#22c55e","#a855f7"][i%4]);
+      R(0,.12,.94,.64,c1,.10);for(let i=0;i<10;i++)P(-.32+(i%5)*.16+((i===9)?odd:0),-.10+Math.floor(i/5)*.22,.16,.16,i%2?"pentagon":"hexagon",["#ef4444","#fde047","#22c55e","#a855f7"][i%4]);
     }else if(t==="ticketBooth"){
-      R(0,.08,.88,.70,"#ef4444",.03);T(-.5,-.27,0,-.53,.5,-.27,"#facc15");R(odd,-.03,.50,.24,"#fef3c7",.02);
+      R(0,.08,.88,.70,"#ef4444",.03);T(-.5,-.27,0,-.53,.5,-.27,"#facc15");R(odd,-.03,.50,.24,"#fef3c7",.02);P(0,-.19,.20,.20,"star","#eab308");
     }else{
       R(0,0,.82,.76,c1,.05);C(-.22,-.18,.09,c2);C(.22+odd,-.18,.09,c2);R(0,.20,.54,.10,c2,.02);
     }
@@ -827,20 +885,16 @@ function drawCustomProp(p,x,y,w,h){
   if(!parts.length){drawShapeBuiltProp({type:"box",id:"fallback"},x,y,"box",w,h);return;}
   ctx.save();
   for(const part of parts){
-    const px=x+(Number(part.x||.5)-.5)*w,py=y+(Number(part.y||.5)-.5)*h;
+    const px=x+(Number(part.x??.5)-.5)*w,py=y+(Number(part.y??.5)-.5)*h;
     const pw=Math.max(5,Number(part.w||.2)*w),ph=Math.max(5,Number(part.h||.2)*h),rot=Number(part.r||0);
     ctx.save();ctx.translate(px,py);ctx.rotate(rot);
     ctx.fillStyle=part.c||"#64748b";ctx.strokeStyle="rgba(15,23,42,.62)";ctx.lineWidth=Math.max(1,Math.min(w,h)*.018);
-    ctx.beginPath();
-    if(part.t==="circle")ctx.arc(0,0,Math.min(pw,ph)/2,0,Math.PI*2);
-    else if(part.t==="ellipse")ctx.ellipse(0,0,pw/2,ph/2,0,0,Math.PI*2);
-    else if(part.t==="triangle"){ctx.moveTo(0,-ph/2);ctx.lineTo(pw/2,ph/2);ctx.lineTo(-pw/2,ph/2);ctx.closePath();}
-    else if(part.t==="round"&&ctx.roundRect)ctx.roundRect(-pw/2,-ph/2,pw,ph,Math.min(10,Math.min(pw,ph)*.25));
-    else ctx.rect(-pw/2,-ph/2,pw,ph);
+    tracePrimitivePath(ctx,part.t,pw,ph);
     ctx.fill();ctx.stroke();ctx.restore();
   }
   ctx.restore();
 }
+
 function drawProp(p){
   const x=p.x,y=p.y,t=p.type,s=propSize(p),w=s[0],h=s[1];
   if(t==="custom"){drawCustomProp(p,x,y,w,h);return;}
@@ -1042,39 +1096,53 @@ function rotatePoint(cx,cy,x,y,a){
 function pushEdgeSamples(out,a,b,steps=6){
   for(let i=0;i<=steps;i++){const t=i/steps;out.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});}
 }
-function customShapeSamples(p){
-  const out=[],base=propSize({type:"custom"}),W=base[0],H=base[1],parts=Array.isArray(p.customParts)?p.customParts:[];
+function customPartPolygons(p){
+  const base=propSize({type:"custom"}),W=base[0],H=base[1],parts=Array.isArray(p.customParts)?p.customParts:[],out=[];
   for(const part of parts){
     const cx=Number(p.x||0)+(Number(part.x??.5)-.5)*W;
     const cy=Number(p.y||0)+(Number(part.y??.5)-.5)*H;
     const pw=Math.max(5,Number(part.w||.2)*W),ph=Math.max(5,Number(part.h||.2)*H),rot=Number(part.r||0);
-    out.push({x:cx,y:cy});
-    if(part.t==="circle"||part.t==="ellipse"){
-      const rx=part.t==="circle"?Math.min(pw,ph)/2:pw/2,ry=part.t==="circle"?Math.min(pw,ph)/2:ph/2;
-      for(let i=0;i<24;i++){
-        const a=i/24*Math.PI*2;
-        const q=rotatePoint(cx,cy,cx+Math.cos(a)*rx,cy+Math.sin(a)*ry,rot);
-        out.push(q);
-      }
-    }else if(part.t==="triangle"){
-      const pts=[
-        rotatePoint(cx,cy,cx,cy-ph/2,rot),
-        rotatePoint(cx,cy,cx+pw/2,cy+ph/2,rot),
-        rotatePoint(cx,cy,cx-pw/2,cy+ph/2,rot)
-      ];
-      pushEdgeSamples(out,pts[0],pts[1],8);pushEdgeSamples(out,pts[1],pts[2],8);pushEdgeSamples(out,pts[2],pts[0],8);
-    }else{
-      const pts=[
-        rotatePoint(cx,cy,cx-pw/2,cy-ph/2,rot),
-        rotatePoint(cx,cy,cx+pw/2,cy-ph/2,rot),
-        rotatePoint(cx,cy,cx+pw/2,cy+ph/2,rot),
-        rotatePoint(cx,cy,cx-pw/2,cy+ph/2,rot)
-      ];
-      pushEdgeSamples(out,pts[0],pts[1],8);pushEdgeSamples(out,pts[1],pts[2],8);pushEdgeSamples(out,pts[2],pts[3],8);pushEdgeSamples(out,pts[3],pts[0],8);
-    }
+    out.push(primitiveOutline(part.t,pw,ph).map(q=>rotatePoint(cx,cy,cx+q.x,cy+q.y,rot)));
   }
   return out;
 }
+function cross2d(a,b,c){return(b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x);}
+function pointOnSegment(p,a,b){
+  return Math.abs(cross2d(a,b,p))<.00001&&p.x>=Math.min(a.x,b.x)-.00001&&p.x<=Math.max(a.x,b.x)+.00001&&p.y>=Math.min(a.y,b.y)-.00001&&p.y<=Math.max(a.y,b.y)+.00001;
+}
+function pointInPolygon(p,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const a=poly[j],b=poly[i];
+    if(pointOnSegment(p,a,b))return true;
+    if((a.y>p.y)!==(b.y>p.y)&&p.x<(b.x-a.x)*(p.y-a.y)/(b.y-a.y)+a.x)inside=!inside;
+  }
+  return inside;
+}
+function segmentsIntersect(a,b,c,d){
+  if(Math.max(a.x,b.x)<Math.min(c.x,d.x)||Math.max(c.x,d.x)<Math.min(a.x,b.x)||Math.max(a.y,b.y)<Math.min(c.y,d.y)||Math.max(c.y,d.y)<Math.min(a.y,b.y))return false;
+  const x=cross2d(a,b,c),y=cross2d(a,b,d),z=cross2d(c,d,a),v=cross2d(c,d,b);
+  return (x*y<=0&&z*v<=0);
+}
+function polygonsOverlap(a,b){
+  if(!a.length||!b.length)return false;
+  if(pointInPolygon(a[0],b)||pointInPolygon(b[0],a))return true;
+  for(let i=0;i<a.length;i++){
+    const p=a[i],q=a[(i+1)%a.length];
+    for(let j=0;j<b.length;j++)if(segmentsIntersect(p,q,b[j],b[(j+1)%b.length]))return true;
+  }
+  return false;
+}
+function seekerConePolygon(ent=player){
+  const a=Number.isFinite(ent.facing)?ent.facing:-Math.PI/2;
+  const pts=[{x:ent.x,y:ent.y}];
+  for(let i=0;i<=60;i++){
+    const angle=a-SEEK_CONE_HALF+(2*SEEK_CONE_HALF)*i/60;
+    pts.push({x:ent.x+Math.cos(angle)*SEEK_CONE_RADIUS,y:ent.y+Math.sin(angle)*SEEK_CONE_RADIUS});
+  }
+  return pts;
+}
+
 function objectShapeSamples(p){
   if(p&&p.disguise==="custom"&&Array.isArray(p.customParts)&&p.customParts.length)return customShapeSamples(p);
   if(p&&p.type==="custom"&&Array.isArray(p.customParts)&&p.customParts.length)return customShapeSamples(p);
@@ -1094,6 +1162,16 @@ function objectShapeSamples(p){
   return out;
 }
 function seekConeHitDistance(p){
+  if(p&&(p.disguise==="custom"||p.type==="custom")&&Array.isArray(p.customParts)&&p.customParts.length){
+    const cone=seekerConePolygon(player);
+    let best=Infinity;
+    for(const poly of customPartPolygons(p)){
+      if(!polygonsOverlap(poly,cone))continue;
+      for(const q of poly)best=Math.min(best,Math.hypot(q.x-player.x,q.y-player.y));
+      for(const q of cone)if(pointInPolygon(q,poly))best=Math.min(best,Math.hypot(q.x-player.x,q.y-player.y));
+    }
+    return best;
+  }
   let best=Infinity;
   for(const q of objectShapeSamples(p)){
     if(pointInSeekCone(q.x,q.y,player))best=Math.min(best,Math.hypot(q.x-player.x,q.y-player.y));
@@ -1824,7 +1902,7 @@ ensureFirebase();
 function updateGameHelp(){
   let html="";
   if(mode==="hider"){
-    html="<b>이동</b> WASD / 방향키<br><b>사물 만들기</b> E → 도형 직접 조립<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 맵 사물처럼 자연스러운 모양 만들기";
+    html="<b>이동</b> WASD / 방향키<br><b>사물 만들기</b> E → 12종 도형 직접 조립<br><b>도발</b> T 또는 😜 버튼 (30초 쿨타임)<br><b>달리기</b> 불가<br><b>목표</b> 맵 사물처럼 자연스러운 모양 만들기";
   }else if(mode==="seeker"){
     html="<b>이동</b> WASD / 방향키<br><b>달리기</b> Shift<br><b>조사</b> Space — 내 앞의 빨간 부채꼴 범위 조사<br><b>판정</b> 숨은 사람이 만든 도형이 조금이라도 범위에 닿으면 발견<br><b>힌트</b> 숨은 사람이 가까우면 근처 알림 표시<br><b>도발 소리</b> 가까운 숨는 사람이 도발하면 짧은 소리가 들림";
   }else if(mode==="observer"){
@@ -1895,14 +1973,9 @@ function renderBuilderColors(){
 builderColorPicker.addEventListener("input",()=>setBuilderColor(builderColorPicker.value));
 
 function drawBuilderPart(g,part,W,H,selected=false){
-  const x=Number(part.x||.5)*W,y=Number(part.y||.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
+  const x=Number(part.x??.5)*W,y=Number(part.y??.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
   g.save();g.translate(x,y);g.rotate(Number(part.r||0));g.fillStyle=part.c||builderColor;g.strokeStyle=selected?"#2563eb":"rgba(15,23,42,.65)";g.lineWidth=selected?4:2;
-  g.beginPath();
-  if(part.t==="circle")g.arc(0,0,Math.min(w,h)/2,0,Math.PI*2);
-  else if(part.t==="ellipse")g.ellipse(0,0,w/2,h/2,0,0,Math.PI*2);
-  else if(part.t==="triangle"){g.moveTo(0,-h/2);g.lineTo(w/2,h/2);g.lineTo(-w/2,h/2);g.closePath();}
-  else if(part.t==="round"&&g.roundRect)g.roundRect(-w/2,-h/2,w,h,Math.min(18,Math.min(w,h)*.28));
-  else g.rect(-w/2,-h/2,w,h);
+  tracePrimitivePath(g,part.t,w,h);
   g.fill();g.stroke();
   if(selected){
     g.fillStyle="#fff";g.strokeStyle="#2563eb";g.lineWidth=2;
@@ -1910,6 +1983,7 @@ function drawBuilderPart(g,part,W,H,selected=false){
   }
   g.restore();
 }
+
 function drawBuilder(){
   const W=builderCanvas.width,H=builderCanvas.height,theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
   bctx.clearRect(0,0,W,H);bctx.fillStyle=theme.bg;bctx.fillRect(0,0,W,H);
@@ -1918,12 +1992,12 @@ function drawBuilder(){
   for(let y=0;y<=H;y+=40){bctx.beginPath();bctx.moveTo(0,y);bctx.lineTo(W,y);bctx.stroke();}
   bctx.fillStyle="rgba(255,255,255,.75)";bctx.font="700 12px system-ui";bctx.fillText("도형을 드래그해서 사물 모양을 만드세요",12,20);
   builderParts.forEach((p,i)=>drawBuilderPart(bctx,p,W,H,i===builderSelected));
-  builderCount.textContent="도형 "+builderParts.length+" / 14";
+  builderCount.textContent="도형 "+builderParts.length+" / 20";
 }
 function addBuilderPart(type){
-  if(builderParts.length>=14){say("도형은 최대 14개까지 사용할 수 있어요.");return;}
+  if(builderParts.length>=20){say("도형은 최대 20개까지 사용할 수 있어요.");return;}
   const presets={
-    rect:[.28,.18],round:[.28,.18],circle:[.16,.16],ellipse:[.28,.16],triangle:[.24,.22],bar:[.38,.075]
+    rect:[.28,.18],round:[.28,.18],circle:[.16,.16],ellipse:[.28,.16],triangle:[.24,.22],bar:[.38,.075],diamond:[.22,.22],trapezoid:[.27,.20],pentagon:[.22,.22],hexagon:[.25,.20],star:[.22,.22],semicircle:[.27,.19]
   };
   const sz=presets[type]||[.24,.18];
   builderParts.push({t:type,x:.5+(Math.random()-.5)*.08,y:.5+(Math.random()-.5)*.08,w:sz[0],h:sz[1],r:0,c:builderColor});
