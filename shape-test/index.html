@@ -65,7 +65,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 .builderPalette{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.builderPalette button,.builderControls button{padding:9px 7px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;cursor:pointer}
 .builderPalette button:hover,.builderControls button:hover{filter:brightness(1.08)}
 .builderColors{display:flex;flex-wrap:wrap;gap:7px;max-height:128px;overflow:auto;padding:3px}.builderColor{width:29px;height:29px;min-width:29px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #94a3b8;cursor:pointer}.builderColor.on{box-shadow:0 0 0 3px #2563eb}
-.builderControls{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px}.builderCount{font-size:12px;font-weight:800;color:#64748b;margin-top:8px}
+.builderControls{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px}.builderStrokeChoices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 8px}.builderStrokeChoices button{padding:7px 4px;border:0;border-radius:8px;background:#64748b;color:#fff;font-size:11px;font-weight:850;cursor:pointer}.builderStrokeChoices button.on{background:#2563eb;outline:2px solid #93c5fd}.builderCount{font-size:12px;font-weight:800;color:#64748b;margin-top:8px}
 .builderReference{background:#eef2f7;border-radius:12px;padding:10px}.builderReference h3{margin:3px 0 6px;font-size:14px}.builderReference p{font-size:12px;line-height:1.4;color:#64748b;margin:0 0 8px}
 .nearbyTools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0}.nearbyTools button{border:0;border-radius:8px;padding:7px 9px;background:#475569;color:#fff;font-weight:800;cursor:pointer}.nearbyTools input[type=range]{flex:1;min-width:90px}.nearbyZoomLabel{font-size:12px;font-weight:900;color:#475569;min-width:36px;text-align:center}
 #nearbyCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#cbd5e1;border:2px solid #94a3b8;border-radius:10px;cursor:crosshair}
@@ -133,7 +133,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <button id="builderDone" class="green" type="button">✅ 이 모습으로 숨기</button>
         </div>
       </div>
-      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색을 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. 최대 20개까지 사용할 수 있습니다.</div>
+      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색·<b>선 굵기</b>까지 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. 기본 <b>배경선</b> 굵기는 맵 사물과 같게 맞춰져 있습니다. 최대 20개까지 사용할 수 있습니다.</div>
       <div class="builderLayout">
         <canvas id="builderCanvas" width="480" height="360"></canvas>
         <div class="builderReference">
@@ -170,6 +170,13 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <div class="builderColorExtras"><span>🎨 직접 색 선택</span><input id="builderColorPicker" type="color" value="#8b5e35"></div>
           <div class="builderCount" style="margin-top:5px">※ 근처 참고 화면을 클릭하면 그 위치의 색도 바로 사용할 수 있어요.</div>
           <h3 style="margin-top:12px">③ 선택한 도형 조절</h3>
+          <div class="builderCount" style="margin-top:0">선 굵기 — <b>배경선</b>이 맵 사물과 가장 비슷합니다.</div>
+          <div class="builderStrokeChoices">
+            <button type="button" data-builder-stroke="0">선 없음</button>
+            <button type="button" data-builder-stroke="0.012">얇게</button>
+            <button type="button" data-builder-stroke="0.024">배경선</button>
+            <button type="button" data-builder-stroke="0.038">굵게</button>
+          </div>
           <div class="builderControls">
             <button id="builderWMinus" type="button">↔ 가로 −</button><button id="builderWPlus" type="button">↔ 가로 +</button>
             <button id="builderHMinus" type="button">↕ 세로 −</button><button id="builderHPlus" type="button">↕ 세로 +</button>
@@ -886,11 +893,17 @@ function drawCustomProp(p,x,y,w,h){
   ctx.save();
   for(const part of parts){
     const px=x+(Number(part.x??.5)-.5)*w,py=y+(Number(part.y??.5)-.5)*h;
-    const pw=Math.max(5,Number(part.w||.2)*w),ph=Math.max(5,Number(part.h||.2)*h),rot=Number(part.r||0);
+    const pw=Math.max(5,Number(part.w||.2)*w),ph=Math.max(5,Number(part.h||.2)*h),rot=Number(part.r||0),sw=partStrokeScale(part);
     ctx.save();ctx.translate(px,py);ctx.rotate(rot);
-    ctx.fillStyle=part.c||"#64748b";ctx.strokeStyle="rgba(15,23,42,.62)";ctx.lineWidth=Math.max(1,Math.min(w,h)*.018);
+    ctx.fillStyle=part.c||"#64748b";
     tracePrimitivePath(ctx,part.t,pw,ph);
-    ctx.fill();ctx.stroke();ctx.restore();
+    ctx.fill();
+    if(sw>0){
+      ctx.strokeStyle="rgba(15,23,42,.55)";
+      ctx.lineWidth=Math.max(.5,Math.min(w,h)*sw);
+      ctx.stroke();
+    }
+    ctx.restore();
   }
   ctx.restore();
 }
@@ -1448,6 +1461,17 @@ function moveEntity(e,dx,dy,speed,dt){
   let len=Math.hypot(dx,dy)||1,nx=e.x+dx/len*speed*dt,ny=e.y+dy/len*speed*dt;
   if(!solidAt(nx,e.y))e.x=nx;if(!solidAt(e.x,ny))e.y=ny;
 }
+const SEEKER_SAFE_SPAWNS=[[1080,620],[1160,620],[1240,620],[1080,700],[1160,700],[1240,700],[1080,770],[1160,770],[1240,770]];
+function safeSeekerSpawn(index=0){
+  for(let step=0;step<SEEKER_SAFE_SPAWNS.length;step++){
+    const p=SEEKER_SAFE_SPAWNS[(index+step)%SEEKER_SAFE_SPAWNS.length];
+    if(!solidAt(p[0],p[1]))return{x:p[0],y:p[1]};
+  }
+  // Defensive fallback: scan the central corridor for the first non-wall point.
+  for(let y=560;y<=780;y+=40)for(let x=900;x<=1320;x+=40)if(!solidAt(x,y))return{x,y};
+  return{x:1200,y:650};
+}
+
 function say(t){toast.textContent=t;lastToast=performance.now();}
 
 function gameNow(){return online?Date.now()+serverOffset:performance.now();}
@@ -1692,6 +1716,12 @@ function maybeEnterRound(){
   helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
   player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,facing:-Math.PI/2},netPlayers[uid]);
   if(!Number.isFinite(player.facing))player.facing=-Math.PI/2;
+  if(mode==="seeker"&&solidAt(player.x,player.y)){
+    const rescue=safeSeekerSpawn(Math.max(0,getRoundSeekerIds().indexOf(uid)));
+    player.x=rescue.x;player.y=rescue.y;
+    if(netPlayers[uid]){netPlayers[uid].x=rescue.x;netPlayers[uid].y=rescue.y;}
+    if(fb&&roomCode)fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),{x:rescue.x,y:rescue.y}).catch(()=>{});
+  }
   hideUntil=Number(roomState.hideEndsAt||0);roundEnd=Number(roomState.seekEndsAt||0);roleRevealUntil=Number(roomState.revealEndsAt||0);searches=Number(searchesNet[uid]||0);
   document.getElementById("lobby").style.display="none";document.getElementById("menu").style.display="none";document.getElementById("result").style.display="none";teacherPanel.style.display="none";
   roleEl.textContent=mode==="seeker"?"🔎 술래":"🙈 숨는 사람";roleEl.className=mode==="seeker"?"pill danger":"pill good";
@@ -1808,7 +1838,7 @@ async function startOnlineRound(force=false){
   ids.forEach((id,i)=>{
     const r=seekers.has(id)?"seeker":"hider";
     updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=null;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
-    let x,y;if(r==="seeker"){x=1100+(i%5)*55;y=655+Math.floor(i/5)*45;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
+    let x,y;if(r==="seeker"){const p=safeSeekerSpawn(Math.max(0,selected.indexOf(id)));x=p.x;y=p.y;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
     updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;
     updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customParts"]=null;
     updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;updates["rooms/"+roomCode+"/players/"+id+"/tauntAt"]=0;
@@ -1972,12 +2002,24 @@ function renderBuilderColors(){
 }
 builderColorPicker.addEventListener("input",()=>setBuilderColor(builderColorPicker.value));
 
+function partStrokeScale(part){
+  const raw=part&&part.sw;
+  return Number.isFinite(Number(raw))?Math.max(0,Math.min(.06,Number(raw))):.024;
+}
 function drawBuilderPart(g,part,W,H,selected=false){
   const x=Number(part.x??.5)*W,y=Number(part.y??.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
-  g.save();g.translate(x,y);g.rotate(Number(part.r||0));g.fillStyle=part.c||builderColor;g.strokeStyle=selected?"#2563eb":"rgba(15,23,42,.65)";g.lineWidth=selected?4:2;
+  const sw=partStrokeScale(part);
+  g.save();g.translate(x,y);g.rotate(Number(part.r||0));g.fillStyle=part.c||builderColor;
   tracePrimitivePath(g,part.t,w,h);
-  g.fill();g.stroke();
+  g.fill();
+  if(sw>0){
+    g.strokeStyle="rgba(15,23,42,.55)";
+    g.lineWidth=Math.max(.7,Math.min(W,H)*sw);
+    g.stroke();
+  }
   if(selected){
+    g.save();g.setLineDash([7,5]);g.strokeStyle="#2563eb";g.lineWidth=2;
+    g.strokeRect(-w/2-5,-h/2-5,w+10,h+10);g.restore();
     g.fillStyle="#fff";g.strokeStyle="#2563eb";g.lineWidth=2;
     for(const [hx,hy] of [[-w/2,-h/2],[w/2,-h/2],[-w/2,h/2],[w/2,h/2]]){g.beginPath();g.arc(hx,hy,5,0,Math.PI*2);g.fill();g.stroke();}
   }
@@ -1993,6 +2035,7 @@ function drawBuilder(){
   bctx.fillStyle="rgba(255,255,255,.75)";bctx.font="700 12px system-ui";bctx.fillText("도형을 드래그해서 사물 모양을 만드세요",12,20);
   builderParts.forEach((p,i)=>drawBuilderPart(bctx,p,W,H,i===builderSelected));
   builderCount.textContent="도형 "+builderParts.length+" / 20";
+  updateBuilderStrokeButtons();
 }
 function addBuilderPart(type){
   if(builderParts.length>=20){say("도형은 최대 20개까지 사용할 수 있어요.");return;}
@@ -2000,7 +2043,7 @@ function addBuilderPart(type){
     rect:[.28,.18],round:[.28,.18],circle:[.16,.16],ellipse:[.28,.16],triangle:[.24,.22],bar:[.38,.075],diamond:[.22,.22],trapezoid:[.27,.20],pentagon:[.22,.22],hexagon:[.25,.20],star:[.22,.22],semicircle:[.27,.19]
   };
   const sz=presets[type]||[.24,.18];
-  builderParts.push({t:type,x:.5+(Math.random()-.5)*.08,y:.5+(Math.random()-.5)*.08,w:sz[0],h:sz[1],r:0,c:builderColor});
+  builderParts.push({t:type,x:.5+(Math.random()-.5)*.08,y:.5+(Math.random()-.5)*.08,w:sz[0],h:sz[1],r:0,c:builderColor,sw:.024});
   builderSelected=builderParts.length-1;drawBuilder();
 }
 function builderPoint(e){
@@ -2035,6 +2078,15 @@ builderCanvas.addEventListener("pointermove",e=>{
 function endBuilderDrag(e){if(builderDrag&&(!e||builderDrag.id===e.pointerId)){builderDrag=null;builderCanvas.classList.remove("dragging");}}
 builderCanvas.addEventListener("pointerup",endBuilderDrag);builderCanvas.addEventListener("pointercancel",endBuilderDrag);builderCanvas.addEventListener("lostpointercapture",()=>endBuilderDrag());
 document.querySelectorAll("[data-builder-shape]").forEach(b=>b.onclick=()=>addBuilderPart(b.dataset.builderShape));
+function updateBuilderStrokeButtons(){
+  const sw=builderSelected>=0&&builderParts[builderSelected]?partStrokeScale(builderParts[builderSelected]):.024;
+  document.querySelectorAll("[data-builder-stroke]").forEach(b=>b.classList.toggle("on",Math.abs(Number(b.dataset.builderStroke)-sw)<.0005));
+}
+document.querySelectorAll("[data-builder-stroke]").forEach(b=>b.onclick=()=>{
+  if(builderSelected<0||!builderParts[builderSelected]){say("먼저 도형을 선택해 주세요.");return;}
+  builderParts[builderSelected].sw=Number(b.dataset.builderStroke);
+  updateBuilderStrokeButtons();drawBuilder();
+});
 function editSelected(fn){if(builderSelected<0||!builderParts[builderSelected])return;fn(builderParts[builderSelected]);drawBuilder();}
 document.getElementById("builderWMinus").onclick=()=>editSelected(p=>p.w=Math.max(.05,p.w-.04));
 document.getElementById("builderWPlus").onclick=()=>editSelected(p=>p.w=Math.min(.75,p.w+.04));
