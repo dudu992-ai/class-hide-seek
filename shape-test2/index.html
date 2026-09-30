@@ -172,7 +172,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <h3 style="margin-top:12px">③ 선택한 도형 조절</h3>
           <div class="builderCount" style="margin-top:0">선 굵기 — <b>배경선</b>이 맵 사물과 가장 비슷합니다.</div>
           <div class="builderStrokeChoices">
-            <button type="button" data-builder-stroke="0">선 없음</button>
+            <button type="button" data-builder-stroke="0.006">아주 얇게</button>
             <button type="button" data-builder-stroke="0.012">얇게</button>
             <button type="button" data-builder-stroke="0.024">배경선</button>
             <button type="button" data-builder-stroke="0.038">굵게</button>
@@ -2004,7 +2004,8 @@ builderColorPicker.addEventListener("input",()=>setBuilderColor(builderColorPick
 
 function partStrokeScale(part){
   const raw=part&&part.sw;
-  return Number.isFinite(Number(raw))?Math.max(0,Math.min(.06,Number(raw))):.024;
+  if(!Number.isFinite(Number(raw)))return .024;
+  return Math.max(.006,Math.min(.06,Number(raw)));
 }
 function drawBuilderPart(g,part,W,H,selected=false){
   const x=Number(part.x??.5)*W,y=Number(part.y??.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
