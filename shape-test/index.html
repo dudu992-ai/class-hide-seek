@@ -1313,7 +1313,7 @@ function drawWorld(){
   if(online){
     for(const [id,raw] of Object.entries(netPlayers)){
       const p=renderPlayers[id]||raw;
-      if(id===uid||isCaughtThisRound(id)||roles[id]!=="hider"||!p.disguiseOriginId)continue;
+      if(id===uid||raw.connected===false||isCaughtThisRound(id)||roles[id]!=="hider"||!p.disguiseOriginId)continue;
       const origin=props.find(o=>o.id===p.disguiseOriginId);
       if(origin&&Math.hypot(origin.x-p.x,origin.y-p.y)<9)occupied.add(p.disguiseOriginId);
     }
@@ -1335,7 +1335,7 @@ function drawWorld(){
   // 2) 숨는 사람(변신 사물 포함)을 배경 사물 위, 술래 아래에 그립니다.
   if(online){
     for(const [id,raw] of Object.entries(netPlayers)){
-      if(id===uid||roles[id]!=="hider"||isCaughtThisRound(id))continue;
+      if(id===uid||raw.connected===false||roles[id]!=="hider"||isCaughtThisRound(id))continue;
       const p=renderPlayers[id]||raw;
       ctx.save();ctx.translate(-camera.x,-camera.y);
       if(p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor,customParts:p.customParts,shapeBaseId:p.disguiseOriginId||null,fakeKey:id});
@@ -1370,7 +1370,7 @@ function drawWorld(){
   // 3) 술래는 진짜 사물/변신 사물/숨는 사람보다 무조건 나중에 그려 항상 최상단에 표시합니다.
   if(online){
     for(const [id,raw] of Object.entries(netPlayers)){
-      if(id===uid||roles[id]!=="seeker")continue;
+      if(id===uid||raw.connected===false||roles[id]!=="seeker")continue;
       const p=renderPlayers[id]||raw;
       ctx.save();ctx.translate(-camera.x,-camera.y);
       drawCharacter(p,true);
@@ -1511,8 +1511,11 @@ async function ensureFirebase(){
     return true;
   }catch(err){status.textContent="❌ 서버 연결 실패: "+(err&&err.message?err.message:"Firebase 설정을 확인하세요.");status.className="note serverBad";return false;}
 }
+function isActiveNetPlayer(id){
+  return !!(netPlayers[id]&&netPlayers[id].connected!==false);
+}
 function activePlayerIds(){
-  return Object.keys(netPlayers).filter(id=>netPlayers[id]&&netPlayers[id].connected!==false);
+  return Object.keys(netPlayers).filter(isActiveNetPlayer);
 }
 function saveSession(){
   // 테스트 버전에서는 방/역할을 브라우저에 저장하지 않습니다.
@@ -1618,6 +1621,18 @@ function handleKicked(){
   document.getElementById("result").style.display="flex";
   if(online)requestAnimationFrame(drawSurvivorReveal);else survivorRevealBox.style.display="none";
 }
+function handleDisconnected(){
+  if(leavingRoom||!online)return;
+  stopSurvivorReveal();clearSession();clearSubs();
+  online=false;running=false;hadPlayerRecord=false;builderOpen=false;propBuilder.style.display="none";
+  touchControls.style.display="none";roleReveal.style.display="none";pauseBanner.style.display="none";teacherPanel.style.display="none";
+  document.getElementById("lobby").style.display="none";
+  document.getElementById("resultTitle").textContent="📡 연결이 끊겼습니다";
+  document.getElementById("resultText").textContent="인터넷 연결이 끊기거나 창이 종료되어 방에서 나왔습니다. 다시 플레이하려면 방 코드를 입력해 새로 참가해 주세요.";
+  document.getElementById("again").style.display="none";document.getElementById("menuBtn").textContent="처음 화면";
+  document.getElementById("result").style.display="flex";survivorRevealBox.style.display="none";
+  roomCode="";roles={};caughtNet={};searchesNet={};renderPlayers={};player=null;mode="menu";
+}
 function updateAdminPanel(){
   teacherBtn.style.display=(online&&isHost&&running)?"inline-block":"none";
   if(!isHost){lobbyAdminBtn.style.display="none";return;}
@@ -1687,6 +1702,7 @@ async function subscribeRoom(){
   unsubs.push(fb.onValue(fb.ref(db,base+"/players"),snap=>{
     if(leavingRoom)return;
     netPlayers=snap.val()||{};
+    if(netPlayers[uid]&&netPlayers[uid].connected===false){handleDisconnected();return;}
     if(netPlayers[uid]){hadPlayerRecord=true;saveSession();}
     else if(hadPlayerRecord){handleKicked();return;}
     for(const [id,p] of Object.entries(netPlayers)){
@@ -1749,7 +1765,7 @@ async function createRoom(){
   await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",hideSec:40,seekSec:180,createdAt:now,paused:false});
   const pr=fb.ref(db,base+"/players/"+uid);
   await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
-  try{await fb.onDisconnect(pr).remove();}catch{}
+  try{await fb.onDisconnect(pr).update({connected:false});}catch{}
   hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
 async function joinRoom(){
@@ -1769,7 +1785,7 @@ async function joinRoom(){
     disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,wantSeeker:false,ready:false,connected:true,
     joinedAt:Number(old.joinedAt||now),tauntAt:0,stats:old.stats||{rounds:0,survived:0,catches:0,bestSurvivalSec:0}
   });
-  try{await fb.onDisconnect(pr).remove();}catch{}
+  try{await fb.onDisconnect(pr).update({connected:false});}catch{}
   hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
 function shuffle(arr){for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];}return arr;}
@@ -1853,7 +1869,7 @@ async function syncPlayerNow(force=true){
   const changedVisual=lastSentState.disguise!==(player.disguise||null)||lastSentState.flowerColor!==(player.flowerColor||null)||lastSentState.disguiseOriginId!==(player.disguiseOriginId||null)||lastSentState.customKey!==customKey;
   const moved=lastSentState.x==null?999:Math.hypot(x-lastSentState.x,y-lastSentState.y);
   if(!force&&!changedVisual&&moved<6&&now-lastSentState.at<1500)return;
-  const payload={x,y,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null,connected:true};
+  const payload={x,y,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null};
   if(force||changedVisual)payload.customParts=player.customParts||null;
   await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),payload);
   lastSentState={x,y,disguise:payload.disguise,flowerColor:payload.flowerColor,disguiseOriginId:payload.disguiseOriginId,customKey,at:now};
@@ -2316,7 +2332,7 @@ async function inspect(){
   if(online){
     const stateSeekers=new Set(getRoundSeekerIds());
     for(const [id,p] of Object.entries(netPlayers)){
-      if(id===uid||isCaughtThisRound(id))continue;
+      if(id===uid||p.connected===false||isCaughtThisRound(id))continue;
       const isHider=stateSeekers.size?!stateSeekers.has(id):roles[id]==="hider";
       if(!isHider)continue;
       const d=seekConeHitDistance(p);
@@ -2389,7 +2405,7 @@ async function commitRoundStats(finishAt=gameNow()){
         await fb.set(fb.ref(db,"rooms/"+roomCode+"/state/statsCommittedRound"),round);
         return;
       }
-      const participantIds=Object.keys(roles).filter(id=>netPlayers[id]);
+      const participantIds=Object.keys(roles).filter(id=>isActiveNetPlayer(id));
       const catcherCounts={};participantIds.forEach(id=>{if(roles[id]==="seeker")catcherCounts[id]=0;});
       participantIds.filter(id=>roles[id]==="hider"&&isCaughtThisRound(id)).forEach(id=>{
         const info=caughtInfoThisRound(id);
@@ -2449,7 +2465,7 @@ function updateTauntButton(now){
 function checkIncomingTaunts(now){
   if(!online||!running||mode!=="seeker"||roomState.paused||now<hideUntil||!player)return;
   for(const [id,p] of Object.entries(netPlayers)){
-    if(roles[id]!=="hider"||isCaughtThisRound(id))continue;
+    if(p.connected===false||roles[id]!=="hider"||isCaughtThisRound(id))continue;
     const ta=Number(p.tauntAt||0);if(!ta||ta<=Number(seenTaunts[id]||0))continue;
     seenTaunts[id]=ta;
     if(now-ta<=3000&&Math.hypot(player.x-Number(p.x||0),player.y-Number(p.y||0))<=520){
@@ -2477,9 +2493,9 @@ function escHtml(v){
   return String(v==null?"":v).replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
 }
 function buildOnlineResultHtml(msg){
-  const stateSeekers=new Set(getRoundSeekerIds());
-  const seekerIds=stateSeekers.size?[...stateSeekers].filter(id=>netPlayers[id]):Object.keys(netPlayers).filter(id=>roles[id]==="seeker");
-  const hiderIds=stateSeekers.size?Object.keys(netPlayers).filter(id=>!stateSeekers.has(id)):Object.keys(netPlayers).filter(id=>roles[id]==="hider");
+  const stateSeekers=new Set(getRoundSeekerIds()),activeIds=activePlayerIds();
+  const seekerIds=stateSeekers.size?[...stateSeekers].filter(id=>isActiveNetPlayer(id)):activeIds.filter(id=>roles[id]==="seeker");
+  const hiderIds=stateSeekers.size?activeIds.filter(id=>!stateSeekers.has(id)):activeIds.filter(id=>roles[id]==="hider");
   const caughtIds=hiderIds.filter(id=>isCaughtThisRound(id));
   const survivedIds=hiderIds.filter(id=>!isCaughtThisRound(id));
 
@@ -2568,7 +2584,7 @@ function snapshotSurvivors(){
   const roundSeekers=new Set(getRoundSeekerIds());
   return Object.keys(netPlayers)
     .filter(id=>{
-      if(!netPlayers[id]||isCaughtThisRound(id))return false;
+      if(!isActiveNetPlayer(id)||isCaughtThisRound(id))return false;
       // Prefer the authoritative seekerIds stored in room state so seekers and hiders
       // always calculate exactly the same survivor list even if /roles arrives late.
       if(roundSeekers.size)return !roundSeekers.has(id);
@@ -2726,8 +2742,9 @@ function finish(win,msg){
 }
 function updateHud(t){
   if(mode==="tour"){phaseEl.textContent="자유 탐험";timerEl.textContent="⏱ --:--";triesEl.textContent="🔍 --";aliveEl.textContent="🙈 --";return;}
-  const onlineHiders=online?Object.keys(netPlayers).filter(id=>roles[id]==="hider"):[],aliveHiders=online?onlineHiders.filter(id=>!isCaughtThisRound(id)).length:0;
-  const teamSearch=online?Object.keys(netPlayers).filter(id=>roles[id]==="seeker").reduce((sum,id)=>sum+Number(searchesNet[id]||0),0):searches;
+  const activeIds=online?activePlayerIds():[];
+  const onlineHiders=online?activeIds.filter(id=>roles[id]==="hider"):[],aliveHiders=online?onlineHiders.filter(id=>!isCaughtThisRound(id)).length:0;
+  const teamSearch=online?activeIds.filter(id=>roles[id]==="seeker").reduce((sum,id)=>sum+Number(searchesNet[id]||0),0):searches;
   if(mode==="hider"){
     if(t<hideUntil){phaseEl.textContent="숨기 "+Math.ceil((hideUntil-t)/1000)+"초";phaseEl.className="pill good";}
     else{phaseEl.textContent="술래 탐색 중";phaseEl.className="pill danger";}
@@ -2778,7 +2795,7 @@ function updateSeekerProximity(now){
   }
   let nearest=Infinity;
   for(const [id,p] of Object.entries(netPlayers)){
-    if(id===uid||roles[id]!=="hider"||isCaughtThisRound(id))continue;
+    if(id===uid||p.connected===false||roles[id]!=="hider"||isCaughtThisRound(id))continue;
     const d=Math.hypot(player.x-p.x,player.y-p.y);
     if(d<nearest)nearest=d;
   }
