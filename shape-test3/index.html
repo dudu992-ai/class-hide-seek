@@ -65,7 +65,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
 .builderPalette{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.builderPalette button,.builderControls button{padding:9px 7px;border:0;border-radius:9px;background:#334155;color:#fff;font-weight:800;cursor:pointer}
 .builderPalette button:hover,.builderControls button:hover{filter:brightness(1.08)}
 .builderColors{display:flex;flex-wrap:wrap;gap:7px;max-height:128px;overflow:auto;padding:3px}.builderColor{width:29px;height:29px;min-width:29px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 1px #94a3b8;cursor:pointer}.builderColor.on{box-shadow:0 0 0 3px #2563eb}
-.builderControls{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px}.builderStrokeChoices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0 8px}.builderStrokeChoices button{padding:7px 4px;border:0;border-radius:8px;background:#64748b;color:#fff;font-size:11px;font-weight:850;cursor:pointer}.builderStrokeChoices button.on{background:#2563eb;outline:2px solid #93c5fd}.builderCount{font-size:12px;font-weight:800;color:#64748b;margin-top:8px}
+.builderControls{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-top:7px}.builderStrokeChoices{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 8px}.builderStrokeChoices button{padding:7px 4px;border:0;border-radius:8px;background:#64748b;color:#fff;font-size:11px;font-weight:850;cursor:pointer}.builderStrokeChoices button.on{background:#2563eb;outline:2px solid #93c5fd}.builderSizeChoices{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:6px 0}.builderSizeChoices button{padding:7px 4px;border:0;border-radius:8px;background:#475569;color:#fff;font-size:11px;font-weight:850;cursor:pointer}.builderCount{font-size:12px;font-weight:800;color:#64748b;margin-top:8px}
 .builderReference{background:#eef2f7;border-radius:12px;padding:10px}.builderReference h3{margin:3px 0 6px;font-size:14px}.builderReference p{font-size:12px;line-height:1.4;color:#64748b;margin:0 0 8px}
 .nearbyTools{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin:6px 0}.nearbyTools button{border:0;border-radius:8px;padding:7px 9px;background:#475569;color:#fff;font-weight:800;cursor:pointer}.nearbyTools input[type=range]{flex:1;min-width:90px}.nearbyZoomLabel{font-size:12px;font-weight:900;color:#475569;min-width:36px;text-align:center}
 #nearbyCanvas{display:block;width:100%;height:auto;aspect-ratio:4/3;background:#cbd5e1;border:2px solid #94a3b8;border-radius:10px;cursor:crosshair}
@@ -133,7 +133,7 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <button id="builderDone" class="green" type="button">✅ 이 모습으로 숨기</button>
         </div>
       </div>
-      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색·<b>선 굵기</b>까지 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. 기본 <b>배경선</b> 굵기는 맵 사물과 같게 맞춰져 있습니다. 최대 20개까지 사용할 수 있습니다.</div>
+      <div class="builderHint"><b>만드는 법:</b> 오른쪽에서 도형을 고르고 가운데에서 직접 배치하세요. <b>옆의 ‘근처 사물 참고’ 화면</b>을 보면서 크기·회전·색·<b>선 굵기</b>까지 비슷하게 맞추면 더 자연스럽게 숨을 수 있습니다. <b>근처 사물 크기 맞춤</b>과 <b>근처 사물 선 굵기 맞춤</b>을 누르면 실제 배경 사물 기준으로 자동 맞춤됩니다. 최대 20개까지 사용할 수 있습니다.</div>
       <div class="builderLayout">
         <canvas id="builderCanvas" width="480" height="360"></canvas>
         <div class="builderReference">
@@ -170,13 +170,29 @@ canvas{width:100%;height:100%;display:block;image-rendering:auto}
           <div class="builderColorExtras"><span>🎨 직접 색 선택</span><input id="builderColorPicker" type="color" value="#8b5e35"></div>
           <div class="builderCount" style="margin-top:5px">※ 근처 참고 화면을 클릭하면 그 위치의 색도 바로 사용할 수 있어요.</div>
           <h3 style="margin-top:12px">③ 선택한 도형 조절</h3>
-          <div class="builderCount" style="margin-top:0">선 굵기 — <b>배경선</b>이 맵 사물과 가장 비슷합니다.</div>
+          <div class="builderCount" style="margin-top:0">선 굵기 — 작은 배경 사물부터 큰 배경 사물까지 맞출 수 있게 세분화했어요.</div>
           <div class="builderStrokeChoices">
-            <button type="button" data-builder-stroke="0.006">아주 얇게</button>
+            <button type="button" data-builder-stroke="0.004">0.5px급</button>
+            <button type="button" data-builder-stroke="0.006">매우 얇게</button>
+            <button type="button" data-builder-stroke="0.009">얇게−</button>
             <button type="button" data-builder-stroke="0.012">얇게</button>
-            <button type="button" data-builder-stroke="0.024">배경선</button>
+            <button type="button" data-builder-stroke="0.016">보통−</button>
+            <button type="button" data-builder-stroke="0.020">보통</button>
+            <button type="button" data-builder-stroke="0.024">배경 기본</button>
+            <button type="button" data-builder-stroke="0.030">조금 굵게</button>
             <button type="button" data-builder-stroke="0.038">굵게</button>
           </div>
+          <button id="builderMatchStroke" type="button" class="alt" style="width:100%;margin:4px 0 10px">🎯 근처 사물 선 굵기 전체 맞춤</button>
+          <div class="builderCount" style="margin-top:0">전체 사물 크기 — 직접 만든 사물 자체의 실제 게임 속 가로×세로 크기입니다.</div>
+          <div class="builderSizeChoices">
+            <button type="button" data-builder-size-scale="0.8">80%</button>
+            <button type="button" data-builder-size-scale="0.9">90%</button>
+            <button type="button" data-builder-size-scale="1.1">110%</button>
+            <button type="button" data-builder-size-scale="1.25">125%</button>
+          </div>
+          <button id="builderMatchSize" type="button" class="alt" style="width:100%;margin:4px 0">📐 근처 사물과 실제 크기 똑같이</button>
+          <div id="builderSizeStatus" class="builderCount">현재 전체 크기 168 × 126</div>
+          <div id="builderReferenceStatus" class="builderCount">근처 사물 기준을 찾는 중...</div>
           <div class="builderControls">
             <button id="builderWMinus" type="button">↔ 가로 −</button><button id="builderWPlus" type="button">↔ 가로 +</button>
             <button id="builderHMinus" type="button">↕ 세로 −</button><button id="builderHPlus" type="button">↕ 세로 +</button>
@@ -366,7 +382,7 @@ const game=document.getElementById("game"),ctx=game.getContext("2d");
 const mini=document.getElementById("map"),mctx=mini.getContext("2d");
 const roleEl=document.getElementById("role"),phaseEl=document.getElementById("phase"),timerEl=document.getElementById("timer"),triesEl=document.getElementById("tries"),aliveEl=document.getElementById("alive"),toast=document.getElementById("toast"),proximityEl=document.getElementById("proximity"),huntStartSignal=document.getElementById("huntStartSignal");
 const touchControls=document.getElementById("touchControls"),touchAction=document.getElementById("touchAction"),touchSprint=document.getElementById("touchSprint");
-const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),nearbyCanvas=document.getElementById("nearbyCanvas"),nctx=nearbyCanvas.getContext("2d"),builderReference=document.querySelector(".builderReference"),nearbyZoom=document.getElementById("nearbyZoom"),nearbyZoomLabel=document.getElementById("nearbyZoomLabel"),nearbyZoomIn=document.getElementById("nearbyZoomIn"),nearbyZoomOut=document.getElementById("nearbyZoomOut"),nearbyExpandBtn=document.getElementById("nearbyExpandBtn"),builderColors=document.getElementById("builderColors"),builderColorPicker=document.getElementById("builderColorPicker"),builderCount=document.getElementById("builderCount"),refreshNearbyBtn=document.getElementById("refreshNearbyBtn");
+const propBuilder=document.getElementById("propBuilder"),builderCanvas=document.getElementById("builderCanvas"),bctx=builderCanvas.getContext("2d"),nearbyCanvas=document.getElementById("nearbyCanvas"),nctx=nearbyCanvas.getContext("2d"),builderReference=document.querySelector(".builderReference"),nearbyZoom=document.getElementById("nearbyZoom"),nearbyZoomLabel=document.getElementById("nearbyZoomLabel"),nearbyZoomIn=document.getElementById("nearbyZoomIn"),nearbyZoomOut=document.getElementById("nearbyZoomOut"),nearbyExpandBtn=document.getElementById("nearbyExpandBtn"),builderColors=document.getElementById("builderColors"),builderColorPicker=document.getElementById("builderColorPicker"),builderCount=document.getElementById("builderCount"),builderMatchStroke=document.getElementById("builderMatchStroke"),builderMatchSize=document.getElementById("builderMatchSize"),builderSizeStatus=document.getElementById("builderSizeStatus"),builderReferenceStatus=document.getElementById("builderReferenceStatus"),refreshNearbyBtn=document.getElementById("refreshNearbyBtn");
 const gameToggles=document.getElementById("gameToggles"),helpToggleBtn=document.getElementById("helpToggleBtn"),mapToggleBtn=document.getElementById("mapToggleBtn"),soundBtn=document.getElementById("soundBtn"),fullBtn=document.getElementById("fullBtn"),tauntBtn=document.getElementById("tauntBtn"),teacherBtn=document.getElementById("teacherBtn"),gameHelpPanel=document.getElementById("gameHelpPanel"),gameHelpContent=document.getElementById("gameHelpContent"),miniBox=document.getElementById("mini");
 const roleReveal=document.getElementById("roleReveal"),roleRevealBig=document.getElementById("roleRevealBig"),roleRevealSub=document.getElementById("roleRevealSub"),pauseBanner=document.getElementById("pauseBanner");
 const survivorRevealBox=document.getElementById("survivorRevealBox"),survivorRevealCanvas=document.getElementById("survivorRevealCanvas"),srctx=survivorRevealCanvas.getContext("2d"),survivorRevealStatus=document.getElementById("survivorRevealStatus"),survivorRevealList=document.getElementById("survivorRevealList");
@@ -377,7 +393,7 @@ const WORLD={w:2400,h:1600};
 const SEEK_CONE_RADIUS=118,SEEK_CONE_HALF=Math.PI/6; // 약 60도 부채꼴
 let viewW=1,viewH=1,dpr=1,keys={},mode="menu",running=false,last=0,startTime=0,hideUntil=0,roundEnd=0,searches=15,player=null,aiHiders=[],aiSeekers=[],props=[],walls=[],rooms=[],camera={x:0,y:0},tour={x:1200,y:800},lastToast=0;
 let online=false,fb=null,db=null,auth=null,uid=null,roomCode="",isHost=false,netPlayers={},roles={},caughtNet={},searchesNet={},roomState={},serverOffset=0,currentSeed=123456789,currentMapKey="school1",roundApplied=0,lastNetSync=0,unsubs=[],huntSignalShownRound=0,huntSignalTimer=null;
-let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35",nearbyZoomValue=1,nearbyBaseImage=null,nearbySampleColors=[];
+let helpPanelOpen=false,mapVisible=true,roleRevealUntil=0,hadPlayerRecord=false,sessionRestoreAttempted=false,leavingRoom=false,builderOpen=false,builderParts=[],builderSelected=-1,builderDrag=null,builderColor="#8b5e35",builderCustomW=168,builderCustomH=126,builderReferenceProp=null,nearbyZoomValue=1,nearbyBaseImage=null,nearbySampleColors=[];
 let touchMove={up:false,down:false,left:false,right:false};
 let audioCtx=null,soundEnabled=true,seenTaunts={},renderPlayers={},lastSentState={x:null,y:null,disguise:null,flowerColor:null,disguiseOriginId:null,customKey:"",at:0},statsCommitPromise=null,survivorRevealTimer=null,survivorRevealRun=0;
 try{soundEnabled=localStorage.getItem("kkok_sound")!=="off";}catch{}
@@ -654,7 +670,11 @@ const sizes={
 };
 
 function propSize(p){
-  if(p&&p.type==="custom")return[168,126];
+  if(p&&p.type==="custom"){
+    const w=Math.max(24,Math.min(300,Number(p.customW)||168));
+    const h=Math.max(24,Math.min(260,Number(p.customH)||126));
+    return[w,h];
+  }
   const base=sizes[p.type]||[40,40];
   if(SHAPE_TEST_MODE&&!["gardenBed","board"].includes(p.type))return[base[0]*1.28,base[1]*1.28];
   return base;
@@ -1110,7 +1130,7 @@ function pushEdgeSamples(out,a,b,steps=6){
   for(let i=0;i<=steps;i++){const t=i/steps;out.push({x:a.x+(b.x-a.x)*t,y:a.y+(b.y-a.y)*t});}
 }
 function customPartPolygons(p){
-  const base=propSize({type:"custom"}),W=base[0],H=base[1],parts=Array.isArray(p.customParts)?p.customParts:[],out=[];
+  const base=propSize({type:"custom",customW:p.customW,customH:p.customH}),W=base[0],H=base[1],parts=Array.isArray(p.customParts)?p.customParts:[],out=[];
   for(const part of parts){
     const cx=Number(p.x||0)+(Number(part.x??.5)-.5)*W;
     const cy=Number(p.y||0)+(Number(part.y??.5)-.5)*H;
@@ -1338,7 +1358,7 @@ function drawWorld(){
       if(id===uid||raw.connected===false||roles[id]!=="hider"||isCaughtThisRound(id))continue;
       const p=renderPlayers[id]||raw;
       ctx.save();ctx.translate(-camera.x,-camera.y);
-      if(p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor,customParts:p.customParts,shapeBaseId:p.disguiseOriginId||null,fakeKey:id});
+      if(p.disguise)drawProp({type:p.disguise,x:p.x,y:p.y,flowerColor:p.flowerColor,customParts:p.customParts,customW:p.customW,customH:p.customH,shapeBaseId:p.disguiseOriginId||null,fakeKey:id});
       else drawCharacter(p,false);
       if(canSeeNames)drawNameLabel(p,p.name||"학생","hider");
       ctx.restore();
@@ -1357,7 +1377,7 @@ function drawWorld(){
   if(player&&(mode==="hider"||mode==="tour")){
     ctx.save();ctx.translate(-camera.x,-camera.y);
     if(player.disguise){
-      drawProp({type:player.disguise,x:player.x,y:player.y,flowerColor:player.flowerColor,customParts:player.customParts,shapeBaseId:player.disguiseOriginId||null,fakeKey:uid||"local"});
+      drawProp({type:player.disguise,x:player.x,y:player.y,flowerColor:player.flowerColor,customParts:player.customParts,customW:player.customW,customH:player.customH,shapeBaseId:player.disguiseOriginId||null,fakeKey:uid||"local"});
       if(mode==="hider"){
         ctx.strokeStyle="rgba(37,99,235,.6)";ctx.lineWidth=2;ctx.setLineDash([4,4]);
         ctx.beginPath();ctx.arc(player.x,player.y,24,0,Math.PI*2);ctx.stroke();ctx.setLineDash([]);
@@ -1707,7 +1727,7 @@ async function subscribeRoom(){
     else if(hadPlayerRecord){handleKicked();return;}
     for(const [id,p] of Object.entries(netPlayers)){
       if(!renderPlayers[id])renderPlayers[id]=Object.assign({},p,{targetX:Number(p.x||0),targetY:Number(p.y||0)});
-      else Object.assign(renderPlayers[id],{targetX:Number(p.x||0),targetY:Number(p.y||0),name:p.name,disguise:p.disguise,flowerColor:p.flowerColor,disguiseOriginId:p.disguiseOriginId,customParts:p.customParts||null,connected:p.connected});
+      else Object.assign(renderPlayers[id],{targetX:Number(p.x||0),targetY:Number(p.y||0),name:p.name,disguise:p.disguise,flowerColor:p.flowerColor,disguiseOriginId:p.disguiseOriginId,customParts:p.customParts||null,customW:p.customW||null,customH:p.customH||null,connected:p.connected});
     }
     Object.keys(renderPlayers).forEach(id=>{if(!netPlayers[id])delete renderPlayers[id];});
     updateLobby();maybeEnterRound();updateAdminPanel();
@@ -1730,7 +1750,7 @@ function maybeEnterRound(){
   roundApplied=round;huntSignalShownRound=0;huntStartSignal.style.display="none";caughtNet={};mode=assignedRole;
   roles[uid]=assignedRole;
   helpPanelOpen=false;mapVisible=!(touchCapable&&innerWidth<=760);updateGameHelp();applyGamePanels();
-  player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,facing:-Math.PI/2},netPlayers[uid]);
+  player=Object.assign({disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,customW:null,customH:null,facing:-Math.PI/2},netPlayers[uid]);
   if(!Number.isFinite(player.facing))player.facing=-Math.PI/2;
   if(mode==="seeker"&&solidAt(player.x,player.y)){
     const rescue=safeSeekerSpawn(Math.max(0,getRoundSeekerIds().indexOf(uid)));
@@ -1764,7 +1784,7 @@ async function createRoom(){
   await fb.set(fb.ref(db,base+"/hostUid"),uid);
   await fb.set(fb.ref(db,base+"/state"),{phase:"lobby",round:0,seed:Math.floor(Math.random()*4294967295),mapKey:"school1",hideSec:40,seekSec:180,createdAt:now,paused:false});
   const pr=fb.ref(db,base+"/players/"+uid);
-  await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
+  await fb.set(pr,{name,x:1200,y:650,disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,customW:null,customH:null,wantSeeker:false,ready:false,connected:true,joinedAt:now,tauntAt:0,stats:{rounds:0,survived:0,catches:0,bestSurvivalSec:0}});
   try{await fb.onDisconnect(pr).update({connected:false});}catch{}
   hadPlayerRecord=true;saveSession();await subscribeRoom();
 }
@@ -1782,7 +1802,7 @@ async function joinRoom(){
   const now=Date.now()+serverOffset,pr=fb.ref(db,base+"/players/"+uid),old=ps[uid]||{};
   await fb.set(pr,{
     name:cleanName(document.getElementById("nick").value),x:Number(old.x||1200),y:Number(old.y||650),
-    disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,wantSeeker:false,ready:false,connected:true,
+    disguise:null,flowerColor:null,disguiseOriginId:null,customParts:null,customW:null,customH:null,wantSeeker:false,ready:false,connected:true,
     joinedAt:Number(old.joinedAt||now),tauntAt:0,stats:old.stats||{rounds:0,survived:0,catches:0,bestSurvivalSec:0}
   });
   try{await fb.onDisconnect(pr).update({connected:false});}catch{}
@@ -1856,7 +1876,7 @@ async function startOnlineRound(force=false){
     updates["rooms/"+roomCode+"/roles/"+id]=r;updates["rooms/"+roomCode+"/caught/"+id]=null;updates["rooms/"+roomCode+"/searches/"+id]=r==="seeker"?(seekerQuota[id]||0):0;
     let x,y;if(r==="seeker"){const p=safeSeekerSpawn(Math.max(0,selected.indexOf(id)));x=p.x;y=p.y;}else{const p=spawnH[i%spawnH.length];x=p[0]+Math.random()*80-40;y=p[1]+Math.random()*80-40;}
     updates["rooms/"+roomCode+"/players/"+id+"/x"]=x;updates["rooms/"+roomCode+"/players/"+id+"/y"]=y;
-    updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customParts"]=null;
+    updates["rooms/"+roomCode+"/players/"+id+"/disguise"]=null;updates["rooms/"+roomCode+"/players/"+id+"/flowerColor"]=null;updates["rooms/"+roomCode+"/players/"+id+"/disguiseOriginId"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customParts"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customW"]=null;updates["rooms/"+roomCode+"/players/"+id+"/customH"]=null;
     updates["rooms/"+roomCode+"/players/"+id+"/ready"]=false;updates["rooms/"+roomCode+"/players/"+id+"/tauntAt"]=0;
   });
   updates["rooms/"+roomCode+"/state"]={phase:"hide",round,seed,mapKey,hideSec:times.hideSec,seekSec:times.seekSec,seekerIds:selected,seekerCount,revealEndsAt:revealEnd,hideEndsAt:hideEnd,seekEndsAt:seekEnd,paused:false,pausedAt:null};
@@ -1865,12 +1885,12 @@ async function startOnlineRound(force=false){
 async function syncPlayerNow(force=true){
   if(!online||!uid||!player||!roomCode||mode==="observer")return;
   const now=performance.now(),x=Math.round(player.x*10)/10,y=Math.round(player.y*10)/10;
-  const customKey=JSON.stringify(player.customParts||null);
+  const customKey=JSON.stringify({parts:player.customParts||null,w:player.customW||null,h:player.customH||null});
   const changedVisual=lastSentState.disguise!==(player.disguise||null)||lastSentState.flowerColor!==(player.flowerColor||null)||lastSentState.disguiseOriginId!==(player.disguiseOriginId||null)||lastSentState.customKey!==customKey;
   const moved=lastSentState.x==null?999:Math.hypot(x-lastSentState.x,y-lastSentState.y);
   if(!force&&!changedVisual&&moved<6&&now-lastSentState.at<1500)return;
   const payload={x,y,disguise:player.disguise||null,flowerColor:player.flowerColor||null,disguiseOriginId:player.disguiseOriginId||null};
-  if(force||changedVisual)payload.customParts=player.customParts||null;
+  if(force||changedVisual){payload.customParts=player.customParts||null;payload.customW=player.customW||null;payload.customH=player.customH||null;}
   await fb.update(fb.ref(db,"rooms/"+roomCode+"/players/"+uid),payload);
   lastSentState={x,y,disguise:payload.disguise,flowerColor:payload.flowerColor,disguiseOriginId:payload.disguiseOriginId,customKey,at:now};
   if(netPlayers[uid])Object.assign(netPlayers[uid],payload);
@@ -2021,7 +2041,7 @@ builderColorPicker.addEventListener("input",()=>setBuilderColor(builderColorPick
 function partStrokeScale(part){
   const raw=part&&part.sw;
   if(!Number.isFinite(Number(raw)))return .024;
-  return Math.max(.006,Math.min(.06,Number(raw)));
+  return Math.max(.004,Math.min(.06,Number(raw)));
 }
 function drawBuilderPart(g,part,W,H,selected=false){
   const x=Number(part.x??.5)*W,y=Number(part.y??.5)*H,w=Math.max(10,Number(part.w||.2)*W),h=Math.max(10,Number(part.h||.2)*H);
@@ -2031,7 +2051,8 @@ function drawBuilderPart(g,part,W,H,selected=false){
   g.fill();
   if(sw>0){
     g.strokeStyle="rgba(15,23,42,.55)";
-    g.lineWidth=Math.max(.7,Math.min(W,H)*sw);
+    const worldMin=Math.max(1,Math.min(builderCustomW,builderCustomH)),previewScale=Math.min(W/builderCustomW,H/builderCustomH);
+    g.lineWidth=Math.max(.45,worldMin*sw*previewScale);
     g.stroke();
   }
   if(selected){
@@ -2043,6 +2064,52 @@ function drawBuilderPart(g,part,W,H,selected=false){
   g.restore();
 }
 
+function currentBuilderReference(){
+  if(!player)return null;
+  const near=nearestProp(player,260);
+  if(near)return near;
+  let best=null,bd=Infinity;
+  for(const p of props){
+    if(["gardenBed","board"].includes(p.type))continue;
+    const d=Math.hypot(player.x-p.x,player.y-p.y);
+    if(d<bd){bd=d;best=p;}
+  }
+  return bd<=420?best:null;
+}
+function updateBuilderReferenceInfo(){
+  builderReferenceProp=currentBuilderReference();
+  if(builderReferenceProp){
+    const rs=propSize(builderReferenceProp);
+    builderReferenceStatus.textContent="🎯 근처 기준 사물: "+builderReferenceProp.type+" · 실제 크기 "+Math.round(rs[0])+" × "+Math.round(rs[1]);
+  }else{
+    builderReferenceStatus.textContent="🎯 가까운 배경 사물 옆으로 이동한 뒤 다시 열면 정확히 맞출 수 있어요.";
+  }
+  builderSizeStatus.textContent="현재 전체 크기 "+Math.round(builderCustomW)+" × "+Math.round(builderCustomH);
+}
+function setBuilderOverallSize(w,h){
+  builderCustomW=Math.max(24,Math.min(300,Number(w)||168));
+  builderCustomH=Math.max(24,Math.min(260,Number(h)||126));
+  updateBuilderReferenceInfo();drawBuilder();
+}
+function matchBuilderSizeToReference(){
+  updateBuilderReferenceInfo();
+  if(!builderReferenceProp){say("가까운 배경 사물을 찾지 못했어요. 원하는 사물 옆에서 다시 시도해 주세요.");return;}
+  const rs=propSize(builderReferenceProp);
+  setBuilderOverallSize(rs[0],rs[1]);
+  say("📐 근처 사물의 실제 크기 "+Math.round(rs[0])+"×"+Math.round(rs[1])+"로 맞췄어요.");
+}
+function matchBuilderStrokeToReference(){
+  updateBuilderReferenceInfo();
+  if(!builderReferenceProp){say("가까운 배경 사물을 찾지 못했어요.");return;}
+  if(!builderParts.length){say("먼저 도형을 하나 이상 만들어 주세요.");return;}
+  const rs=propSize(builderReferenceProp);
+  const targetPx=Math.max(1,Math.min(rs[0],rs[1])*.024);
+  const customMin=Math.max(1,Math.min(builderCustomW,builderCustomH));
+  const sw=Math.max(.004,Math.min(.06,targetPx/customMin));
+  builderParts.forEach(p=>p.sw=sw);
+  updateBuilderStrokeButtons();drawBuilder();
+  say("🎯 근처 사물과 비슷한 실제 선 굵기로 전체 도형을 맞췄어요.");
+}
 function drawBuilder(){
   const W=builderCanvas.width,H=builderCanvas.height,theme=MAP_THEMES[currentMapKey]||MAP_THEMES.school1;
   bctx.clearRect(0,0,W,H);bctx.fillStyle=theme.bg;bctx.fillRect(0,0,W,H);
@@ -2052,6 +2119,7 @@ function drawBuilder(){
   bctx.fillStyle="rgba(255,255,255,.75)";bctx.font="700 12px system-ui";bctx.fillText("도형을 드래그해서 사물 모양을 만드세요",12,20);
   builderParts.forEach((p,i)=>drawBuilderPart(bctx,p,W,H,i===builderSelected));
   builderCount.textContent="도형 "+builderParts.length+" / 20";
+  builderSizeStatus.textContent="현재 전체 크기 "+Math.round(builderCustomW)+" × "+Math.round(builderCustomH);
   updateBuilderStrokeButtons();
 }
 function addBuilderPart(type){
@@ -2099,6 +2167,12 @@ function updateBuilderStrokeButtons(){
   const sw=builderSelected>=0&&builderParts[builderSelected]?partStrokeScale(builderParts[builderSelected]):.024;
   document.querySelectorAll("[data-builder-stroke]").forEach(b=>b.classList.toggle("on",Math.abs(Number(b.dataset.builderStroke)-sw)<.0005));
 }
+builderMatchStroke.onclick=matchBuilderStrokeToReference;
+builderMatchSize.onclick=matchBuilderSizeToReference;
+document.querySelectorAll("[data-builder-size-scale]").forEach(b=>b.onclick=()=>{
+  const k=Number(b.dataset.builderSizeScale)||1;
+  setBuilderOverallSize(builderCustomW*k,builderCustomH*k);
+});
 document.querySelectorAll("[data-builder-stroke]").forEach(b=>b.onclick=()=>{
   if(builderSelected<0||!builderParts[builderSelected]){say("먼저 도형을 선택해 주세요.");return;}
   builderParts[builderSelected].sw=Number(b.dataset.builderStroke);
@@ -2198,6 +2272,9 @@ function openPropBuilder(){
   if(online&&(roomState.paused||displayGameNow()<roleRevealUntil)){say("잠시 후 만들 수 있어요.");return;}
   if(online&&mode==="hider"&&displayGameNow()>=hideUntil){say("숨는 시간이 끝나서 이제 사물을 수정할 수 없어요.");return;}
   builderParts=player.disguise==="custom"&&Array.isArray(player.customParts)?JSON.parse(JSON.stringify(player.customParts)):[];
+  builderCustomW=Math.max(24,Math.min(300,Number(player.customW)||168));
+  builderCustomH=Math.max(24,Math.min(260,Number(player.customH)||126));
+  updateBuilderReferenceInfo();
   builderSelected=builderParts.length?builderParts.length-1:-1;
   builderColor=builderParts[builderSelected]?.c||builderPalette()[0];builderColorPicker.value=hexNorm(builderColor)||"#8b5e35";
   // 오버레이를 열기 직전에 실제 게임 화면을 한 번 갱신해 주변 사물을 최신 상태로 캡처합니다.
@@ -2212,6 +2289,7 @@ function finalizeBuilderAtHideEnd(now){
   if(builderParts.length>=2){
     player.disguise="custom";
     player.customParts=JSON.parse(JSON.stringify(builderParts));
+    player.customW=builderCustomW;player.customH=builderCustomH;
     player.flowerColor=null;player.disguiseOriginId=null;
     closePropBuilder();
     say("⏰ 숨는 시간이 끝났습니다. 지금 만든 모습으로 자동 확정됐어요!");
@@ -2223,11 +2301,11 @@ function finalizeBuilderAtHideEnd(now){
 }
 async function applyBuiltDisguise(){
   if(builderParts.length<2){say("도형을 2개 이상 조합해 주세요.");return;}
-  player.disguise="custom";player.customParts=JSON.parse(JSON.stringify(builderParts));player.flowerColor=null;player.disguiseOriginId=null;
+  player.disguise="custom";player.customParts=JSON.parse(JSON.stringify(builderParts));player.customW=builderCustomW;player.customH=builderCustomH;player.flowerColor=null;player.disguiseOriginId=null;
   closePropBuilder();say("🧩 직접 만든 사물로 변신했습니다!");if(online)await syncPlayerNow(true);
 }
 async function removeBuiltDisguise(){
-  player.disguise=null;player.customParts=null;player.flowerColor=null;player.disguiseOriginId=null;
+  player.disguise=null;player.customParts=null;player.customW=null;player.customH=null;player.flowerColor=null;player.disguiseOriginId=null;
   closePropBuilder();say("변신을 해제했습니다.");if(online)await syncPlayerNow(true);
 }
 document.getElementById("builderDone").onclick=applyBuiltDisguise;
@@ -2555,7 +2633,7 @@ function enterObserver(){
   if(online)huntSignalShownRound=Number(roomState.round||huntSignalShownRound||0);
   playSfx("catch");
   mode="observer";
-  if(player){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;player.customParts=null;}
+  if(player){player.disguise=null;player.flowerColor=null;player.disguiseOriginId=null;player.customParts=null;player.customW=null;player.customH=null;}
   roleEl.textContent="👀 옵저버";
   roleEl.className="pill";
   proximityEl.style.display="none";
